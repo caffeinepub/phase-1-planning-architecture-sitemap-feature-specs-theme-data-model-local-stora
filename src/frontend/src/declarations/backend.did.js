@@ -8,10 +8,46 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const _CaffeineStorageCreateCertificateResult = IDL.Record({
+  'method' : IDL.Text,
+  'blob_hash' : IDL.Text,
+});
+export const _CaffeineStorageRefillInformation = IDL.Record({
+  'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+});
+export const _CaffeineStorageRefillResult = IDL.Record({
+  'success' : IDL.Opt(IDL.Bool),
+  'topped_up_amount' : IDL.Opt(IDL.Nat),
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
   'guest' : IDL.Null,
+});
+export const PortfolioCategory = IDL.Variant({
+  'illustration' : IDL.Null,
+  'other' : IDL.Text,
+  'digitalArt' : IDL.Null,
+  'painting' : IDL.Null,
+  'sculpture' : IDL.Null,
+  'typography' : IDL.Null,
+  'photography' : IDL.Null,
+});
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
+export const Testimony = IDL.Record({
+  'id' : IDL.Nat,
+  'content' : IDL.Text,
+  'video' : IDL.Opt(ExternalBlob),
+  'author' : IDL.Text,
+  'approved' : IDL.Bool,
+  'rating' : IDL.Opt(IDL.Nat),
+  'photo' : IDL.Opt(ExternalBlob),
+});
+export const Coupon = IDL.Record({
+  'id' : IDL.Nat,
+  'valid' : IDL.Bool,
+  'code' : IDL.Text,
+  'discount' : IDL.Nat,
 });
 export const Status = IDL.Variant({
   'open' : IDL.Null,
@@ -39,13 +75,30 @@ export const Order = IDL.Record({
   'id' : IDL.Nat,
   'productIds' : IDL.Vec(IDL.Nat),
   'userId' : IDL.Principal,
+  'discountAmount' : IDL.Nat,
   'totalAmount' : IDL.Nat,
+  'appliedCouponCode' : IDL.Opt(IDL.Text),
+});
+export const Portfolio = IDL.Record({
+  'id' : IDL.Nat,
+  'title' : IDL.Text,
+  'description' : IDL.Text,
+  'artworks' : IDL.Vec(IDL.Nat),
+  'category' : PortfolioCategory,
 });
 export const Product = IDL.Record({
   'id' : IDL.Nat,
+  'isInStock' : IDL.Bool,
   'name' : IDL.Text,
   'description' : IDL.Text,
+  'availability' : IDL.Variant({
+    'dropOff' : IDL.Null,
+    'pickup' : IDL.Null,
+    'delivery' : IDL.Null,
+  }),
   'stock' : IDL.Nat,
+  'shortDescription' : IDL.Text,
+  'image' : ExternalBlob,
   'price' : IDL.Nat,
 });
 export const UserProfile = IDL.Record({
@@ -71,6 +124,12 @@ export const PageFeatures = IDL.Record({
   'features' : IDL.Vec(Feature),
   'page' : IDL.Text,
 });
+export const ExpandedProduct = IDL.Record({
+  'id' : IDL.Nat,
+  'sharable' : IDL.Bool,
+  'productType' : IDL.Text,
+  'viewCount' : IDL.Nat,
+});
 export const SavedArtifact = IDL.Record({
   'userId' : IDL.Principal,
   'productId' : IDL.Nat,
@@ -86,42 +145,155 @@ export const HealthStatus = IDL.Record({
   'build' : IDL.Text,
   'deployedVersion' : IDL.Text,
 });
+export const CouponValidationResult = IDL.Record({
+  'valid' : IDL.Bool,
+  'message' : IDL.Text,
+  'discount' : IDL.Nat,
+});
 
 export const idlService = IDL.Service({
+  '_caffeineStorageBlobIsLive' : IDL.Func(
+      [IDL.Vec(IDL.Nat8)],
+      [IDL.Bool],
+      ['query'],
+    ),
+  '_caffeineStorageBlobsToDelete' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      ['query'],
+    ),
+  '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      [],
+      [],
+    ),
+  '_caffeineStorageCreateCertificate' : IDL.Func(
+      [IDL.Text],
+      [_CaffeineStorageCreateCertificateResult],
+      [],
+    ),
+  '_caffeineStorageRefillCashier' : IDL.Func(
+      [IDL.Opt(_CaffeineStorageRefillInformation)],
+      [_CaffeineStorageRefillResult],
+      [],
+    ),
+  '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addToCart' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
   'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'assignGuildOrder' : IDL.Func([IDL.Nat, IDL.Principal], [], []),
-  'checkoutCart' : IDL.Func([], [IDL.Nat], []),
+  'checkoutCart' : IDL.Func([IDL.Opt(IDL.Text)], [IDL.Nat], []),
   'completeFeedback' : IDL.Func([IDL.Nat, IDL.Principal, IDL.Text], [], []),
+  'createCoupon' : IDL.Func([IDL.Text, IDL.Nat, IDL.Bool], [IDL.Nat], []),
   'createFeedback' : IDL.Func([IDL.Principal, IDL.Text], [IDL.Nat], []),
   'createGuildOrder' : IDL.Func([IDL.Text, IDL.Text, IDL.Nat], [IDL.Nat], []),
-  'createOrder' : IDL.Func([IDL.Vec(IDL.Nat), IDL.Nat], [IDL.Nat], []),
+  'createOrder' : IDL.Func(
+      [IDL.Vec(IDL.Nat), IDL.Nat, IDL.Opt(IDL.Text)],
+      [IDL.Nat],
+      [],
+    ),
+  'createPortfolio' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Vec(IDL.Nat), PortfolioCategory],
+      [IDL.Nat],
+      [],
+    ),
   'createProduct' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Nat, IDL.Nat],
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Nat,
+        ExternalBlob,
+        IDL.Bool,
+        IDL.Variant({
+          'dropOff' : IDL.Null,
+          'pickup' : IDL.Null,
+          'delivery' : IDL.Null,
+        }),
+        IDL.Text,
+      ],
+      [IDL.Nat],
+      [],
+    ),
+  'createTestimony' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Opt(IDL.Nat),
+        IDL.Opt(ExternalBlob),
+        IDL.Opt(ExternalBlob),
+      ],
       [IDL.Nat],
       [],
     ),
   'createUser' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
-  'editProduct' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text, IDL.Nat], [], []),
+  'editProduct' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        ExternalBlob,
+        IDL.Bool,
+        IDL.Variant({
+          'dropOff' : IDL.Null,
+          'pickup' : IDL.Null,
+          'delivery' : IDL.Null,
+        }),
+        IDL.Text,
+      ],
+      [],
+      [],
+    ),
+  'getAllApprovedTestimonies' : IDL.Func([], [IDL.Vec(Testimony)], ['query']),
+  'getAllCoupons' : IDL.Func([], [IDL.Vec(Coupon)], ['query']),
   'getAllFeedback' : IDL.Func([], [IDL.Vec(Feedback)], ['query']),
   'getAllGuildOrders' : IDL.Func([], [IDL.Vec(GuildOrder)], ['query']),
   'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
+  'getAllPortfolios' : IDL.Func([], [IDL.Vec(Portfolio)], ['query']),
   'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
+  'getAllTestimonies' : IDL.Func([], [IDL.Vec(Testimony)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCart' : IDL.Func([], [IDL.Vec(CartItem)], ['query']),
+  'getCategoryName' : IDL.Func([PortfolioCategory], [IDL.Text], ['query']),
   'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getFeatureSpecification' : IDL.Func([], [IDL.Vec(PageFeatures)], ['query']),
+  'getFilteredShopProducts' : IDL.Func(
+      [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))],
+      [IDL.Vec(ExpandedProduct)],
+      ['query'],
+    ),
   'getGuildOrder' : IDL.Func([IDL.Nat], [GuildOrder], ['query']),
   'getMyOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
   'getMySavedArtifacts' : IDL.Func([], [IDL.Vec(SavedArtifact)], ['query']),
   'getOrder' : IDL.Func([IDL.Nat], [Order], ['query']),
+  'getPortfolioById' : IDL.Func([IDL.Nat], [IDL.Opt(Portfolio)], ['query']),
+  'getPortfolioCategories' : IDL.Func(
+      [],
+      [IDL.Vec(PortfolioCategory)],
+      ['query'],
+    ),
+  'getPortfoliosByCategory' : IDL.Func(
+      [PortfolioCategory],
+      [IDL.Vec(Portfolio)],
+      ['query'],
+    ),
   'getProduct' : IDL.Func([IDL.Nat], [Product], ['query']),
+  'getProductsByType' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(ExpandedProduct)],
+      ['query'],
+    ),
   'getSavedArtifacts' : IDL.Func(
       [IDL.Principal],
       [IDL.Vec(SavedArtifact)],
+      ['query'],
+    ),
+  'getTestimoniesByRating' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(Testimony)],
       ['query'],
     ),
   'getUser' : IDL.Func([IDL.Nat], [User], ['query']),
@@ -132,24 +304,82 @@ export const idlService = IDL.Service({
     ),
   'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'isCallerOwner' : IDL.Func([], [IDL.Bool], ['query']),
   'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
   'removeFromCart' : IDL.Func([IDL.Nat], [], []),
   'removeSavedArtifact' : IDL.Func([IDL.Nat], [], []),
+  'removeTestimony' : IDL.Func([IDL.Nat], [], []),
   'reviewFeedback' : IDL.Func([IDL.Nat, IDL.Principal, IDL.Text], [], []),
   'saveArtifact' : IDL.Func([IDL.Nat], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'updateCoupon' : IDL.Func([IDL.Nat, IDL.Text, IDL.Nat, IDL.Bool], [], []),
   'updateGuildOrderStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+  'updatePortfolio' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Text, IDL.Vec(IDL.Nat), PortfolioCategory],
+      [],
+      [],
+    ),
   'updateProductStock' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
+  'updateTestimony' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Bool,
+        IDL.Opt(IDL.Nat),
+        IDL.Opt(ExternalBlob),
+        IDL.Opt(ExternalBlob),
+      ],
+      [],
+      [],
+    ),
+  'validateCoupon' : IDL.Func([IDL.Text], [CouponValidationResult], ['query']),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const _CaffeineStorageCreateCertificateResult = IDL.Record({
+    'method' : IDL.Text,
+    'blob_hash' : IDL.Text,
+  });
+  const _CaffeineStorageRefillInformation = IDL.Record({
+    'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const _CaffeineStorageRefillResult = IDL.Record({
+    'success' : IDL.Opt(IDL.Bool),
+    'topped_up_amount' : IDL.Opt(IDL.Nat),
+  });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const PortfolioCategory = IDL.Variant({
+    'illustration' : IDL.Null,
+    'other' : IDL.Text,
+    'digitalArt' : IDL.Null,
+    'painting' : IDL.Null,
+    'sculpture' : IDL.Null,
+    'typography' : IDL.Null,
+    'photography' : IDL.Null,
+  });
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
+  const Testimony = IDL.Record({
+    'id' : IDL.Nat,
+    'content' : IDL.Text,
+    'video' : IDL.Opt(ExternalBlob),
+    'author' : IDL.Text,
+    'approved' : IDL.Bool,
+    'rating' : IDL.Opt(IDL.Nat),
+    'photo' : IDL.Opt(ExternalBlob),
+  });
+  const Coupon = IDL.Record({
+    'id' : IDL.Nat,
+    'valid' : IDL.Bool,
+    'code' : IDL.Text,
+    'discount' : IDL.Nat,
   });
   const Status = IDL.Variant({
     'open' : IDL.Null,
@@ -180,13 +410,30 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat,
     'productIds' : IDL.Vec(IDL.Nat),
     'userId' : IDL.Principal,
+    'discountAmount' : IDL.Nat,
     'totalAmount' : IDL.Nat,
+    'appliedCouponCode' : IDL.Opt(IDL.Text),
+  });
+  const Portfolio = IDL.Record({
+    'id' : IDL.Nat,
+    'title' : IDL.Text,
+    'description' : IDL.Text,
+    'artworks' : IDL.Vec(IDL.Nat),
+    'category' : PortfolioCategory,
   });
   const Product = IDL.Record({
     'id' : IDL.Nat,
+    'isInStock' : IDL.Bool,
     'name' : IDL.Text,
     'description' : IDL.Text,
+    'availability' : IDL.Variant({
+      'dropOff' : IDL.Null,
+      'pickup' : IDL.Null,
+      'delivery' : IDL.Null,
+    }),
     'stock' : IDL.Nat,
+    'shortDescription' : IDL.Text,
+    'image' : ExternalBlob,
     'price' : IDL.Nat,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
@@ -206,6 +453,12 @@ export const idlFactory = ({ IDL }) => {
     'features' : IDL.Vec(Feature),
     'page' : IDL.Text,
   });
+  const ExpandedProduct = IDL.Record({
+    'id' : IDL.Nat,
+    'sharable' : IDL.Bool,
+    'productType' : IDL.Text,
+    'viewCount' : IDL.Nat,
+  });
   const SavedArtifact = IDL.Record({
     'userId' : IDL.Principal,
     'productId' : IDL.Nat,
@@ -221,46 +474,159 @@ export const idlFactory = ({ IDL }) => {
     'build' : IDL.Text,
     'deployedVersion' : IDL.Text,
   });
+  const CouponValidationResult = IDL.Record({
+    'valid' : IDL.Bool,
+    'message' : IDL.Text,
+    'discount' : IDL.Nat,
+  });
   
   return IDL.Service({
+    '_caffeineStorageBlobIsLive' : IDL.Func(
+        [IDL.Vec(IDL.Nat8)],
+        [IDL.Bool],
+        ['query'],
+      ),
+    '_caffeineStorageBlobsToDelete' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        ['query'],
+      ),
+    '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        [],
+        [],
+      ),
+    '_caffeineStorageCreateCertificate' : IDL.Func(
+        [IDL.Text],
+        [_CaffeineStorageCreateCertificateResult],
+        [],
+      ),
+    '_caffeineStorageRefillCashier' : IDL.Func(
+        [IDL.Opt(_CaffeineStorageRefillInformation)],
+        [_CaffeineStorageRefillResult],
+        [],
+      ),
+    '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addToCart' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
     'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'assignGuildOrder' : IDL.Func([IDL.Nat, IDL.Principal], [], []),
-    'checkoutCart' : IDL.Func([], [IDL.Nat], []),
+    'checkoutCart' : IDL.Func([IDL.Opt(IDL.Text)], [IDL.Nat], []),
     'completeFeedback' : IDL.Func([IDL.Nat, IDL.Principal, IDL.Text], [], []),
+    'createCoupon' : IDL.Func([IDL.Text, IDL.Nat, IDL.Bool], [IDL.Nat], []),
     'createFeedback' : IDL.Func([IDL.Principal, IDL.Text], [IDL.Nat], []),
     'createGuildOrder' : IDL.Func([IDL.Text, IDL.Text, IDL.Nat], [IDL.Nat], []),
-    'createOrder' : IDL.Func([IDL.Vec(IDL.Nat), IDL.Nat], [IDL.Nat], []),
+    'createOrder' : IDL.Func(
+        [IDL.Vec(IDL.Nat), IDL.Nat, IDL.Opt(IDL.Text)],
+        [IDL.Nat],
+        [],
+      ),
+    'createPortfolio' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Vec(IDL.Nat), PortfolioCategory],
+        [IDL.Nat],
+        [],
+      ),
     'createProduct' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Nat, IDL.Nat],
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Nat,
+          ExternalBlob,
+          IDL.Bool,
+          IDL.Variant({
+            'dropOff' : IDL.Null,
+            'pickup' : IDL.Null,
+            'delivery' : IDL.Null,
+          }),
+          IDL.Text,
+        ],
+        [IDL.Nat],
+        [],
+      ),
+    'createTestimony' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Opt(IDL.Nat),
+          IDL.Opt(ExternalBlob),
+          IDL.Opt(ExternalBlob),
+        ],
         [IDL.Nat],
         [],
       ),
     'createUser' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
-    'editProduct' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text, IDL.Nat], [], []),
+    'editProduct' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          ExternalBlob,
+          IDL.Bool,
+          IDL.Variant({
+            'dropOff' : IDL.Null,
+            'pickup' : IDL.Null,
+            'delivery' : IDL.Null,
+          }),
+          IDL.Text,
+        ],
+        [],
+        [],
+      ),
+    'getAllApprovedTestimonies' : IDL.Func([], [IDL.Vec(Testimony)], ['query']),
+    'getAllCoupons' : IDL.Func([], [IDL.Vec(Coupon)], ['query']),
     'getAllFeedback' : IDL.Func([], [IDL.Vec(Feedback)], ['query']),
     'getAllGuildOrders' : IDL.Func([], [IDL.Vec(GuildOrder)], ['query']),
     'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
+    'getAllPortfolios' : IDL.Func([], [IDL.Vec(Portfolio)], ['query']),
     'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
+    'getAllTestimonies' : IDL.Func([], [IDL.Vec(Testimony)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCart' : IDL.Func([], [IDL.Vec(CartItem)], ['query']),
+    'getCategoryName' : IDL.Func([PortfolioCategory], [IDL.Text], ['query']),
     'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getFeatureSpecification' : IDL.Func(
         [],
         [IDL.Vec(PageFeatures)],
         ['query'],
       ),
+    'getFilteredShopProducts' : IDL.Func(
+        [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))],
+        [IDL.Vec(ExpandedProduct)],
+        ['query'],
+      ),
     'getGuildOrder' : IDL.Func([IDL.Nat], [GuildOrder], ['query']),
     'getMyOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
     'getMySavedArtifacts' : IDL.Func([], [IDL.Vec(SavedArtifact)], ['query']),
     'getOrder' : IDL.Func([IDL.Nat], [Order], ['query']),
+    'getPortfolioById' : IDL.Func([IDL.Nat], [IDL.Opt(Portfolio)], ['query']),
+    'getPortfolioCategories' : IDL.Func(
+        [],
+        [IDL.Vec(PortfolioCategory)],
+        ['query'],
+      ),
+    'getPortfoliosByCategory' : IDL.Func(
+        [PortfolioCategory],
+        [IDL.Vec(Portfolio)],
+        ['query'],
+      ),
     'getProduct' : IDL.Func([IDL.Nat], [Product], ['query']),
+    'getProductsByType' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(ExpandedProduct)],
+        ['query'],
+      ),
     'getSavedArtifacts' : IDL.Func(
         [IDL.Principal],
         [IDL.Vec(SavedArtifact)],
+        ['query'],
+      ),
+    'getTestimoniesByRating' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(Testimony)],
         ['query'],
       ),
     'getUser' : IDL.Func([IDL.Nat], [User], ['query']),
@@ -271,15 +637,41 @@ export const idlFactory = ({ IDL }) => {
       ),
     'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'isCallerOwner' : IDL.Func([], [IDL.Bool], ['query']),
     'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
     'removeFromCart' : IDL.Func([IDL.Nat], [], []),
     'removeSavedArtifact' : IDL.Func([IDL.Nat], [], []),
+    'removeTestimony' : IDL.Func([IDL.Nat], [], []),
     'reviewFeedback' : IDL.Func([IDL.Nat, IDL.Principal, IDL.Text], [], []),
     'saveArtifact' : IDL.Func([IDL.Nat], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'updateCoupon' : IDL.Func([IDL.Nat, IDL.Text, IDL.Nat, IDL.Bool], [], []),
     'updateGuildOrderStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+    'updatePortfolio' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Text, IDL.Vec(IDL.Nat), PortfolioCategory],
+        [],
+        [],
+      ),
     'updateProductStock' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
+    'updateTestimony' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Bool,
+          IDL.Opt(IDL.Nat),
+          IDL.Opt(ExternalBlob),
+          IDL.Opt(ExternalBlob),
+        ],
+        [],
+        [],
+      ),
+    'validateCoupon' : IDL.Func(
+        [IDL.Text],
+        [CouponValidationResult],
+        ['query'],
+      ),
   });
 };
 

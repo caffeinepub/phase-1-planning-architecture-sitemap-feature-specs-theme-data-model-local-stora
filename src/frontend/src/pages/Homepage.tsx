@@ -8,6 +8,8 @@ import ParallaxLayer from '../components/effects/ParallaxLayer';
 import FeaturedCarousel from '../components/home/FeaturedCarousel';
 import QuickLinksGrid from '../components/home/QuickLinksGrid';
 import Announcements from '../components/home/Announcements';
+import PortfolioWidgetSection from '../components/portfolio/PortfolioWidgetSection';
+import TestimoniesWidgetSection from '../components/testimonies/TestimoniesWidgetSection';
 
 export default function Homepage() {
   return (
@@ -65,6 +67,12 @@ export default function Homepage() {
           <QuickLinksGrid />
         </section>
       </FadeInSection>
+
+      {/* Portfolio Widget */}
+      <PortfolioWidgetSection />
+
+      {/* Testimonies Widget */}
+      <TestimoniesWidgetSection />
 
       {/* Features Grid */}
       <FadeInSection delay={300}>

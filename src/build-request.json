@@ -1,123 +1,226 @@
 {
   "kind": "build_request",
-  "title": "Update About page content for “The Creator of Side Quests” and enable randomized quotes on all pages (including About)",
+  "title": "Phase 3: Portfolio/Testimonies widgets + enhanced Shop product creation + public testimony submissions with moderation",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-53",
-      "text": "Replace the existing About page content (/about) with the user-provided “The Creator of Side Quests” About page copy, ensuring the page is fully website-ready, multi-paragraph, polished, and keeps the provided narrative text verbatim while integrating it naturally into the page flow.",
+      "id": "REQ-1",
+      "text": "Add a Portfolio widget section to the Homepage and Services pages that previews Portfolio content and includes a clear link/button to the full Portfolio page.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7",
-          "msg-8"
+          "msg-6"
         ],
         "quotes": [
-          "Create a polished, website-ready About page and a collection of quotes for “The Creator of Side Quests.”",
-          "Include the following About page content verbatim and integrated naturally into the page:"
+          "Add a **Portfolio widget** ... to the Homepage and Services pages, each linking to their own full **Portfolio page**"
         ]
       },
       "acceptanceCriteria": [
-        "The /about route renders with a page title and description aligned to “The Creator of Side Quests” (no remaining “Arcane Artifacts” branding on the About page).",
-        "The About page contains the provided narrative block exactly as written (including punctuation and emojis) and is presented as readable, multi-paragraph website copy.",
-        "The Mission Statement and Vision Statement appear clearly labeled on the About page and match the user-provided wording exactly.",
-        "All user-facing text added/changed for this requirement is in English."
+        "Homepage shows a Portfolio widget section with at least a short preview/teaser and a working link to /portfolio.",
+        "Services page shows a Portfolio widget section with at least a short preview/teaser and a working link to /portfolio.",
+        "Widget layout is responsive and consistent with the existing site styling (cards, section-spacing, FadeInSection usage)."
       ]
     },
     {
-      "id": "REQ-54",
-      "text": "Update the centralized quotes data source to contain exactly the user-provided quotes (exact wording and punctuation), and ensure the random selection utility returns 2–3 non-repeating quotes per page render/load.",
+      "id": "REQ-2",
+      "text": "Add a Testimonies widget section to the Homepage and Services pages that previews Testimonies content and includes a clear link/button to the full Testimonies page.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-6"
         ],
         "quotes": [
-          "Quotes to randomly appear across the website, 2–3 per page, including the About page:",
-          "“Side quests accepted, main quests optional.”",
-          "“Where chaotic creativity meets practical solutions.”",
-          "“If you can dream it, we can create it.”",
-          "“Hobbies turned into a chaotic dream job.”",
-          "“Crafting magic from chaos, one idea at a time.”",
-          "“ADHD energy, obsessive focus, infinite creativity.”",
-          "“Chaos is a toolbox, not a problem.”",
-          "“Every hyperfixation has a purpose, every obsession can become art.”",
-          "“Neurodivergent thinking fuels innovation and wonder.”",
-          "“Turning messy ideas into magical results.”"
+          "Add a ... **Testimonies widget** to the Homepage and Services pages, each linking to their own full ... **Testimonies page**."
         ]
       },
       "acceptanceCriteria": [
-        "The quotes data source includes all 10 quotes exactly as provided and does not alter quote text.",
-        "The random quote selection returns either 2 or 3 quotes (configurable or deterministic) and never repeats the same quote within the same page render.",
-        "No runtime errors occur when quote selection is invoked across routes."
+        "Homepage shows a Testimonies widget section with at least a short preview/teaser and a working link to /testimonies.",
+        "Services page shows a Testimonies widget section with at least a short preview/teaser and a working link to /testimonies.",
+        "Widgets do not break existing Homepage sections (hero, featured carousel, quick links, announcements)."
       ]
     },
     {
-      "id": "REQ-55",
-      "text": "Change the randomized quotes display behavior so that randomized quotes render on every page including the About page, and ensure the presentation is visually appealing (pull-quote/card style) and does not overwhelm the reader.",
+      "id": "REQ-3",
+      "text": "Ensure the main navigation includes links to Shop, Portfolio, and Testimonies, visible in the top-right desktop navigation and within the mobile hamburger menu.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-6"
         ],
         "quotes": [
-          "Quotes to randomly appear across the website, 2–3 per page, including the About page",
-          "Quotes should appear naturally in the text or highlighted as small pull-quotes."
+          "The **Shop page, Portfolio page, and Testimonies page** must all be accessible from the main navigation menu, appearing in the **top-right navigation on desktop** and inside the **hamburger menu on mobile devices**."
         ]
       },
       "acceptanceCriteria": [
-        "Randomized quotes are visible on /about as well as all other existing routes (/, /services, /shop, /dashboard, /contact, /blog, /faq, /terms, /privacy, /admin).",
-        "The quotes component styling remains consistent with the existing site theme and uses an unobtrusive pull-quote/card presentation.",
-        "Quotes do not cause layout shift or overflow issues on mobile widths."
+        "Desktop header navigation shows working links for Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) in the top-right link cluster.",
+        "Mobile hamburger menu shows the same three links and they navigate correctly.",
+        "Navigation behavior remains unchanged for existing links (Home, About, Services, Dashboard, Contact)."
       ]
     },
     {
-      "id": "REQ-56",
-      "text": "Resolve the prior build/deploy failure by ensuring the project builds successfully (typecheck + production build) after the About and quotes changes, without modifying frontend immutable paths.",
+      "id": "REQ-4",
+      "text": "Extend the Product data model and APIs to support: a product image, custom price, stock status (in stock / out of stock), availability (delivery / pickup / drop-off), and a short description; update product creation so these fields are persisted and returned by shop queries.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "In the **Admin Dashboard → Create Product**, allow admins to upload a product image, set a custom price, choose stock status (in stock / out of stock), select availability (delivery, pickup, or drop-off), and write a short description."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend Product representation supports storing and returning: image (at least one image), price, stock status, availability option, and short description.",
+        "Admin-only create product call persists all provided fields.",
+        "Existing getAllProducts (or equivalent shop listing) returns the new fields to the frontend so the Shop page can render them.",
+        "Access control remains enforced: only admins can create products."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Update Admin Dashboard “Create Product” UI to include product image upload, price, stock status toggle/select (in stock / out of stock), availability select (delivery / pickup / drop-off), and short description; submitting should publish the product so it appears on the public Shop page immediately after creation.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-2",
-          "msg-3"
+          "msg-6"
         ],
         "quotes": [
-          "Deployment encountered an error",
-          "Can you try generating again it said deploy encountered an error",
-          "making sure the quotes appear on all of the different pages and then redeploy"
+          "In the **Admin Dashboard → Create Product**, allow admins to upload a product image, set a custom price, choose stock status (in stock / out of stock), select availability (delivery, pickup, or drop-off), and write a short description. When **Create Product** is pressed, the product instantly appears on the public Shop page"
         ]
       },
       "acceptanceCriteria": [
-        "Frontend TypeScript build completes without errors.",
-        "Canister build completes without errors.",
-        "No changes are made to any paths listed in frontend.immutablePaths.",
-        "After the changes, the app runs locally (or in preview) and /about renders without runtime exceptions."
+        "Admin “Create New Product” form includes: image upload control, price input, stock status control, availability control, and short description input.",
+        "Form validates required fields and shows user-friendly English errors via existing toast/error patterns.",
+        "On successful creation, the Shop page product list reflects the new product without manual page reload (via React Query invalidation/refetch).",
+        "If offline-queue behavior applies to product creation, the UI clearly indicates queued vs created states and does not crash."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Render products on the public Shop page as flippable product cards, using the existing FlipCard component, and include the product image and the new product fields in the card front/back content.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "...appears on the public Shop page as a **flippable product card**."
+        ]
+      },
+      "acceptanceCriteria": [
+        "In Shop grid view, each product is displayed as a FlipCard interaction (click/keyboard flips).",
+        "The card front shows at minimum: product image, name, price, and stock status.",
+        "The card back shows at minimum: short description and availability (delivery/pickup/drop-off) and a clear call-to-action (e.g., View Details) that preserves existing modal/cart flows.",
+        "Reduced-motion users keep accessible behavior (FlipCard respects prefers-reduced-motion as implemented)."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Add a public “Create Testimony” flow on the Testimonies page that lets customers submit: (a) review text up to 800 characters, (b) 1–5 star rating, and (c) photo and video uploads; submitted testimonies must become publicly visible.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "On the **Testimonies page**, include a **Create Testimony** button where customers can submit a review up to **800 characters**, upload photos and videos, and select a **1–5 star rating**. ... Submitted testimonies become publicly visible"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Testimonies page includes a prominent “Create Testimony” button that opens a form (dialog or inline section).",
+        "The form enforces a maximum of 800 characters for the review text and prevents submission when exceeded.",
+        "The form supports selecting a rating from 1 to 5 and submits it with the testimony.",
+        "The form supports uploading at least one image/video file and includes basic client-side validation (e.g., file type must be image/* or video/*).",
+        "After submission succeeds, the new testimony appears in the public testimonies list without a manual page refresh (React Query invalidation/refetch)."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Style testimony star ratings so filled stars appear golden moss-green with a glow effect; apply this styling consistently anywhere a testimony rating is displayed.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Stars should appear **golden moss-green with a glow effect**."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Filled stars use a golden moss-green tone (not the current arcane-gold) and include a visible glow (e.g., drop-shadow) on dark background.",
+        "Unfilled stars remain visually subdued and accessible.",
+        "Star styling is consistent on the testimonies listing and on the testimony submission control."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add backend support for customer testimony creation and admin moderation so admins can remove inappropriate/vulgar submissions while leaving respectful criticism; removed items must no longer be publicly visible.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "...Admin Dashboard includes a **Testimony Management** section where admins can remove inappropriate or vulgar submissions while allowing respectful criticism."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes a method to create a testimony (including rating and any uploaded media references/data) that is callable by non-admin users (customers).",
+        "Backend exposes an admin-only method to remove (or mark removed) a testimony.",
+        "Public query used by the Testimonies page returns only testimonies that are not removed.",
+        "Attempting to remove a testimony as a non-admin traps/returns an authorization error."
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Add a “Testimony Management” section in the Admin Dashboard (Admin page) that allows admins to review submitted testimonies and remove items.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "...the Admin Dashboard includes a **Testimony Management** section where admins can remove inappropriate or vulgar submissions..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin page shows a “Testimonies” tab/section for admins (not owner-only) that lists testimonies and provides a remove action.",
+        "Remove action updates the UI immediately after success (or shows queued/offline messaging if applicable).",
+        "Owner-only Admin+ remains functional and unchanged, but admin users no longer need owner role to access basic testimony moderation in Admin Dashboard."
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "If existing canister state must be upgraded due to changes in Product/Testimony schemas, add/adjust a conditional backend migration so previously stored products/testimonies/portfolios remain readable and the canister upgrade does not trap.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Build this."
+        ]
+      },
+      "acceptanceCriteria": [
+        "On upgrade, existing stable data (products/testimonies/portfolios) remains accessible via their public queries.",
+        "Migration is conditional and only runs when needed based on stored versioning/shape checks (no destructive resets).",
+        "New fields introduced in upgraded records have sensible defaults when migrating legacy records."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui or any path listed in frontend.immutablePaths (compose existing components instead).",
-    "Keep all backend logic within the single Motoko actor (backend/main.mo); create backend/migration.mo only if an upgrade-safe state migration is actually required.",
-    "All user-provided quote strings must be stored and displayed with exact wording and punctuation.",
-    "All user-facing text introduced/modified by this request must be in English."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional canisters/services).",
+    "Do not edit any files under frontend/src/components/ui or any other immutable paths listed in SYSTEM_CONTEXT.",
+    "Use English for all user-facing strings added/changed in this phase."
   ],
   "nonGoals": [
-    "Do not implement the full multi-page business-site revamp (homepage booking banner, portfolio gallery, testimonials, newsletter, services taxonomy, Hours & Policies page) unless explicitly requested in a separate task.",
-    "Do not change authentication/authorization behavior, roles, or Admin access control as part of this request.",
-    "Do not add third-party auth providers or external databases/services."
+    "Implementing payments/checkout beyond the existing shop/cart flow.",
+    "Adding third-party authentication (only Internet Identity is supported).",
+    "Real-time updates via WebSockets/push notifications (use React Query refetch/invalidation instead).",
+    "Automated profanity detection/ML moderation; moderation is admin remove-only."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

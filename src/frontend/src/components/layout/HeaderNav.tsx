@@ -3,12 +3,16 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { Menu, X } from 'lucide-react';
 import LoginButton from '../auth/LoginButton';
 import FeedbackLauncher from '../feedback/FeedbackLauncher';
+import { useInternetIdentity } from '../../hooks/useInternetIdentity';
+import { useIsCallerOwner } from '../../hooks/useQueries';
 
 const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/about', label: 'About' },
   { to: '/services', label: 'Services' },
   { to: '/shop', label: 'Shop' },
+  { to: '/portfolio', label: 'Portfolio' },
+  { to: '/testimonies', label: 'Testimonies' },
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/contact', label: 'Contact' },
 ];
@@ -16,6 +20,10 @@ const navLinks = [
 export default function HeaderNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { identity } = useInternetIdentity();
+  const { data: isOwner = false } = useIsCallerOwner();
+
+  const showAdminPlus = !!identity && isOwner;
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -65,6 +73,15 @@ export default function HeaderNav() {
                 {link.label}
               </Link>
             ))}
+            {showAdminPlus && (
+              <Link
+                to="/admin-plus"
+                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+                activeProps={{ className: 'text-primary font-semibold' }}
+              >
+                Admin+
+              </Link>
+            )}
             <FeedbackLauncher />
             <LoginButton />
           </div>
@@ -94,6 +111,15 @@ export default function HeaderNav() {
                 {link.label}
               </Link>
             ))}
+            {showAdminPlus && (
+              <Link
+                to="/admin-plus"
+                className="block px-3 py-2 text-base font-medium text-foreground/80 hover:text-foreground hover:bg-accent rounded-md transition-colors"
+                activeProps={{ className: 'text-primary font-semibold bg-accent/50' }}
+              >
+                Admin+
+              </Link>
+            )}
             <div className="px-3 py-2">
               <FeedbackLauncher />
             </div>

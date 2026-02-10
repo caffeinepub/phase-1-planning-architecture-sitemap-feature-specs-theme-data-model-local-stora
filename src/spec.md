@@ -1,15 +1,19 @@
 # Specification
 
 ## Summary
-**Goal:** Update the /about page to reflect “The Creator of Side Quests” and show 2–3 randomized, non-repeating user-provided quotes on every page (including About), while restoring a successful build/deploy.
+**Goal:** Add Portfolio and Testimonies preview widgets with navigation access, enhance Shop product creation and display with richer product fields, and enable public testimony submissions with admin moderation.
 
 **Planned changes:**
-- Replace the existing /about content with the user-provided “The Creator of Side Quests” narrative, formatted as polished, multi-paragraph website copy while keeping the provided text verbatim.
-- Update the /about page title/description to match “The Creator of Side Quests” and remove any remaining “Arcane Artifacts” branding from the About page.
-- Ensure Mission Statement and Vision Statement appear clearly labeled on /about and match the user-provided wording exactly.
-- Update the centralized quotes data source to include exactly the 10 user-provided quotes (unchanged wording/punctuation).
-- Update the random quote selection utility to return 2–3 quotes per page render/load with no repeats within the same render.
-- Render the randomized quotes on all existing routes (/, /services, /shop, /dashboard, /contact, /blog, /faq, /terms, /privacy, /admin, and /about) in a consistent, unobtrusive pull-quote/card style that remains mobile-safe.
-- Resolve build/typecheck/deploy failures introduced by the prior attempt, without modifying any frontend immutable paths or files under frontend/src/components/ui.
+- Add responsive Portfolio widget sections to the Homepage and Services pages with a preview/teaser and a link to the full Portfolio page (/portfolio).
+- Add responsive Testimonies widget sections to the Homepage and Services pages with a preview/teaser and a link to the full Testimonies page (/testimonies).
+- Update main navigation to include Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) links on desktop (top-right) and in the mobile hamburger menu.
+- Extend backend Product model and APIs to store/return: product image, custom price, stock status (in/out), availability (delivery/pickup/drop-off), and short description; ensure admin-only creation persists these fields and shop listings return them.
+- Update Admin Dashboard “Create Product” UI to collect the new fields (including image upload) and publish products so they appear on the public Shop page immediately, with React Query refetch/invalidation and user-friendly validation/errors.
+- Render public Shop products as flippable cards using the existing FlipCard component, showing image/name/price/stock on the front and description/availability plus a CTA on the back, preserving existing flows and accessibility behavior.
+- Add a public “Create Testimony” flow on the Testimonies page to submit review text (max 800 chars), 1–5 star rating, and photo/video uploads, and refresh the public list after submission.
+- Apply consistent star rating styling across the app: filled stars use a golden moss-green tone with a glow; unfilled stars remain subdued and accessible.
+- Add backend testimony creation for customers and admin-only removal/moderation; ensure public testimonies queries exclude removed items.
+- Add an Admin Dashboard “Testimony Management” section for admins to review and remove testimonies, with immediate UI updates (or queued/offline messaging if applicable) while keeping existing owner-only Admin+ behavior unchanged.
+- Add conditional backend migration logic if needed so existing stored products/testimonies/portfolios remain readable after schema changes and upgrades do not trap, with sensible defaults for new fields.
 
-**User-visible outcome:** Visitors see the updated “The Creator of Side Quests” About page and 2–3 randomly selected (non-repeating) quotes displayed tastefully on every page, with the app building and running without errors.
+**User-visible outcome:** Visitors can preview and navigate to Portfolio and Testimonies from key pages and the main nav; admins can create richer Shop products that instantly appear as flippable cards on the Shop page; customers can submit testimonies with ratings and media, and admins can moderate/remove inappropriate submissions so removed items no longer appear publicly.

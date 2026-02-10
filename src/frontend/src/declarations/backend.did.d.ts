@@ -11,6 +11,17 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export interface CartItem { 'productId' : bigint, 'quantity' : bigint }
+export interface Coupon {
+  'id' : bigint,
+  'valid' : boolean,
+  'code' : string,
+  'discount' : bigint,
+}
+export interface CouponValidationResult {
+  'valid' : boolean,
+  'message' : string,
+  'discount' : bigint,
+}
 export interface Event {
   'id' : bigint,
   'principal' : Principal,
@@ -18,6 +29,13 @@ export interface Event {
   'message' : string,
   'timestamp' : bigint,
 }
+export interface ExpandedProduct {
+  'id' : bigint,
+  'sharable' : boolean,
+  'productType' : string,
+  'viewCount' : bigint,
+}
+export type ExternalBlob = Uint8Array;
 export interface Feature {
   'description' : string,
   'phase' : { 'later' : null } |
@@ -47,67 +65,198 @@ export interface Order {
   'id' : bigint,
   'productIds' : Array<bigint>,
   'userId' : Principal,
+  'discountAmount' : bigint,
   'totalAmount' : bigint,
+  'appliedCouponCode' : [] | [string],
 }
 export interface PageFeatures { 'features' : Array<Feature>, 'page' : string }
+export interface Portfolio {
+  'id' : bigint,
+  'title' : string,
+  'description' : string,
+  'artworks' : Array<bigint>,
+  'category' : PortfolioCategory,
+}
+export type PortfolioCategory = { 'illustration' : null } |
+  { 'other' : string } |
+  { 'digitalArt' : null } |
+  { 'painting' : null } |
+  { 'sculpture' : null } |
+  { 'typography' : null } |
+  { 'photography' : null };
 export interface Product {
   'id' : bigint,
+  'isInStock' : boolean,
   'name' : string,
   'description' : string,
+  'availability' : { 'dropOff' : null } |
+    { 'pickup' : null } |
+    { 'delivery' : null },
   'stock' : bigint,
+  'shortDescription' : string,
+  'image' : ExternalBlob,
   'price' : bigint,
 }
 export interface SavedArtifact { 'userId' : Principal, 'productId' : bigint }
 export type Status = { 'open' : null } |
   { 'completed' : { 'admin' : Principal, 'response' : string } } |
   { 'reviewed' : { 'admin' : Principal, 'response' : [] | [string] } };
+export interface Testimony {
+  'id' : bigint,
+  'content' : string,
+  'video' : [] | [ExternalBlob],
+  'author' : string,
+  'approved' : boolean,
+  'rating' : [] | [bigint],
+  'photo' : [] | [ExternalBlob],
+}
 export interface User { 'id' : bigint, 'name' : string, 'email' : string }
 export interface UserProfile { 'name' : string, 'email' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export interface _CaffeineStorageCreateCertificateResult {
+  'method' : string,
+  'blob_hash' : string,
+}
+export interface _CaffeineStorageRefillInformation {
+  'proposed_top_up_amount' : [] | [bigint],
+}
+export interface _CaffeineStorageRefillResult {
+  'success' : [] | [boolean],
+  'topped_up_amount' : [] | [bigint],
+}
 export interface _SERVICE {
+  '_caffeineStorageBlobIsLive' : ActorMethod<[Uint8Array], boolean>,
+  '_caffeineStorageBlobsToDelete' : ActorMethod<[], Array<Uint8Array>>,
+  '_caffeineStorageConfirmBlobDeletion' : ActorMethod<
+    [Array<Uint8Array>],
+    undefined
+  >,
+  '_caffeineStorageCreateCertificate' : ActorMethod<
+    [string],
+    _CaffeineStorageCreateCertificateResult
+  >,
+  '_caffeineStorageRefillCashier' : ActorMethod<
+    [[] | [_CaffeineStorageRefillInformation]],
+    _CaffeineStorageRefillResult
+  >,
+  '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addToCart' : ActorMethod<[bigint, bigint], undefined>,
   'assignAdminRole' : ActorMethod<[Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'assignGuildOrder' : ActorMethod<[bigint, Principal], undefined>,
-  'checkoutCart' : ActorMethod<[], bigint>,
+  'checkoutCart' : ActorMethod<[[] | [string]], bigint>,
   'completeFeedback' : ActorMethod<[bigint, Principal, string], undefined>,
+  'createCoupon' : ActorMethod<[string, bigint, boolean], bigint>,
   'createFeedback' : ActorMethod<[Principal, string], bigint>,
   'createGuildOrder' : ActorMethod<[string, string, bigint], bigint>,
-  'createOrder' : ActorMethod<[Array<bigint>, bigint], bigint>,
-  'createProduct' : ActorMethod<[string, string, bigint, bigint], bigint>,
+  'createOrder' : ActorMethod<[Array<bigint>, bigint, [] | [string]], bigint>,
+  'createPortfolio' : ActorMethod<
+    [string, string, Array<bigint>, PortfolioCategory],
+    bigint
+  >,
+  'createProduct' : ActorMethod<
+    [
+      string,
+      string,
+      bigint,
+      bigint,
+      ExternalBlob,
+      boolean,
+      { 'dropOff' : null } |
+        { 'pickup' : null } |
+        { 'delivery' : null },
+      string,
+    ],
+    bigint
+  >,
+  'createTestimony' : ActorMethod<
+    [string, string, [] | [bigint], [] | [ExternalBlob], [] | [ExternalBlob]],
+    bigint
+  >,
   'createUser' : ActorMethod<[string, string], bigint>,
-  'editProduct' : ActorMethod<[bigint, string, string, bigint], undefined>,
+  'editProduct' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      bigint,
+      ExternalBlob,
+      boolean,
+      { 'dropOff' : null } |
+        { 'pickup' : null } |
+        { 'delivery' : null },
+      string,
+    ],
+    undefined
+  >,
+  'getAllApprovedTestimonies' : ActorMethod<[], Array<Testimony>>,
+  'getAllCoupons' : ActorMethod<[], Array<Coupon>>,
   'getAllFeedback' : ActorMethod<[], Array<Feedback>>,
   'getAllGuildOrders' : ActorMethod<[], Array<GuildOrder>>,
   'getAllOrders' : ActorMethod<[], Array<Order>>,
+  'getAllPortfolios' : ActorMethod<[], Array<Portfolio>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
+  'getAllTestimonies' : ActorMethod<[], Array<Testimony>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCart' : ActorMethod<[], Array<CartItem>>,
+  'getCategoryName' : ActorMethod<[PortfolioCategory], string>,
   'getEvents' : ActorMethod<[], Array<Event>>,
   'getFeatureSpecification' : ActorMethod<[], Array<PageFeatures>>,
+  'getFilteredShopProducts' : ActorMethod<
+    [Array<[string, string]>],
+    Array<ExpandedProduct>
+  >,
   'getGuildOrder' : ActorMethod<[bigint], GuildOrder>,
   'getMyOrders' : ActorMethod<[], Array<Order>>,
   'getMySavedArtifacts' : ActorMethod<[], Array<SavedArtifact>>,
   'getOrder' : ActorMethod<[bigint], Order>,
+  'getPortfolioById' : ActorMethod<[bigint], [] | [Portfolio]>,
+  'getPortfolioCategories' : ActorMethod<[], Array<PortfolioCategory>>,
+  'getPortfoliosByCategory' : ActorMethod<
+    [PortfolioCategory],
+    Array<Portfolio>
+  >,
   'getProduct' : ActorMethod<[bigint], Product>,
+  'getProductsByType' : ActorMethod<[string], Array<ExpandedProduct>>,
   'getSavedArtifacts' : ActorMethod<[Principal], Array<SavedArtifact>>,
+  'getTestimoniesByRating' : ActorMethod<[bigint], Array<Testimony>>,
   'getUser' : ActorMethod<[bigint], User>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'healthCheck' : ActorMethod<[], HealthStatus>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'isCallerOwner' : ActorMethod<[], boolean>,
   'logEvent' : ActorMethod<[string, string], undefined>,
   'removeAdminRole' : ActorMethod<[Principal], undefined>,
   'removeFromCart' : ActorMethod<[bigint], undefined>,
   'removeSavedArtifact' : ActorMethod<[bigint], undefined>,
+  'removeTestimony' : ActorMethod<[bigint], undefined>,
   'reviewFeedback' : ActorMethod<[bigint, Principal, string], undefined>,
   'saveArtifact' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateCoupon' : ActorMethod<[bigint, string, bigint, boolean], undefined>,
   'updateGuildOrderStatus' : ActorMethod<[bigint, string], undefined>,
+  'updatePortfolio' : ActorMethod<
+    [bigint, string, string, Array<bigint>, PortfolioCategory],
+    undefined
+  >,
   'updateProductStock' : ActorMethod<[bigint, bigint], undefined>,
+  'updateTestimony' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      boolean,
+      [] | [bigint],
+      [] | [ExternalBlob],
+      [] | [ExternalBlob],
+    ],
+    undefined
+  >,
+  'validateCoupon' : ActorMethod<[string], CouponValidationResult>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

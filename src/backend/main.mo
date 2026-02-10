@@ -5,19 +5,19 @@ import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-
+import Migration "migration";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import MixinStorage "blob-storage/Mixin";
+import Storage "blob-storage/Storage";
 
-// Persistent health monitoring and event logging
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+  include MixinStorage();
 
-  /////////////////
   // Health Checks
-  /////////////////
-
   public type HealthStatus = {
     status : Text;
     deployedVersion : Text;
@@ -36,14 +36,11 @@ actor {
     deploymentInfo;
   };
 
-  /////////////////
   // Event Logging
-  /////////////////
-
   public type Event = {
     id : Nat;
     message : Text;
-    level : Text; // "info", "error" etc.
+    level : Text;
     timestamp : Nat;
     principal : Principal;
   };
@@ -79,16 +76,13 @@ actor {
 
   ////////////////////////////////////////////////////
   // PHASE 1: Feature Specification
-  //
-  // This section details all planned features per page,
-  // clearly marking Phase 1 (spec only) vs. later implementation.
   ////////////////////////////////////////////////////
 
   public type Feature = {
     description : Text;
     phase : {
-      #phase1; // Skeleton/Specification Only
-      #later; // Implement in future phases
+      #phase1;
+      #later;
     };
   };
 
@@ -135,13 +129,9 @@ actor {
   };
 
   ////////////////////////////////////////////////////
-  // PHASE 1: Data Architecture
-  //
-  // This section defines core entities, relationships,
-  // identifiers, and persistent data models.
+  // PHASE 1: Data Architecture (Core Entities)
   ////////////////////////////////////////////////////
 
-  // Entity Definitions
   public type User = {
     id : Nat;
     name : Text;
@@ -154,6 +144,10 @@ actor {
     description : Text;
     price : Nat;
     stock : Nat;
+    image : Storage.ExternalBlob;
+    isInStock : Bool;
+    availability : { #delivery; #pickup; #dropOff };
+    shortDescription : Text;
   };
 
   public type Order = {
@@ -161,6 +155,8 @@ actor {
     userId : Principal;
     productIds : [Nat];
     totalAmount : Nat;
+    appliedCouponCode : ?Text;
+    discountAmount : Nat;
   };
 
   public type SavedArtifact = {
@@ -206,7 +202,65 @@ actor {
     };
   };
 
-  // Persistent Storage Structures
+  public type Portfolio = {
+    id : Nat;
+    title : Text;
+    description : Text;
+    artworks : [Nat];
+    category : PortfolioCategory;
+  };
+
+  public type PortfolioCategory = {
+    #painting;
+    #digitalArt;
+    #sculpture;
+    #photography;
+    #illustration;
+    #typography;
+    #other : Text;
+  };
+
+  public type Testimony = {
+    id : Nat;
+    author : Text;
+    content : Text;
+    approved : Bool;
+    rating : ?Nat;
+    photo : ?Storage.ExternalBlob;
+    video : ?Storage.ExternalBlob;
+  };
+
+  public type Coupon = {
+    id : Nat;
+    code : Text;
+    discount : Nat;
+    valid : Bool;
+  };
+
+  public type CouponValidationResult = {
+    valid : Bool;
+    discount : Nat;
+    message : Text;
+  };
+
+  public type QuoteRequest = {
+    id : Nat;
+    name : Text;
+    projectDetails : Text;
+    response : ?Text;
+  };
+
+  public type ExpandedProduct = {
+    id : Nat;
+    productType : Text;
+    sharable : Bool;
+    viewCount : Nat;
+  };
+
+  ////////////////////////////
+  // Persistent Storage    //
+  ////////////////////////////
+
   var users = Map.empty<Nat, User>();
   var products = Map.empty<Nat, Product>();
   var orders = Map.empty<Nat, Order>();
@@ -215,40 +269,43 @@ actor {
   var userProfiles = Map.empty<Principal, UserProfile>();
   var userCarts = Map.empty<Principal, [CartItem]>();
   var feedbackStore = Map.empty<Nat, Feedback>();
+  var portfolios = Map.empty<Nat, Portfolio>();
+  var testimonies = Map.empty<Nat, Testimony>();
+  var coupons = Map.empty<Nat, Coupon>();
+  var quoteRequests = Map.empty<Nat, QuoteRequest>();
+  var expandedProducts = Map.empty<Nat, ExpandedProduct>();
 
-  // IDs counters
   var nextUserId = 1;
   var nextProductId = 1;
   var nextOrderId = 1;
   var nextGuildOrderId = 1;
   var nextFeedbackId = 1;
+  var nextPortfolioId = 1;
+  var nextTestimonyId = 1;
+  var nextCouponId = 1;
+  var nextQuoteRequestId = 1;
+  var nextExpandedProductId = 1;
 
   ////////////////////////////////////////////////////
-  // User Role Management (Moved from frontend)
+  // Role Management
   ////////////////////////////////////////////////////
 
   public shared ({ caller }) func assignAdminRole(user : Principal) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can assign admin role");
     };
-    AccessControl.assignRole(
-      accessControlState,
-      caller,
-      user,
-      #admin,
-    );
+    AccessControl.assignRole(accessControlState, caller, user, #admin);
   };
 
   public shared ({ caller }) func removeAdminRole(user : Principal) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can remove admin role");
     };
-    AccessControl.assignRole(
-      accessControlState,
-      caller,
-      user,
-      #user,
-    );
+    AccessControl.assignRole(accessControlState, caller, user, #user);
+  };
+
+  public query ({ caller }) func isCallerOwner() : async Bool {
+    AccessControl.getUserRole(accessControlState, caller) == #admin;
   };
 
   ////////////////////////////////////////////////////
@@ -281,7 +338,7 @@ actor {
   ////////////////////////////////////////////////////
 
   public query ({ caller }) func getUser(id : Nat) : async User {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can access user records");
     };
     switch (users.get(id)) {
@@ -291,7 +348,7 @@ actor {
   };
 
   public shared ({ caller }) func createUser(name : Text, email : Text) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can create users");
     };
     let userId = nextUserId;
@@ -310,7 +367,6 @@ actor {
   ////////////////////////////////////////////////////
 
   public query func getProduct(id : Nat) : async Product {
-    // Anyone can view products (including guests)
     switch (products.get(id)) {
       case (?product) { product };
       case (null) { Runtime.trap("Product not found") };
@@ -318,12 +374,27 @@ actor {
   };
 
   public query func getAllProducts() : async [Product] {
-    // Anyone can view products (including guests)
     products.values().toArray();
   };
 
-  public shared ({ caller }) func createProduct(name : Text, description : Text, price : Nat, stock : Nat) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+  public query ({ caller }) func getProductsByType(productType : Text) : async [ExpandedProduct] {
+    let typeIter = expandedProducts.values().filter(
+      func(product) { product.productType == productType }
+    );
+    typeIter.toArray();
+  };
+
+  public shared ({ caller }) func createProduct(
+    name : Text,
+    description : Text,
+    price : Nat,
+    stock : Nat,
+    image : Storage.ExternalBlob,
+    isInStock : Bool,
+    availability : { #delivery; #pickup; #dropOff },
+    shortDescription : Text,
+  ) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can create products");
     };
     let productId = nextProductId;
@@ -334,13 +405,17 @@ actor {
       description;
       price;
       stock;
+      image;
+      isInStock;
+      availability;
+      shortDescription;
     };
     products.add(productId, product);
     productId;
   };
 
   public shared ({ caller }) func updateProductStock(productId : Nat, newStock : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can update product stock");
     };
     switch (products.get(productId)) {
@@ -351,6 +426,10 @@ actor {
           description = product.description;
           price = product.price;
           stock = newStock;
+          image = product.image;
+          isInStock = product.isInStock;
+          availability = product.availability;
+          shortDescription = product.shortDescription;
         };
         products.add(productId, updatedProduct);
       };
@@ -358,8 +437,17 @@ actor {
     };
   };
 
-  public shared ({ caller }) func editProduct(productId : Nat, name : Text, description : Text, price : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+  public shared ({ caller }) func editProduct(
+    productId : Nat,
+    name : Text,
+    description : Text,
+    price : Nat,
+    image : Storage.ExternalBlob,
+    isInStock : Bool,
+    availability : { #delivery; #pickup; #dropOff },
+    shortDescription : Text,
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can edit products");
     };
     switch (products.get(productId)) {
@@ -370,11 +458,35 @@ actor {
           description;
           price;
           stock = product.stock;
+          image;
+          isInStock;
+          availability;
+          shortDescription;
         };
         products.add(productId, updatedProduct);
       };
       case (null) { Runtime.trap("Product not found") };
     };
+  };
+
+  public query ({ caller }) func getFilteredShopProducts(filters : [(Text, Text)]) : async [ExpandedProduct] {
+    let filteredValues = expandedProducts.values().filter(
+      func(product) {
+        filters.all(
+          func(filterPair) {
+            let (key, val) = filterPair;
+            switch (key, val) {
+              case ("productType", val) { product.productType == val };
+              case ("sharable", "true") { product.sharable };
+              case ("sharable", "false") { not product.sharable };
+              case ("viewCount", _) { true };
+              case (_, _) { true };
+            };
+          }
+        );
+      }
+    );
+    filteredValues.toArray();
   };
 
   ////////////////////////////////////////////////////
@@ -387,7 +499,6 @@ actor {
     };
     switch (orders.get(id)) {
       case (?order) {
-        // Users can only view their own orders, admins can view all
         if (order.userId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only view your own orders");
         };
@@ -406,26 +517,115 @@ actor {
   };
 
   public query ({ caller }) func getAllOrders() : async [Order] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view all orders");
     };
     orders.values().toArray();
   };
 
-  public shared ({ caller }) func createOrder(productIds : [Nat], totalAmount : Nat) : async Nat {
+  public shared ({ caller }) func createOrder(productIds : [Nat], totalAmount : Nat, couponCode : ?Text) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create orders");
     };
+
+    var finalAmount = totalAmount;
+    var discountAmount = 0;
+    var appliedCode : ?Text = null;
+
+    switch (couponCode) {
+      case (?code) {
+        let validation = validateCouponInternal(code);
+        if (validation.valid) {
+          discountAmount := validation.discount;
+          if (finalAmount > discountAmount) {
+            finalAmount -= discountAmount;
+          } else {
+            finalAmount := 0;
+          };
+          appliedCode := ?code;
+        };
+      };
+      case (null) { /* No coupon applied */ };
+    };
+
     let orderId = nextOrderId;
     nextOrderId += 1;
     let order : Order = {
       id = orderId;
       userId = caller;
       productIds;
-      totalAmount;
+      totalAmount = finalAmount;
+      appliedCouponCode = appliedCode;
+      discountAmount;
     };
     orders.add(orderId, order);
     orderId;
+  };
+
+  ////////////////////////////////////////////////////
+  // Expanded Products Public APIs (Category Mapping)
+  ////////////////////////////////////////////////////
+  public query ({ caller }) func getPortfolioCategories() : async [PortfolioCategory] {
+    [
+      #painting,
+      #digitalArt,
+      #sculpture,
+      #photography,
+      #illustration,
+      #typography,
+    ];
+  };
+
+  public query ({ caller }) func getCategoryName(category : PortfolioCategory) : async Text {
+    switch (category) {
+      case (#painting) { "Painting" };
+      case (#digitalArt) { "Digital Art" };
+      case (#sculpture) { "Sculpture" };
+      case (#photography) { "Photography" };
+      case (#illustration) { "Illustration" };
+      case (#typography) { "Typography" };
+      case (#other(description)) { description };
+    };
+  };
+
+  ////////////////////////////////////////////////////
+  // Public Portfolio Methods (Portfolio Page)
+  ////////////////////////////////////////////////////
+  public query ({ caller }) func getAllPortfolios() : async [Portfolio] {
+    portfolios.values().toArray();
+  };
+
+  public query ({ caller }) func getPortfolioById(id : Nat) : async ?Portfolio {
+    portfolios.get(id);
+  };
+
+  public query ({ caller }) func getPortfoliosByCategory(category : PortfolioCategory) : async [Portfolio] {
+    let filteredIter = portfolios.values().filter(
+      func(portfolio) { portfolio.category == category }
+    );
+    filteredIter.toArray();
+  };
+
+  ////////////////////////////////////////////////////
+  // Public Testimonies Methods (Testimonies Page)
+  ////////////////////////////////////////////////////
+  public query ({ caller }) func getAllApprovedTestimonies() : async [Testimony] {
+    let filteredIter = testimonies.values().filter(
+      func(testimony) { testimony.approved }
+    );
+    filteredIter.toArray();
+  };
+
+  public query ({ caller }) func getTestimoniesByRating(rating : Nat) : async [Testimony] {
+    let filteredIter = testimonies.values().filter(
+      func(testimony) {
+        switch (testimony.rating) {
+          case (?r) { r == rating };
+          case (null) { false };
+        };
+      }
+    );
+    filteredIter.toArray();
   };
 
   ////////////////////////////////////////////////////
@@ -436,7 +636,6 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access saved artifacts");
     };
-    // Users can only view their own saved artifacts, admins can view all
     if (userId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own saved artifacts");
     };
@@ -503,7 +702,7 @@ actor {
   };
 
   public shared ({ caller }) func createGuildOrder(title : Text, description : Text, reward : Nat) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can create guild orders");
     };
     let guildOrderId = nextGuildOrderId;
@@ -521,7 +720,7 @@ actor {
   };
 
   public shared ({ caller }) func updateGuildOrderStatus(guildOrderId : Nat, status : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can update guild order status");
     };
     switch (guildOrders.get(guildOrderId)) {
@@ -541,7 +740,7 @@ actor {
   };
 
   public shared ({ caller }) func assignGuildOrder(guildOrderId : Nat, userId : Principal) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can assign guild orders");
     };
     switch (guildOrders.get(guildOrderId)) {
@@ -558,6 +757,82 @@ actor {
       };
       case (null) { Runtime.trap("Guild order not found") };
     };
+  };
+
+  ////////////////////////////////////////////////////
+  // Coupon Management
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func createCoupon(code : Text, discount : Nat, valid : Bool) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can create coupons");
+    };
+    let couponId = nextCouponId;
+    nextCouponId += 1;
+    let coupon : Coupon = {
+      id = couponId;
+      code;
+      discount;
+      valid;
+    };
+    coupons.add(couponId, coupon);
+    couponId;
+  };
+
+  public shared ({ caller }) func updateCoupon(id : Nat, code : Text, discount : Nat, valid : Bool) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can update coupons");
+    };
+    switch (coupons.get(id)) {
+      case (?oldCoupon) {
+        let updated : Coupon = {
+          id;
+          code;
+          discount;
+          valid;
+        };
+        coupons.add(id, updated);
+      };
+      case (null) { Runtime.trap("Coupon not found") };
+    };
+  };
+
+  public query ({ caller }) func getAllCoupons() : async [Coupon] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view all coupons");
+    };
+    coupons.values().toArray();
+  };
+
+  // Internal helper function for coupon validation
+  private func validateCouponInternal(code : Text) : CouponValidationResult {
+    let couponIter = coupons.values().filter(
+      func(coupon) { coupon.code == code and coupon.valid }
+    );
+    let couponArray = couponIter.toArray();
+
+    if (couponArray.size() > 0) {
+      let coupon = couponArray[0];
+      {
+        valid = true;
+        discount = coupon.discount;
+        message = "Coupon applied successfully";
+      };
+    } else {
+      {
+        valid = false;
+        discount = 0;
+        message = "Invalid or expired coupon code";
+      };
+    };
+  };
+
+  // Public coupon validation endpoint (requires user authentication)
+  public query ({ caller }) func validateCoupon(code : Text) : async CouponValidationResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can validate coupons");
+    };
+    validateCouponInternal(code);
   };
 
   ////////////////////////////////////////////////////
@@ -605,7 +880,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func checkoutCart() : async Nat {
+  public shared ({ caller }) func checkoutCart(couponCode : ?Text) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can checkout");
     };
@@ -628,13 +903,35 @@ actor {
       };
     };
 
+    var finalAmount = totalAmount;
+    var discountAmount = 0;
+    var appliedCode : ?Text = null;
+
+    switch (couponCode) {
+      case (?code) {
+        let validation = validateCouponInternal(code);
+        if (validation.valid) {
+          discountAmount := validation.discount;
+          if (finalAmount > discountAmount) {
+            finalAmount -= discountAmount;
+          } else {
+            finalAmount := 0;
+          };
+          appliedCode := ?code;
+        };
+      };
+      case (null) { /* No coupon applied */ };
+    };
+
     let orderId = nextOrderId;
     nextOrderId += 1;
     let order : Order = {
       id = orderId;
       userId = caller;
       productIds;
-      totalAmount;
+      totalAmount = finalAmount;
+      appliedCouponCode = appliedCode;
+      discountAmount;
     };
     orders.add(orderId, order);
 
@@ -648,7 +945,7 @@ actor {
   ////////////////////////////////////////////////////
 
   public shared ({ caller }) func createFeedback(userId : Principal, message : Text) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only authorized users can create feedback");
     };
     let feedbackId = nextFeedbackId;
@@ -664,7 +961,7 @@ actor {
   };
 
   public shared ({ caller }) func reviewFeedback(feedbackId : Nat, admin : Principal, response : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can review feedback");
     };
     switch (feedbackStore.get(feedbackId)) {
@@ -686,7 +983,7 @@ actor {
   };
 
   public shared ({ caller }) func completeFeedback(feedbackId : Nat, admin : Principal, response : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can complete feedback");
     };
     switch (feedbackStore.get(feedbackId)) {
@@ -712,5 +1009,170 @@ actor {
 
   public query ({ caller }) func getAllFeedback() : async [Feedback] {
     feedbackStore.values().toArray();
+  };
+
+  ////////////////////////////////////////////////////
+  // PORTFOLIO CRUT (No Deletion)
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func createPortfolio(
+    title : Text,
+    description : Text,
+    artworks : [Nat],
+    category : PortfolioCategory,
+  ) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can create portfolios");
+    };
+    let portfolioId = nextPortfolioId;
+    nextPortfolioId += 1;
+    let portfolio : Portfolio = {
+      id = portfolioId;
+      title;
+      description;
+      artworks;
+      category;
+    };
+    portfolios.add(portfolioId, portfolio);
+    portfolioId;
+  };
+
+  public shared ({ caller }) func updatePortfolio(
+    id : Nat,
+    title : Text,
+    description : Text,
+    artworks : [Nat],
+    category : PortfolioCategory,
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can update portfolios");
+    };
+    switch (portfolios.get(id)) {
+      case (?oldPortfolio) {
+        let updated : Portfolio = {
+          id;
+          title;
+          description;
+          artworks;
+          category;
+        };
+        portfolios.add(id, updated);
+      };
+      case (null) { Runtime.trap("Portfolio not found") };
+    };
+  };
+
+  ////////////////////////////////////////////////////
+  // TESTIMONY CRUT (No Deletion)
+  ////////////////////////////////////////////////////
+
+  // Public testimony creation - allows any user including guests to submit testimonies
+  // Testimonies are created as unapproved by default and require admin moderation
+  public shared ({ caller }) func createTestimony(
+    author : Text,
+    content : Text,
+    rating : ?Nat,
+    photo : ?Storage.ExternalBlob,
+    video : ?Storage.ExternalBlob,
+  ) : async Nat {
+    // Validate content length (max 800 characters)
+    if (content.size() > 800) {
+      Runtime.trap("Review text must be 800 characters or less");
+    };
+    
+    // Validate rating if provided (must be 1-5)
+    switch (rating) {
+      case (?r) {
+        if (r < 1 or r > 5) {
+          Runtime.trap("Rating must be between 1 and 5 stars");
+        };
+      };
+      case (null) { /* No rating provided is acceptable */ };
+    };
+
+    let testimonyId = nextTestimonyId;
+    nextTestimonyId += 1;
+    let testimony : Testimony = {
+      id = testimonyId;
+      author;
+      content;
+      approved = false; // All customer testimonies start as unapproved
+      rating;
+      photo;
+      video;
+    };
+    testimonies.add(testimonyId, testimony);
+    testimonyId;
+  };
+
+  // Admin-only testimony moderation - update testimony approval status and content
+  public shared ({ caller }) func updateTestimony(
+    id : Nat,
+    author : Text,
+    content : Text,
+    approved : Bool,
+    rating : ?Nat,
+    photo : ?Storage.ExternalBlob,
+    video : ?Storage.ExternalBlob,
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can update testimonies");
+    };
+    
+    // Validate content length
+    if (content.size() > 800) {
+      Runtime.trap("Review text must be 800 characters or less");
+    };
+    
+    // Validate rating if provided
+    switch (rating) {
+      case (?r) {
+        if (r < 1 or r > 5) {
+          Runtime.trap("Rating must be between 1 and 5 stars");
+        };
+      };
+      case (null) { /* No rating provided is acceptable */ };
+    };
+
+    switch (testimonies.get(id)) {
+      case (?oldTestimony) {
+        let updated : Testimony = {
+          id;
+          author;
+          content;
+          approved;
+          rating;
+          photo;
+          video;
+        };
+        testimonies.add(id, updated);
+      };
+      case (null) { Runtime.trap("Testimony not found") };
+    };
+  };
+
+  // Admin-only testimony removal - sets approved to false to hide from public view
+  public shared ({ caller }) func removeTestimony(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can remove testimonies");
+    };
+    switch (testimonies.get(id)) {
+      case (?testimony) {
+        let updated : Testimony = {
+          testimony with
+          approved = false;
+        };
+        testimonies.add(id, updated);
+      };
+      case (null) { Runtime.trap("Testimony not found") };
+    };
+  };
+
+  // Admin-only: Get all testimonies including unapproved ones for moderation
+  public query ({ caller }) func getAllTestimonies() : async [Testimony] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view all testimonies");
+    };
+    testimonies.values().toArray();
   };
 };

@@ -65,6 +65,7 @@ export default function InventoryPanel() {
       await createOrder.mutateAsync({
         productIds,
         totalAmount: BigInt(totalAmount),
+        couponCode: null,
       });
 
       clearCart();
@@ -116,30 +117,27 @@ export default function InventoryPanel() {
           Your Cart
         </CardTitle>
         <CardDescription>
-          {totalItems} {totalItems === 1 ? 'item' : 'items'} in your cart
+          {totalItems} {totalItems === 1 ? 'item' : 'items'} ready for checkout
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Cart Items */}
         <div className="space-y-3">
           {cartItems.map((item) => (
-            <div
-              key={item.productId}
-              className="flex items-center gap-4 p-3 rounded-lg border border-border/40 bg-card/50"
-            >
+            <div key={item.productId} className="flex items-center gap-3 p-3 rounded-lg border border-border/40">
               <div className="flex-1">
-                <h4 className="font-medium">{item.product!.name}</h4>
+                <p className="font-medium">{item.product!.name}</p>
                 <p className="text-sm text-muted-foreground">
                   {Number(item.product!.price)} ICP each
                 </p>
               </div>
-
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => updateQuantity(BigInt(item.productId), item.quantity - 1)}
+                  disabled={item.quantity <= 1}
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
@@ -149,25 +147,30 @@ export default function InventoryPanel() {
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => updateQuantity(BigInt(item.productId), item.quantity + 1)}
+                  disabled={item.quantity >= Number(item.product!.stock)}
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => removeFromCart(BigInt(item.productId))}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-
-              <div className="text-right min-w-[80px]">
-                <p className="font-bold text-arcane-gold">
+              <div className="text-right">
+                <p className="font-semibold text-arcane-gold">
                   {Number(item.product!.price) * item.quantity} ICP
                 </p>
+                <Badge
+                  variant={Number(item.product!.stock) > 0 ? 'secondary' : 'destructive'}
+                  className="mt-1"
+                >
+                  {Number(item.product!.stock) > 0 ? 'In Stock' : 'Out of Stock'}
+                </Badge>
               </div>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive hover:text-destructive"
-                onClick={() => removeFromCart(BigInt(item.productId))}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
             </div>
           ))}
         </div>
@@ -182,30 +185,25 @@ export default function InventoryPanel() {
 
         {/* Checkout Button */}
         <Button
-          className="w-full gap-2"
-          size="lg"
           onClick={handleCheckout}
           disabled={createOrder.isPending || !identity}
+          className="w-full"
+          size="lg"
         >
           {createOrder.isPending ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
             </>
           ) : (
-            <>
-              <ShoppingCart className="h-4 w-4" />
-              {identity ? 'Place Order' : 'Login to Checkout'}
-            </>
+            'Checkout'
           )}
         </Button>
 
         {!identity && (
-          <Alert variant="destructive">
-            <AlertDescription>
-              You must be logged in to place an order.
-            </AlertDescription>
-          </Alert>
+          <p className="text-sm text-center text-muted-foreground">
+            Please log in to complete your purchase
+          </p>
         )}
       </CardContent>
     </Card>

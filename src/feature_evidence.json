@@ -2,11 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-the-existing-about-page-content-about-with-the-user-provided-the-creator-of-side-quests-about-page-copy-ensuring-the-page-is-fully-website-ready-multi-paragraph-polished-and-keeps-the-provided-narrative-text-verbatim-while-integrating-it-naturally-into-the-page-flow",
-      "featureTitle": "Replace the existing About page content (/about) with the user-provided “The Creator of Side Quests” About page copy, ensuring the page is fully website-ready, multi-paragraph, polished, and keeps the provided narrative text verbatim while integrating it naturally into the page flow.",
+      "featureId": "feature-add-a-portfolio-widget-section-to-the-homepage-and-services-pages-that-previews-portfolio-content-and-includes-a-clear-link-button-to-the-full-portfolio-page",
+      "featureTitle": "Add a Portfolio widget section to the Homepage and Services pages that previews Portfolio content and includes a clear link/button to the full Portfolio page.",
       "files": [
-        "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/pages/About.tsx"
+        "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
+        "frontend/src/pages/Homepage.tsx",
+        "frontend/src/pages/Services.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -14,20 +15,21 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-53"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-centralized-quotes-data-source-to-contain-exactly-the-user-provided-quotes-exact-wording-and-punctuation-and-ensure-the-random-selection-utility-returns-2-3-non-repeating-quotes-per-page-render-load",
-      "featureTitle": "Update the centralized quotes data source to contain exactly the user-provided quotes (exact wording and punctuation), and ensure the random selection utility returns 2–3 non-repeating quotes per page render/load.",
+      "featureId": "feature-add-a-testimonies-widget-section-to-the-homepage-and-services-pages-that-previews-testimonies-content-and-includes-a-clear-link-button-to-the-full-testimonies-page",
+      "featureTitle": "Add a Testimonies widget section to the Homepage and Services pages that previews Testimonies content and includes a clear link/button to the full Testimonies page.",
       "files": [
-        "frontend/src/data/quotes.ts",
-        "frontend/src/hooks/useRandomQuotes.ts",
-        "frontend/src/lib/randomQuotes.ts"
+        "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
+        "frontend/src/pages/Homepage.tsx",
+        "frontend/src/pages/Services.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -35,19 +37,86 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-54"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-change-the-randomized-quotes-display-behavior-so-that-randomized-quotes-render-on-every-page-including-the-about-page-and-ensure-the-presentation-is-visually-appealing-pull-quote-card-style-and-does-not-overwhelm-the-reader",
-      "featureTitle": "Change the randomized quotes display behavior so that randomized quotes render on every page including the About page, and ensure the presentation is visually appealing (pull-quote/card style) and does not overwhelm the reader.",
+      "featureId": "feature-update-admin-dashboard-create-product-ui-to-include-product-image-upload-price-stock-status-toggle-select-in-stock-out-of-stock-availability-select-delivery-pickup-drop-off-and-short-description-submitting-should-publish-the-product-so-it-appears-on-the-public-shop-page-immediately-after-creation",
+      "featureTitle": "Update Admin Dashboard “Create Product” UI to include product image upload, price, stock status toggle/select (in stock / out of stock), availability select (delivery / pickup / drop-off), and short description; submitting should publish the product so it appears on the public Shop page immediately after creation.",
       "files": [
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/components/quotes/RandomQuotes.tsx",
+        "frontend/src/components/admin/AdminProductsTab.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/hooks/useQueuedMutations.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-render-products-on-the-public-shop-page-as-flippable-product-cards-using-the-existing-flipcard-component-and-include-the-product-image-and-the-new-product-fields-in-the-card-front-back-content",
+      "featureTitle": "Render products on the public Shop page as flippable product cards, using the existing FlipCard component, and include the product image and the new product fields in the card front/back content.",
+      "files": [
+        "frontend/src/components/shop/ProductDetailsModal.tsx",
+        "frontend/src/components/shop/ProductFlipCard.tsx",
+        "frontend/src/pages/Shop.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-public-create-testimony-flow-on-the-testimonies-page-that-lets-customers-submit-a-review-text-up-to-800-characters-b-1-5-star-rating-and-c-photo-and-video-uploads-submitted-testimonies-must-become-publicly-visible",
+      "featureTitle": "Add a public “Create Testimony” flow on the Testimonies page that lets customers submit: (a) review text up to 800 characters, (b) 1–5 star rating, and (c) photo and video uploads; submitted testimonies must become publicly visible.",
+      "files": [
+        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/Testimonies.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-style-testimony-star-ratings-so-filled-stars-appear-golden-moss-green-with-a-glow-effect-apply-this-styling-consistently-anywhere-a-testimony-rating-is-displayed",
+      "featureTitle": "Style testimony star ratings so filled stars appear golden moss-green with a glow effect; apply this styling consistently anywhere a testimony rating is displayed.",
+      "files": [
+        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+        "frontend/src/components/testimonies/StarRating.tsx",
         "frontend/src/index.css"
       ],
       "components": [
@@ -56,19 +125,22 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-55"
+        "REQ-8"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-resolve-the-prior-build-deploy-failure-by-ensuring-the-project-builds-successfully-typecheck-production-build-after-the-about-and-quotes-changes-without-modifying-frontend-immutable-paths",
-      "featureTitle": "Resolve the prior build/deploy failure by ensuring the project builds successfully (typecheck + production build) after the About and quotes changes, without modifying frontend immutable paths.",
+      "featureId": "feature-add-a-testimony-management-section-in-the-admin-dashboard-admin-page-that-allows-admins-to-review-submitted-testimonies-and-remove-items",
+      "featureTitle": "Add a “Testimony Management” section in the Admin Dashboard (Admin page) that allows admins to review submitted testimonies and remove items.",
       "files": [
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/pages/About.tsx"
+        "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/hooks/useQueuedMutations.ts",
+        "frontend/src/pages/Admin.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -76,10 +148,11 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-56"
+        "REQ-10"
       ],
       "confidence": "high"
     }

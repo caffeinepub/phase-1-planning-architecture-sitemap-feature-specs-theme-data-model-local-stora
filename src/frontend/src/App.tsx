@@ -22,6 +22,9 @@ const FAQ = lazy(() => import('./pages/FAQ'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Admin = lazy(() => import('./pages/Admin'));
+const AdminPlus = lazy(() => import('./pages/AdminPlus'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Testimonies = lazy(() => import('./pages/Testimonies'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,6 +89,26 @@ const shopRoute = createRoute({
   component: () => (
     <Suspense fallback={<PageLoadingFallback />}>
       <Shop />
+    </Suspense>
+  ),
+});
+
+const portfolioRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/portfolio',
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Portfolio />
+    </Suspense>
+  ),
+});
+
+const testimoniesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/testimonies',
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Testimonies />
     </Suspense>
   ),
 });
@@ -160,11 +183,23 @@ const adminRoute = createRoute({
   ),
 });
 
+const adminPlusRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin-plus',
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <AdminPlus />
+    </Suspense>
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   aboutRoute,
   servicesRoute,
   shopRoute,
+  portfolioRoute,
+  testimoniesRoute,
   dashboardRoute,
   contactRoute,
   blogRoute,
@@ -172,6 +207,7 @@ const routeTree = rootRoute.addChildren([
   termsRoute,
   privacyRoute,
   adminRoute,
+  adminPlusRoute,
 ]);
 
 const router = createRouter({ routeTree });

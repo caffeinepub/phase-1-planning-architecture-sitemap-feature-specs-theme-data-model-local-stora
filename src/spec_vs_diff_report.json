@@ -1,81 +1,88 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T08:17:22.335Z",
-  "summary": "Diff adds a new centralized quotes data file, random quote selection utility + hook, and a RandomQuotes component rendered globally via AppLayout. About page copy was updated to “The Creator of Side Quests” branding and includes Mission/Vision sections, but the requested verbatim user-provided narrative/mission/vision text cannot be confirmed from the diff and appears to be newly written. Random quote selection is non-repeating but currently always returns 3 quotes (not 2–3). Several unrelated UI/style changes were also made (HeaderNav behavior and large global CSS updates).",
+  "generatedAt": "2026-02-10T19:32:50.737Z",
+  "summary": "Diff implements Portfolio/Testimonies widget components and adds them to Homepage/Services, introduces flippable Shop product cards and extends Product fields through frontend/backed types plus a migration module, and adds a public Create Testimony dialog plus an Admin testimonies tab. However, main-nav link updates are not evidenced, the testimonies flow appears to add an approval/pending-review workflow (not requested) and does not clearly make new submissions publicly visible, and backend moderation/remove-only behavior is not verifiable from the provided backend diff excerpt.",
   "missing_requirements": [
     {
-      "id": "REQ-53",
-      "requirement": "Replace /about content with the user-provided “The Creator of Side Quests” About page copy, keeping the provided narrative text verbatim and including clearly labeled Mission Statement and Vision Statement matching the user-provided wording exactly.",
-      "reason": "The About page content shown appears to be freshly authored/paraphrased copy rather than an inserted verbatim user-provided narrative block; Mission/Vision text is truncated in the diff so exact-match to user-provided wording cannot be verified.",
+      "id": "REQ-3",
+      "requirement": "Ensure the main navigation includes links to Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) in both desktop top-right navigation and the mobile hamburger menu.",
+      "reason": "No diff evidence shows changes to a header/nav component or mobile menu; only pages/components were added/modified.",
       "evidence": [
-        "frontend/src/pages/About.tsx"
+        "File diff summary: no navigation/header component changes shown"
       ]
     },
     {
-      "id": "REQ-54",
-      "requirement": "Ensure the random selection utility returns 2–3 non-repeating quotes per page render/load.",
-      "reason": "RandomQuotes hard-codes `useRandomQuotes(3)`, so it always selects 3 quotes rather than 2–3.",
+      "id": "REQ-7",
+      "requirement": "Public “Create Testimony” submissions must become publicly visible after submission succeeds (with React Query invalidation/refetch).",
+      "reason": "Frontend queries/widgets/pages consistently fetch only \"approved\" testimonies, and the submission success message states the testimony is submitted for review, implying it will NOT be publicly visible immediately.",
       "evidence": [
-        "frontend/src/components/quotes/RandomQuotes.tsx",
-        "frontend/src/hooks/useRandomQuotes.ts"
+        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx (toast: 'submitted for review')",
+        "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx (uses useGetAllApprovedTestimonies)",
+        "frontend/src/pages/Testimonies.tsx (uses useGetAllApprovedTestimonies)"
       ]
     },
     {
-      "id": "REQ-54",
-      "requirement": "Update the centralized quotes data source to contain exactly the user-provided quotes (exact wording and punctuation).",
-      "reason": "Although `frontend/src/data/quotes.ts` contains 10 quotes, the BuildRequest’s exact user-provided quotes are not included in the diff summary, so exact text/punctuation matching cannot be verified from the provided evidence.",
+      "id": "REQ-8",
+      "requirement": "Filled testimony stars should have a golden moss-green tone AND a visible glow effect, consistently everywhere ratings are displayed.",
+      "reason": "StarRating applies a 'testimony-star-glow' class, but the diff excerpt does not show any CSS rules implementing the glow (e.g., drop-shadow/box-shadow) for that class; only the CSS variable color is evidenced.",
       "evidence": [
-        "frontend/src/data/quotes.ts"
+        "frontend/src/components/testimonies/StarRating.tsx (uses 'testimony-star-glow')",
+        "frontend/src/index.css (defines --testimony-star, but no glow class shown in excerpt)"
       ]
     },
     {
-      "id": "REQ-56",
-      "requirement": "Resolve the prior build/deploy failure by ensuring typecheck + production build (frontend and canister) succeed after changes.",
-      "reason": "The diff summary does not include any build/deploy fix details, CI output, or backend changes; successful build cannot be confirmed from code changes shown.",
+      "id": "REQ-9",
+      "requirement": "Backend support for customer testimony creation (non-admin callable) and admin-only removal such that removed items are not publicly visible.",
+      "reason": "The provided backend diff excerpt does not show the actual testimony create/remove methods, their access control, or that public testimony queries filter out removed items; only schema/migration types are evidenced.",
       "evidence": [
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/components/quotes/RandomQuotes.tsx",
-        "frontend/src/hooks/useRandomQuotes.ts",
-        "frontend/src/lib/randomQuotes.ts",
-        "frontend/src/pages/About.tsx"
+        "backend/main.mo (truncated; no testimony API methods visible)",
+        "backend/migration.mo (adds NewTestimony type but no API behavior)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Mobile menu scroll-lock and route-change auto-close behavior added to HeaderNav.",
-      "reason": "BuildRequest does not ask for navigation behavior changes; this is additional functionality beyond About/quotes/build-fix scope.",
+      "description": "Introduced an approval/pending-review moderation workflow for testimonies (approved vs pending) rather than the requested 'admin remove-only' moderation with immediate public visibility.",
+      "reason": "Admin UI explicitly separates 'Pending Review' vs 'Approved' testimonies, and public queries/pages use 'approved' testimonies only; this adds an approval gate not requested and conflicts with REQ-7/REQ-9 stated behavior.",
       "evidence": [
-        "frontend/src/components/layout/HeaderNav.tsx"
+        "frontend/src/components/admin/AdminTestimoniesTab.tsx (filters approved vs pending and labels 'Pending Review')",
+        "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx (useGetAllApprovedTestimonies)",
+        "frontend/src/pages/Testimonies.tsx (useGetAllApprovedTestimonies)",
+        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx (toast: 'submitted for review')"
       ]
     },
     {
-      "description": "Large global styling/theme updates (fonts import, extensive OKLCH token definitions, animations, utilities).",
-      "reason": "BuildRequest only specifies quotes display styling should be unobtrusive and consistent; broad theme refactors are not requested explicitly.",
+      "description": "Owner/Admin+ testimony manager supports creating/editing/updating testimonies (including setting approved) from an adminplus section.",
+      "reason": "BuildRequest only asked for admin removal moderation in Admin Dashboard (REQ-10) and backend remove-only moderation; create/edit/update testimony management is beyond scope.",
       "evidence": [
-        "frontend/src/index.css"
-      ]
-    },
-    {
-      "description": "Brand text in the header logo changed to “The Creator of Side Quests”.",
-      "reason": "The request targets About page content and quotes behavior; changing global header branding is not explicitly requested in REQ-53–REQ-56.",
-      "evidence": [
-        "frontend/src/components/layout/HeaderNav.tsx"
+        "frontend/src/components/adminplus/TestimonyManagerSection.tsx (uses useCreateTestimony/useUpdateTestimony; edit/create flows; includes 'approved' checkbox)"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.72,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/layout/AppLayout.tsx",
-    "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/quotes/RandomQuotes.tsx",
-    "frontend/src/data/quotes.ts",
-    "frontend/src/hooks/useRandomQuotes.ts",
+    "frontend/src/components/admin/AdminProductsTab.tsx",
+    "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+    "frontend/src/components/adminplus/TestimonyManagerSection.tsx",
+    "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
+    "frontend/src/components/shop/ProductDetailsModal.tsx",
+    "frontend/src/components/shop/ProductFlipCard.tsx",
+    "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+    "frontend/src/components/testimonies/StarRating.tsx",
+    "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
+    "frontend/src/hooks/useOfflineMutationReplay.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useQueuedMutations.ts",
     "frontend/src/index.css",
-    "frontend/src/lib/randomQuotes.ts",
-    "frontend/src/pages/About.tsx",
+    "frontend/src/pages/Admin.tsx",
+    "frontend/src/pages/Homepage.tsx",
+    "frontend/src/pages/Services.tsx",
+    "frontend/src/pages/Shop.tsx",
+    "frontend/src/pages/Testimonies.tsx",
     "project_state.json"
   ]
 }

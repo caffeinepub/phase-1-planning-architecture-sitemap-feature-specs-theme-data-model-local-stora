@@ -1,418 +1,66 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 19,
-  "summary": "Scope shift to building a premium-quality, mobile-optimized business website branded as “The Creator of Side Quests” with a fantasy-medieval–meets–modern-luxury-chic aesthetic and neurodivergent-centered copy. Add/replace page content (especially About) with provided verbatim narrative plus Mission/Vision, expand homepage and core business sections (services, portfolio, testimonials, newsletter, booking CTAs), and update the randomized quotes feature to display 2–3 quotes per page including the About page (conflicting with the earlier About-page exclusion rule). Also address a prior deployment error and redeploy after ensuring quotes appear across pages.",
+  "projectStateVersion": 3,
+  "summary": "Phase 3: Add Portfolio and Testimonies widgets/pages, add Shop navigation access, implement Admin product creation that publishes flippable product cards, and implement customer testimonies submission with admin moderation.",
   "architectural_notes": [
-    "Planned pages include: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal pages.",
-    "Design direction target: dark fantasy aesthetic with parchment tones and glowing accents.",
-    "Backend/data layer planned around Supabase with core tables such as Users, Inventory, Products, Orders, Saved Artifacts.",
-    "Local storage to cache items like recently viewed content, offline edits, and session state.",
-    "Phase 2 scope targets a real Supabase-backed backend (project setup, DB schema, auth/roles, and sync) rather than only planning artifacts.",
-    "Phase 3 UI scope includes global layout components (nav/footer/grid/theme), page-specific section layouts, and interactive effects (hover/flip/fade/parallax/smooth transitions).",
-    "Phase 4 direction: core functionality will be Supabase-backed (auth, product data, wishlist/saved artifacts, orders/guild management) with local-storage-based caching/offline-first behaviors and sync when online.",
-    "Phase 5 scope: advanced UI animations/interactions (flip cards, hover glows, scroll-based fade-ins) while maintaining performance and accessibility (e.g., reduced motion).",
-    "Phase 5 scope: robust error handling for offline scenarios, failed API calls, and syncing conflicts (clear user feedback + recovery).",
-    "Phase 5 scope: performance + quality pass including lazy loading, caching, bundle-size reduction, responsive testing, and accessibility/SEO improvements."
+    "Testimony submissions are publicly visible by default; admin moderation is removal-based (delete/hide inappropriate/vulgar content while allowing respectful criticism)."
   ],
-  "known_issues": [
-    "Potential scope/architecture conflict: existing request AR-10 references Internet Computer canister-backed models, while Phase 2 steps specify Supabase as the backend.",
-    "Backend direction conflict remains: Phase 4 explicitly requests Supabase auth/data, while existing requests (e.g., AR-10/AR-16) target Internet Computer canister-backed models/auth.",
-    "Phase 6 deployment direction specifies Supabase as backend, reinforcing the existing Supabase vs Internet Computer backend conflict in earlier requests (e.g., AR-10/AR-16).",
-    "Phase 7 reiterates a Supabase + local-storage syncing direction, increasing the existing architecture conflict with Internet Computer canister/Internet Identity-based requests (e.g., AR-10/AR-16).",
-    "Requirement conflict: earlier spec excluded randomized quotes on the About page, but latest request explicitly requires quotes (2–3 per page) including the About page.",
-    "Deployment previously failed (“deploy encountered an error”); needs investigation/fix before redeploy."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-create-a-phase-1-planning-document-that-defines-the-full-site-map-page-list-and-navigation-structure-for-homepage-about-services-shop-dashboard-contact-blog-lore-faq-admin-and-legal-pages-terms-privacy-include-a-concise-description-of-the-purpose-of-each-page-and-any-key-sub-sections-e-g-shop-list-filters-product-detail-legal-terms-privacy",
-      "title": "Create a Phase 1 planning document that defines the full site map/page list and navigation structure for: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal pages (Terms + Privacy). Include a concise description of the purpose of each page and any key sub-sections (e.g., Shop: list, filters, product detail; Legal: Terms, Privacy).",
+      "id": "feature-add-a-portfolio-widget-section-to-the-homepage-and-services-pages-that-previews-portfolio-content-and-includes-a-clear-link-button-to-the-full-portfolio-page",
+      "title": "Add a Portfolio widget section to the Homepage and Services pages that previews Portfolio content and includes a clear link/button to the full Portfolio page.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-a-frontend-route-page-skeleton-for-each-planned-page-homepage-about-services-shop-dashboard-contact-blog-lore-faq-admin-terms-privacy-with-basic-layouts-and-placeholder-sections-that-match-the-phase-1-sitemap-each-page-must-render-a-clear-page-title-and-a-short-placeholder-description-in-english",
-      "title": "Implement a frontend route/page skeleton for each planned page (Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, Privacy) with basic layouts and placeholder sections that match the Phase 1 sitemap. Each page must render a clear page title and a short placeholder description in English.",
+      "id": "feature-add-a-testimonies-widget-section-to-the-homepage-and-services-pages-that-previews-testimonies-content-and-includes-a-clear-link-button-to-the-full-testimonies-page",
+      "title": "Add a Testimonies widget section to the Homepage and Services pages that previews Testimonies content and includes a clear link/button to the full Testimonies page.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-create-a-phase-1-feature-specification-that-details-every-feature-per-page-including-ui-interactions-like-hover-effects-flip-cards-filters-inventory-syncing-and-clearly-marks-each-item-as-phase-1-skeleton-spec-only-vs-later-implementation-the-spec-must-be-written-in-english-and-organized-by-page",
-      "title": "Create a Phase 1 feature specification that details every feature per page (including UI interactions like hover effects, flip cards, filters, inventory syncing) and clearly marks each item as Phase 1 (skeleton/spec only) vs. later implementation. The spec must be written in English and organized by page.",
+      "id": "feature-update-admin-dashboard-create-product-ui-to-include-product-image-upload-price-stock-status-toggle-select-in-stock-out-of-stock-availability-select-delivery-pickup-drop-off-and-short-description-submitting-should-publish-the-product-so-it-appears-on-the-public-shop-page-immediately-after-creation",
+      "title": "Update Admin Dashboard “Create Product” UI to include product image upload, price, stock status toggle/select (in stock / out of stock), availability select (delivery / pickup / drop-off), and short description; submitting should publish the product so it appears on the public Shop page immediately after creation.",
       "reqIds": [
-        "REQ-3"
+        "REQ-5"
       ],
       "version": 1
     },
     {
-      "id": "feature-establish-and-apply-a-consistent-design-direction-across-the-frontend-based-on-a-dark-fantasy-theme-with-parchment-tones-and-subtle-glowing-accents-define-a-small-design-system-color-tokens-typography-choices-spacing-button-hover-states-card-styling-and-apply-it-to-global-layout-components-and-all-page-skeletons",
-      "title": "Establish and apply a consistent design direction across the frontend based on a dark fantasy theme with parchment tones and subtle glowing accents. Define a small design system (color tokens, typography choices, spacing, button/hover states, card styling) and apply it to global layout components and all page skeletons.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-define-and-implement-a-local-storage-strategy-for-the-frontend-covering-recently-viewed-items-offline-edits-drafts-and-session-state-provide-a-small-centralized-utility-layer-and-or-react-hooks-to-read-write-these-keys-safely-version-the-stored-data-and-clear-expire-data-when-appropriate-document-what-is-stored-retention-expiry-rules-and-how-it-will-be-used-later",
-      "title": "Define and implement a local storage strategy for the frontend covering: recently viewed items, offline edits (drafts), and session state. Provide a small, centralized utility layer (and/or React hooks) to read/write these keys safely, version the stored data, and clear/expire data when appropriate. Document what is stored, retention/expiry rules, and how it will be used later.",
+      "id": "feature-render-products-on-the-public-shop-page-as-flippable-product-cards-using-the-existing-flipcard-component-and-include-the-product-image-and-the-new-product-fields-in-the-card-front-back-content",
+      "title": "Render products on the public Shop page as flippable product cards, using the existing FlipCard component, and include the product image and the new product fields in the card front/back content.",
       "reqIds": [
         "REQ-6"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-generated-static-visual-assets-that-match-the-chosen-dark-fantasy-parchment-glowing-accent-theme-and-integrate-them-into-the-global-ui-e-g-background-texture-and-a-simple-emblem-assets-must-be-stored-as-static-files-and-referenced-directly-by-the-frontend-not-served-through-the-backend",
-      "title": "Add generated static visual assets that match the chosen dark fantasy parchment + glowing accent theme and integrate them into the global UI (e.g., background texture and a simple emblem). Assets must be stored as static files and referenced directly by the frontend (not served through the backend).",
+      "id": "feature-add-a-public-create-testimony-flow-on-the-testimonies-page-that-lets-customers-submit-a-review-text-up-to-800-characters-b-1-5-star-rating-and-c-photo-and-video-uploads-submitted-testimonies-must-become-publicly-visible",
+      "title": "Add a public “Create Testimony” flow on the Testimonies page that lets customers submit: (a) review text up to 800 characters, (b) 1–5 star rating, and (c) photo and video uploads; submitted testimonies must become publicly visible.",
       "reqIds": [
         "REQ-7"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-authentication-and-authorization-using-internet-identity-not-supabase-support-user-login-logout-via-existing-ii-flow-and-implement-role-handling-admin-vs-regular-user-vs-guest-in-the-backend-with-apis-the-frontend-can-call-e-g-getcalleruserrole-add-backend-operations-to-grant-revoke-admin-role-admin-only-and-define-a-safe-bootstrap-mechanism-for-the-first-admin",
-      "title": "Implement authentication and authorization using Internet Identity (not Supabase): support user login/logout via existing II flow, and implement role handling (admin vs regular user vs guest) in the backend with APIs the frontend can call (e.g., getCallerUserRole). Add backend operations to grant/revoke admin role (admin-only), and define a safe bootstrap mechanism for the first admin.",
+      "id": "feature-style-testimony-star-ratings-so-filled-stars-appear-golden-moss-green-with-a-glow-effect-apply-this-styling-consistently-anywhere-a-testimony-rating-is-displayed",
+      "title": "Style testimony star ratings so filled stars appear golden moss-green with a glow effect; apply this styling consistently anywhere a testimony rating is displayed.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-testimony-management-section-in-the-admin-dashboard-admin-page-that-allows-admins-to-review-submitted-testimonies-and-remove-items",
+      "title": "Add a “Testimony Management” section in the Admin Dashboard (Admin page) that allows admins to review submitted testimonies and remove items.",
       "reqIds": [
         "REQ-10"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-replace-the-requested-supabase-syncing-local-caching-layer-with-syncing-against-the-internet-computer-backend-add-adjust-frontend-modules-hooks-without-editing-immutable-paths-so-temporary-cached-data-drafts-session-recently-viewed-remains-local-only-while-persisted-domain-data-orders-saved-artifacts-profile-is-fetched-mutated-via-the-canister-and-kept-consistent-via-react-query-invalidation",
-      "title": "Replace the requested “Supabase syncing” local caching layer with syncing against the Internet Computer backend: add/adjust frontend modules/hooks (without editing immutable paths) so temporary cached data (drafts/session/recently-viewed) remains local-only, while persisted domain data (orders/saved artifacts/profile) is fetched/mutated via the canister and kept consistent via React Query invalidation.",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-enhance-the-global-layout-to-fully-support-the-phase-3-ui-direction-ensure-the-header-navigation-footer-and-main-content-area-use-a-consistent-responsive-grid-container-system-mobile-first-and-consistent-spacing-typography-across-all-pages-while-preserving-the-existing-dark-fantasy-theme-styling",
-      "title": "Enhance the global layout to fully support the Phase 3 UI direction: ensure the header navigation, footer, and main content area use a consistent responsive grid/container system (mobile-first) and consistent spacing/typography across all pages, while preserving the existing dark-fantasy theme styling.",
-      "reqIds": [
-        "REQ-13"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-the-homepage-phase-3-sections-hero-section-featured-carousel-quick-links-and-announcements-using-english-user-facing-text-and-matching-the-existing-theme-cards-gold-accents-subtle-glow",
-      "title": "Implement the Homepage Phase 3 sections: hero section, featured carousel, quick links, and announcements, using English user-facing text and matching the existing theme (cards, gold accents, subtle glow).",
-      "reqIds": [
-        "REQ-14"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-expand-the-about-page-to-include-phase-3-ui-elements-additional-story-sections-team-cards-and-a-timeline-section-visual-milestones-using-english-user-facing-text",
-      "title": "Expand the About page to include Phase 3 UI elements: additional story sections, team cards, and a timeline section (visual milestones), using English user-facing text.",
-      "reqIds": [
-        "REQ-15"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-services-page-to-present-service-cards-with-toggles-tabs-for-details-so-users-can-expand-switch-between-service-details-without-leaving-the-page",
-      "title": "Update the Services page to present service cards with toggles/tabs for details so users can expand/switch between service details without leaving the page.",
-      "reqIds": [
-        "REQ-16"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-enhance-the-shop-page-ui-to-include-product-grid-layout-with-functional-filters-refined-hover-effects-and-product-detail-modals-that-open-from-the-grid-list-without-navigating-away",
-      "title": "Enhance the Shop page UI to include: product grid layout with functional filters, refined hover effects, and product detail modals that open from the grid/list without navigating away.",
-      "reqIds": [
-        "REQ-17"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-dashboard-page-ui-to-include-phase-3-sections-inventory-layout-saved-artifacts-and-guild-orders-organized-within-the-dashboard-in-a-clear-navigation-pattern-tabs-sections-and-using-english-user-facing-text",
-      "title": "Update the Dashboard page UI to include Phase 3 sections: Inventory layout, Saved Artifacts, and Guild Orders, organized within the dashboard in a clear navigation pattern (tabs/sections) and using English user-facing text.",
-      "reqIds": [
-        "REQ-18"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-enhance-the-contact-page-by-adding-an-faq-section-below-alongside-the-contact-form-distinct-from-the-main-faq-page-while-keeping-the-existing-contact-form-layout-and-english-user-facing-text",
-      "title": "Enhance the Contact page by adding an FAQ section below/alongside the contact form (distinct from the main /faq page), while keeping the existing contact form layout and English user-facing text.",
-      "reqIds": [
-        "REQ-19"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-phase-3-visual-interaction-upgrades-to-the-extra-pages-blog-lore-faq-admin-terms-privacy-so-they-feel-consistent-with-the-updated-layout-and-effects-cards-spacing-headings-without-changing-their-routing-or-access-control-behavior",
-      "title": "Apply Phase 3 visual/interaction upgrades to the extra pages (Blog/Lore, FAQ, Admin, Terms, Privacy) so they feel consistent with the updated layout and effects (cards, spacing, headings), without changing their routing or access control behavior.",
-      "reqIds": [
-        "REQ-20"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-site-wide-ui-effects-requested-for-phase-3-hover-animations-flip-cards-fade-ins-on-scroll-parallax-scrolling-subtle-and-smooth-page-section-transitions-ensuring-performance-and-accessibility-reduced-motion-support",
-      "title": "Implement site-wide UI effects requested for Phase 3: hover animations, flip cards, fade-ins on scroll, parallax scrolling (subtle), and smooth page/section transitions, ensuring performance and accessibility (reduced motion support).",
-      "reqIds": [
-        "REQ-21"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-a-local-cart-inventory-state-that-supports-adding-removing-products-quantity-updates-and-persistence-via-the-existing-versioned-localstorage-utility-and-expose-it-via-a-reusable-react-hook-so-shop-and-dashboard-can-share-it",
-      "title": "Implement a local cart/inventory state that supports adding/removing products, quantity updates, and persistence via the existing versioned localStorage utility, and expose it via a reusable React hook so Shop and Dashboard can share it.",
-      "reqIds": [
-        "REQ-22"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-shop-product-details-modal-to-make-the-add-to-cart-button-functional-by-adding-the-selected-product-to-the-local-cart-state-and-show-clear-english-feedback-for-success-disabled-out-of-stock-states",
-      "title": "Update the Shop product details modal to make the “Add to Cart” button functional by adding the selected product to the local cart state, and show clear English feedback for success/disabled (out of stock) states.",
-      "reqIds": [
-        "REQ-23"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-saved-artifacts-wishlist-interactions-in-the-shop-ui-allow-signed-in-users-to-save-unsave-a-product-using-the-existing-backend-apis-and-react-query-hooks-and-reflect-saved-state-in-the-product-details-modal",
-      "title": "Implement Saved Artifacts (wishlist) interactions in the Shop UI: allow signed-in users to save/unsave a product using the existing backend APIs and React Query hooks, and reflect saved state in the product details modal.",
-      "reqIds": [
-        "REQ-24"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-an-order-checkout-flow-that-creates-an-order-from-the-local-cart-by-calling-the-existing-backend-createorder-api-then-clears-the-local-cart-and-refreshes-dashboard-order-data",
-      "title": "Implement an order checkout flow that creates an order from the local cart by calling the existing backend createOrder API, then clears the local cart and refreshes Dashboard order data.",
-      "reqIds": [
-        "REQ-25"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-improve-the-dashboard-saved-artifacts-tab-to-display-meaningful-product-details-name-price-stock-badge-by-resolving-saved-product-ids-against-the-product-list-rather-than-only-showing-product-id",
-      "title": "Improve the Dashboard “Saved Artifacts” tab to display meaningful product details (name, price, stock badge) by resolving saved product IDs against the product list, rather than only showing “Product #ID”.",
-      "reqIds": [
-        "REQ-26"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-basic-guild-orders-quests-tracking-as-a-first-class-canister-backed-entity-separate-from-purchases-and-display-it-in-the-dashboard-guild-orders-panel-replacing-the-current-placeholder-content",
-      "title": "Implement basic “Guild Orders / Quests” tracking as a first-class canister-backed entity (separate from purchases) and display it in the Dashboard Guild Orders panel, replacing the current placeholder content.",
-      "reqIds": [
-        "REQ-27"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-offline-first-mutation-support-when-a-signed-in-user-performs-a-persisted-action-while-the-canister-call-fails-e-g-save-unsave-artifact-create-order-admin-product-changes-queue-the-mutation-in-localstorage-and-automatically-retry-when-the-app-detects-connectivity-actor-availability-again",
-      "title": "Add offline-first mutation support: when a signed-in user performs a persisted action while the canister call fails (e.g., save/unsave artifact, create order, admin product changes), queue the mutation in localStorage and automatically retry when the app detects connectivity/actor availability again.",
-      "reqIds": [
-        "REQ-28"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-replace-the-admin-products-tab-placeholder-with-a-functional-product-management-ui-that-uses-existing-hooks-for-product-creation-and-stock-updates-including-form-validation-and-clear-english-success-error-feedback",
-      "title": "Replace the Admin Products tab placeholder with a functional product management UI that uses existing hooks for product creation and stock updates, including form validation and clear English success/error feedback.",
-      "reqIds": [
-        "REQ-29"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-extend-backend-product-management-to-support-editing-existing-product-fields-at-minimum-name-description-and-price-and-update-the-admin-ui-to-use-this-capability",
-      "title": "Extend backend product management to support editing existing product fields (at minimum name, description, and price), and update the Admin UI to use this capability.",
-      "reqIds": [
-        "REQ-30"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-replace-the-admin-orders-tab-placeholder-with-a-functional-orders-view-for-admins-that-lists-all-orders-using-the-existing-admin-query-api-with-basic-filtering-by-buyer-principal-and-or-order-id",
-      "title": "Replace the Admin Orders tab placeholder with a functional orders view for admins that lists all orders using the existing admin query API, with basic filtering by buyer principal and/or order id.",
-      "reqIds": [
-        "REQ-31"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-replace-the-admin-users-tab-placeholder-with-functional-role-management-allow-an-admin-to-enter-a-user-principal-and-grant-revoke-admin-role-using-the-existing-role-mutation-hooks-show-clear-english-validation-and-result-states",
-      "title": "Replace the Admin Users tab placeholder with functional role management: allow an admin to enter a user Principal and grant/revoke admin role using the existing role mutation hooks; show clear English validation and result states.",
-      "reqIds": [
-        "REQ-32"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-refine-and-standardize-site-wide-animations-interactions-flip-cards-hover-glows-scroll-based-fade-ins-so-they-are-consistent-across-all-pages-components-do-not-cause-layout-shift-and-fully-respect-reduced-motion-preferences",
-      "title": "Refine and standardize site-wide animations/interactions (flip cards, hover glows, scroll-based fade-ins) so they are consistent across all pages/components, do not cause layout shift, and fully respect reduced-motion preferences.",
-      "reqIds": [
-        "REQ-34"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-strengthen-frontend-error-handling-for-offline-mode-and-failed-canister-api-calls-by-providing-clear-user-facing-feedback-and-recovery-actions-retry-continue-offline-where-safe-across-the-app",
-      "title": "Strengthen frontend error handling for offline mode and failed canister/API calls by providing clear, user-facing feedback and recovery actions (retry, continue offline where safe) across the app.",
-      "reqIds": [
-        "REQ-35"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-improve-offline-sync-conflict-handling-ux-for-queued-mutation-replay-by-distinguishing-transient-failures-retryable-vs-permanent-failures-non-retryable-and-by-letting-the-user-inspect-and-resolve-remaining-queued-actions-retry-or-remove",
-      "title": "Improve offline sync conflict handling UX for queued mutation replay by distinguishing transient failures (retryable) vs permanent failures (non-retryable), and by letting the user inspect and resolve remaining queued actions (retry or remove).",
-      "reqIds": [
-        "REQ-36"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-performance-optimizations-lazy-load-non-critical-route-code-and-heavy-ui-sections-lazy-load-images-where-applicable-and-reduce-unnecessary-re-renders-to-minimize-bundle-size-and-improve-initial-load-performance",
-      "title": "Implement performance optimizations: lazy-load non-critical route code and heavy UI sections, lazy-load images where applicable, and reduce unnecessary re-renders to minimize bundle size and improve initial load performance.",
-      "reqIds": [
-        "REQ-37"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-complete-responsive-testing-and-fix-layout-issues-across-mobile-tablet-and-desktop-breakpoints-ensuring-navigation-modals-grids-and-dashboard-tabs-remain-usable-and-visually-consistent",
-      "title": "Complete responsive testing and fix layout issues across mobile, tablet, and desktop breakpoints, ensuring navigation, modals, grids, and dashboard tabs remain usable and visually consistent.",
-      "reqIds": [
-        "REQ-38"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-improve-accessibility-and-seo-basics-by-adding-ensuring-alt-text-semantic-html-landmarks-keyboard-accessibility-and-appropriate-meta-tags-title-description-for-the-application-and-major-routes",
-      "title": "Improve accessibility and SEO basics by adding/ensuring alt text, semantic HTML landmarks, keyboard accessibility, and appropriate meta tags (title/description) for the application and major routes.",
-      "reqIds": [
-        "REQ-39"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-phase-6-qa-test-plan-document-that-enumerates-manual-test-cases-for-all-core-flows-internet-identity-login-logout-role-gated-admin-access-local-cart-inventory-operations-offline-mutation-queue-replay-checkout-order-creation-saved-artifacts-save-unsave-and-contact-form-submission",
-      "title": "Create a Phase 6 QA test plan document that enumerates manual test cases for all core flows: Internet Identity login/logout, role-gated Admin access, local cart/inventory operations, offline mutation queue + replay, checkout/order creation, saved artifacts save/unsave, and contact form submission.",
-      "reqIds": [
-        "REQ-40"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-perform-cross-browser-and-device-qa-and-implement-fixes-for-any-discovered-issues-that-affect-usability-or-correctness-on-chrome-firefox-safari-edge-and-mobile-browsers-focusing-on-navigation-header-behavior-dialogs-modals-e-g-product-details-scroll-based-effects-fade-parallax-and-form-inputs",
-      "title": "Perform cross-browser and device QA and implement fixes for any discovered issues that affect usability or correctness on Chrome, Firefox, Safari, Edge, and mobile browsers, focusing on: navigation/header behavior, dialogs/modals (e.g., product details), scroll-based effects (fade/parallax), and form inputs.",
-      "reqIds": [
-        "REQ-41"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-an-app-wide-frontend-error-boundary-and-global-client-side-error-capture-runtime-errors-and-unhandled-promise-rejections-that-records-a-privacy-minimal-error-log-locally-e-g-in-localstorage-and-presents-clear-english-guidance-to-the-user-when-the-ui-crashes",
-      "title": "Add an app-wide frontend error boundary and global client-side error capture (runtime errors and unhandled promise rejections) that records a privacy-minimal error log locally (e.g., in localStorage) and presents clear English guidance to the user when the UI crashes.",
-      "reqIds": [
-        "REQ-42"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-optional-analytics-integration-on-the-frontend-that-can-run-in-two-modes-1-first-party-canister-event-logging-via-the-new-backend-apis-and-2-optional-google-analytics-style-script-integration-that-is-enabled-only-when-a-tracking-id-is-provided-via-environment-build-configuration",
-      "title": "Add optional analytics integration on the frontend that can run in two modes: (1) first-party canister event logging via the new backend APIs, and (2) optional Google Analytics-style script integration that is enabled only when a tracking ID is provided via environment/build configuration.",
-      "reqIds": [
-        "REQ-44"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-provide-production-deployment-documentation-that-reflects-the-actual-project-architecture-internet-computer-canister-backend-with-internet-identity-and-includes-steps-to-deploy-the-frontend-to-a-static-host-e-g-vercel-netlify-or-as-ic-hosted-assets-plus-required-environment-variables-and-post-deploy-validation-steps",
-      "title": "Provide production deployment documentation that reflects the actual project architecture (Internet Computer canister backend with Internet Identity) and includes steps to deploy the frontend to a static host (e.g., Vercel/Netlify) OR as IC-hosted assets, plus required environment variables and post-deploy validation steps.",
-      "reqIds": [
-        "REQ-45"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-an-in-app-user-feedback-capture-flow-that-lets-users-submit-ux-feature-feedback-from-within-the-app-with-offline-first-behavior-drafts-queued-submit-and-clear-english-success-error-states",
-      "title": "Add an in-app user feedback capture flow that lets users submit UX/feature feedback from within the app, with offline-first behavior (drafts + queued submit) and clear English success/error states.",
-      "reqIds": [
-        "REQ-46"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-an-admin-ui-section-for-reviewing-submitted-feedback-including-basic-filtering-and-status-handling-using-clear-english-user-facing-text",
-      "title": "Add an Admin UI section for reviewing submitted feedback, including basic filtering and status handling, using clear English user-facing text.",
-      "reqIds": [
-        "REQ-48"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-phase-7-iteration-playbook-document-describing-how-feedback-is-collected-reviewed-and-turned-into-page-by-page-updates-while-maintaining-offline-first-behavior-and-canister-backed-persistence",
-      "title": "Create a Phase 7 iteration playbook document describing how feedback is collected, reviewed, and turned into page-by-page updates while maintaining offline-first behavior and canister-backed persistence.",
-      "reqIds": [
-        "REQ-49"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-centralized-reusable-quotes-data-source-containing-all-user-provided-quotes-exact-wording-and-a-small-utility-to-select-a-random-subset-a-couple-of-non-repeating-quotes-for-display-on-a-page",
-      "title": "Create a centralized, reusable quotes data source containing all user-provided quotes (exact wording), and a small utility to select a random subset (a couple) of non-repeating quotes for display on a page.",
-      "reqIds": [
-        "REQ-50"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-a-themed-random-quotes-ui-component-that-renders-the-randomly-selected-quotes-in-a-visually-consistent-card-blockquote-style-dark-fantasy-theme-suitable-for-embedding-into-pages-without-breaking-existing-layouts",
-      "title": "Implement a themed \"Random Quotes\" UI component that renders the randomly selected quotes in a visually consistent card/blockquote style (dark-fantasy theme), suitable for embedding into pages without breaking existing layouts.",
-      "reqIds": [
-        "REQ-51"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-display-randomized-quotes-on-every-page-except-the-about-page-the-about-page-must-remain-unchanged-and-must-not-show-the-randomized-quotes-component",
-      "title": "Display randomized quotes on every page except the About page. The About page must remain unchanged and must not show the randomized quotes component.",
-      "reqIds": [
-        "REQ-52"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-replace-the-existing-about-page-content-about-with-the-user-provided-the-creator-of-side-quests-about-page-copy-ensuring-the-page-is-fully-website-ready-multi-paragraph-polished-and-keeps-the-provided-narrative-text-verbatim-while-integrating-it-naturally-into-the-page-flow",
-      "title": "Replace the existing About page content (/about) with the user-provided “The Creator of Side Quests” About page copy, ensuring the page is fully website-ready, multi-paragraph, polished, and keeps the provided narrative text verbatim while integrating it naturally into the page flow.",
-      "reqIds": [
-        "REQ-53"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-centralized-quotes-data-source-to-contain-exactly-the-user-provided-quotes-exact-wording-and-punctuation-and-ensure-the-random-selection-utility-returns-2-3-non-repeating-quotes-per-page-render-load",
-      "title": "Update the centralized quotes data source to contain exactly the user-provided quotes (exact wording and punctuation), and ensure the random selection utility returns 2–3 non-repeating quotes per page render/load.",
-      "reqIds": [
-        "REQ-54"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-change-the-randomized-quotes-display-behavior-so-that-randomized-quotes-render-on-every-page-including-the-about-page-and-ensure-the-presentation-is-visually-appealing-pull-quote-card-style-and-does-not-overwhelm-the-reader",
-      "title": "Change the randomized quotes display behavior so that randomized quotes render on every page including the About page, and ensure the presentation is visually appealing (pull-quote/card style) and does not overwhelm the reader.",
-      "reqIds": [
-        "REQ-55"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-resolve-the-prior-build-deploy-failure-by-ensuring-the-project-builds-successfully-typecheck-production-build-after-the-about-and-quotes-changes-without-modifying-frontend-immutable-paths",
-      "title": "Resolve the prior build/deploy failure by ensuring the project builds successfully (typecheck + production build) after the About and quotes changes, without modifying frontend immutable paths.",
-      "reqIds": [
-        "REQ-56"
       ],
       "version": 1
     }
@@ -420,363 +68,74 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Create full site map & page list (Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Legal)",
+      "summary": "Add Portfolio and Testimonies widgets to Homepage and Services pages linking to full Portfolio and Testimonies pages",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Define detailed feature list per page (e.g., hover effects, flip cards, filters, inventory syncing)",
+      "summary": "Add Shop, Portfolio, and Testimonies pages to main navigation (top-right on desktop, hamburger menu on mobile)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Decide design direction (colors, fonts, dark fantasy theme with parchment tones and glowing accents)",
+      "summary": "Admin Dashboard Create Product: upload image, set price, stock status, availability (delivery/pickup/drop-off), short description; publish instantly to public Shop page",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-4",
-      "summary": "Plan Supabase data architecture/tables (Users, Inventory, Products, Orders, Saved Artifacts, etc.)",
+      "summary": "Public Shop page: display products as flippable product cards",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-5",
-      "summary": "Define local storage/caching strategy (recently viewed, offline edits, session state)",
+      "summary": "Testimonies page: Create Testimony submission (<=800 chars, photo/video upload, 1–5 star rating with golden moss-green glow) and publish submissions publicly",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Admin Dashboard: Testimony Management section to remove inappropriate/vulgar testimonies while allowing respectful criticism",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Ensure the main navigation includes links to Shop, Portfolio, and Testimonies, visible in the top-right desktop navigation and within the mobile hamburger menu.",
+      "reqIds": [
+        "REQ-3"
+      ],
       "status": "pending"
     },
     {
       "id": "AR-10",
-      "summary": "Produce a Phase 1 data architecture plan that maps the requested “Supabase tables” concept (Users, Inventory, Products, Orders, Saved Artifacts, etc.) into Internet Computer canister-backed data models. Define the entities, key fields, identifiers, and relationships, and specify which fields must be stable/persisted. Implement corresponding Motoko type definitions and placeholder storage structures in the single main actor to reflect this plan (no external DB integration).",
+      "summary": "Extend the Product data model and APIs to support: a product image, custom price, stock status (in stock / out of stock), availability (delivery / pickup / drop-off), and a short description; update product creation so these fields are persisted and returned by shop queries.",
       "reqIds": [
-        "REQ-5"
+        "REQ-4"
       ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "Set up Supabase project (account, project creation) and configure API keys/environment variables",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-12",
-      "summary": "Implement Supabase database schema: Users, Products, Inventory, Orders, Saved Artifacts with proper fields and relations",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Implement authentication and authorization: sign-up/login and roles (admin vs regular user)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-14",
-      "summary": "Implement local storage JS modules for caching temporary data and syncing it with Supabase",
-      "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-15",
-      "summary": "Set up project environment: repository initialization, folder structure, and package manager/framework setup (React/Next.js/Vue as applicable)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-16",
-      "summary": "Replace the requested “Supabase tables” infrastructure with Internet Computer canister-backed persistent storage in Motoko for the following entities: Users, Products, Inventory, Orders, Saved Artifacts (and UserProfile if needed for authentication/profile flow). Ensure the data model includes appropriate identifiers and relations equivalent to the user’s table list (e.g., Orders reference a buyer Principal and product IDs; Inventory is tracked per product; Saved Artifacts are per-user).",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-17",
-      "summary": "Make backend storage upgrade-safe by converting in-memory maps/counters used for Users, Products, Orders, Saved Artifacts, and UserProfiles into stable/persistent state, and add an upgrade migration (backend/migration.mo) if required to preserve any existing deployed data during upgrades.",
+      "summary": "Add backend support for customer testimony creation and admin moderation so admins can remove inappropriate/vulgar submissions while leaving respectful criticism; removed items must no longer be publicly visible.",
       "reqIds": [
         "REQ-9"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-19",
-      "summary": "Implement or update backend APIs needed for Phase 2 data operations so the existing React Query hooks can support: product listing/details, order creation and listing (my orders vs all orders for admin), and saved artifacts CRUD. Ensure responses are deterministic and typed for the existing frontend TypeScript bindings.",
+      "id": "AR-17",
+      "summary": "If existing canister state must be upgraded due to changes in Product/Testimony schemas, add/adjust a conditional backend migration so previously stored products/testimonies/portfolios remain readable and the canister upgrade does not trap.",
       "reqIds": [
         "REQ-11"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-20",
-      "summary": "Implement Global Layout: navigation bar, footer, responsive grid system, and theme styles",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-21",
-      "summary": "Build Homepage UI sections: hero, featured carousel, quick links, announcements",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-22",
-      "summary": "Build About page UI: story sections, team cards, timeline",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-23",
-      "summary": "Build Services page UI: service cards with toggles/tabs for details",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-24",
-      "summary": "Build Shop page UI: product grid with filters, hover effects, and product modals",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-25",
-      "summary": "Build Dashboard page UI: inventory layout, Saved Artifacts, Guild Orders sections",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-26",
-      "summary": "Build Contact page UI: contact form layout and FAQs section",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-27",
-      "summary": "Build remaining page UIs: Blog/Lore, FAQ, Admin, and Legal pages",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-28",
-      "summary": "Implement UI effects: hover animations, flip cards, fade-ins, parallax scrolling, smooth transitions",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-29",
-      "summary": "Phase 4: Implement Supabase user authentication (login/signup) and profile updates",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-30",
-      "summary": "Phase 4: Product management—fetch products from Supabase and display in Shop",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-31",
-      "summary": "Phase 4: Inventory/Cart logic—add/remove items and sync cart/inventory state with local storage",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-32",
-      "summary": "Phase 4: Saved Artifacts (wishlist) functionality synced to Supabase",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-33",
-      "summary": "Phase 4: Order/Guild management—track orders/quests and display in Dashboard",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-34",
-      "summary": "Phase 4: Offline support—local storage caching for offline edits and auto-sync when back online",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-35",
-      "summary": "Phase 4: Admin panel—upload/edit products, set stock status, manage users (Supabase-backed)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-47",
-      "summary": "Make backend state upgrade-safe for Phase 4 domain data by converting in-memory maps/counters for products, orders, saved artifacts, profiles, and any newly added guild order entities into stable/persisted state, and add a conditional migration file only if needed to preserve already-deployed data.",
-      "reqIds": [
-        "REQ-33"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-48",
-      "summary": "Phase 5: Add advanced animations & interactions (flip cards, hover glows, scroll-based fade-ins) across the UI",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-49",
-      "summary": "Phase 5: Improve error handling for offline errors, failed API calls, and sync conflict resolution UX",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-50",
-      "summary": "Phase 5: Performance optimization (lazy-load images, caching strategy, minimize bundle size)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-51",
-      "summary": "Phase 5: Responsive testing and fixes for mobile/tablet/desktop layouts",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-52",
-      "summary": "Phase 5: Accessibility & SEO improvements (alt text, semantic HTML, meta tags)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-53",
-      "summary": "Phase 6: Functionality testing of all core flows (login, inventory, offline/sync, checkout, forms)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-54",
-      "summary": "Phase 6: Cross-browser and mobile device testing (Chrome, Firefox, Safari, Edge + mobile)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-55",
-      "summary": "Phase 6: Bug fixing & QA pass across UI/UX and backend issues found during testing",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-56",
-      "summary": "Phase 6: Deployment setup for production (frontend on Vercel/Netlify or similar; backend on Supabase)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-57",
-      "summary": "Phase 6: Monitoring & analytics setup (Google Analytics or similar + error monitoring)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-61",
-      "summary": "Implement lightweight canister-backed monitoring endpoints in the existing single Motoko actor to support basic operational checks and optional event logging (no external database): add a public query health check (e.g., returns status/build info) and an authenticated event logging API suitable for recording high-level frontend events.",
-      "reqIds": [
-        "REQ-43"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-62",
-      "summary": "Phase 7: Collect and act on user feedback (UX + feature improvements) with an iteration cadence",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-63",
-      "summary": "Phase 7: Add new content over time (quests, products, services) and keep related UI/flows updated",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-64",
-      "summary": "Phase 7: Ongoing performance optimization plus new/expanded animations and effects",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-65",
-      "summary": "Phase 7: Periodically review and refine Supabase schema and local-storage syncing logic to maintain offline-first behavior",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-66",
-      "summary": "Phase 7: Adopt/continue page-by-page development while integrating persistence (Supabase) and offline-capable local storage for each feature",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-68",
-      "summary": "Extend the Motoko backend (single main actor) with canister-backed feedback storage and APIs to create and review feedback, including admin-only listing for moderation/review.",
-      "reqIds": [
-        "REQ-47"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-69",
-      "summary": "Add site-wide randomized quotes: each non-About page shows a couple randomly selected quotes per load; About page content remains unchanged",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-70",
-      "summary": "Rebrand/upgrade site into “The Creator of Side Quests” premium business website: fantasy-medieval meets modern luxury-chic aesthetic (dark moss greens/purples/blacks + subtle metallic accents), polished accessible UI, mobile-optimized, cohesive across pages",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-71",
-      "summary": "Update randomized quotes behavior: show 2–3 quotes per page on all pages INCLUDING the About page; ensure quotes render in visually appealing, non-overwhelming pull-quote/card styles",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-72",
-      "summary": "Create/replace About page content for “The Creator of Side Quests” using provided verbatim narrative + clearly labeled Mission and Vision statements; ensure website-ready multi-paragraph polished copy with neurodivergent creativity tone",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-73",
-      "summary": "Add/curate centralized quotes collection for the new brand (exact provided quote list) and integrate into site-wide random quote rotation",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-74",
-      "summary": "Homepage revamp: add Now Booking/Availability banner, concise founder story intro, services overview, How It Works workflow, featured portfolio preview linking to gallery, testimonials preview, newsletter signup, and strong booking/inquiry CTAs throughout",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-75",
-      "summary": "Add business content/feature sections: Services page with detailed categories/subcategories and clear in-person/digital/hybrid labels + sales tax info; Contact page with professional inquiry form, business info, response hours (Mon–Thu) and no-response note (Fri–Sun), inclusivity messaging, and clickable social icons/bubbles; add Hours & Policies page with boundaries/inclusivity rules",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-76",
-      "summary": "Add interactive/dynamic elements: flippable cards (text vs magical/fantasy creation images), featured portfolio gallery, client testimonial cards, social media bubbles linking to platforms, newsletter signup embedded in multiple locations, and prominent CTAs for booking/custom requests",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-77",
-      "summary": "Fix deployment failure and redeploy after ensuring the quotes/updated content appear correctly across the different pages",
-      "reqIds": [],
-      "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "The Creator of Side Quests",
+  "projectName": "Phase 3: Portfolio/Testimonies widgets + enhanced Shop product creation + public testimony submissions with moderation",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

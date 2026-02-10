@@ -1,87 +1,188 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T08:17:22.340Z",
+  "generatedAt": "2026-02-10T19:32:50.741Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 11,
+    "implemented": 7,
     "items": [
       {
-        "id": "REQ-53",
-        "summary": "Replace the existing About page content (/about) with the user-provided “The Creator of Side Quests” About page copy, ensuring the page is fully website-ready, multi-paragraph, polished, and keeps the provided narrative text verbatim while integrating it naturally into the page flow.",
+        "id": "REQ-1",
+        "summary": "Add a Portfolio widget section to the Homepage and Services pages that previews Portfolio content and includes a clear link/button to the full Portfolio page.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/About.tsx",
+          "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
+          "frontend/src/pages/Homepage.tsx",
+          "frontend/src/pages/Services.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
+          "frontend/src/pages/Homepage.tsx",
+          "frontend/src/pages/Services.tsx"
+        ]
+      },
+      {
+        "id": "REQ-10",
+        "summary": "Add a “Testimony Management” section in the Admin Dashboard (Admin page) that allows admins to review submitted testimonies and remove items.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+          "frontend/src/pages/Admin.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/hooks/useQueuedMutations.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+          "frontend/src/pages/Admin.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/hooks/useQueuedMutations.ts"
+        ]
+      },
+      {
+        "id": "REQ-11",
+        "summary": "If existing canister state must be upgraded due to changes in Product/Testimony schemas, add/adjust a conditional backend migration so previously stored products/testimonies/portfolios remain readable and the canister upgrade does not trap.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Add a Testimonies widget section to the Homepage and Services pages that previews Testimonies content and includes a clear link/button to the full Testimonies page.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
+          "frontend/src/pages/Homepage.tsx",
+          "frontend/src/pages/Services.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
+          "frontend/src/pages/Homepage.tsx",
+          "frontend/src/pages/Services.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Ensure the main navigation includes links to Shop, Portfolio, and Testimonies, visible in the top-right desktop navigation and within the mobile hamburger menu.",
+        "status": "missing",
+        "plannedFiles": [
           "frontend/src/components/layout/HeaderNav.tsx"
         ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Extend the Product data model and APIs to support: a product image, custom price, stock status (in stock / out of stock), availability (delivery / pickup / drop-off), and a short description; update product creation so these fields are persisted and returned by shop queries.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Update Admin Dashboard “Create Product” UI to include product image upload, price, stock status toggle/select (in stock / out of stock), availability select (delivery / pickup / drop-off), and short description; submitting should publish the product so it appears on the public Shop page immediately after creation.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/admin/AdminProductsTab.tsx",
+          "frontend/src/components/admin/AdminProductsTab.tsx",
+          "frontend/src/hooks/useQueuedMutations.ts",
+          "frontend/src/hooks/useQueries.ts"
+        ],
         "matchedFiles": [
-          "frontend/src/pages/About.tsx",
-          "frontend/src/components/layout/HeaderNav.tsx"
+          "frontend/src/components/admin/AdminProductsTab.tsx",
+          "frontend/src/components/admin/AdminProductsTab.tsx",
+          "frontend/src/hooks/useQueuedMutations.ts",
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
-        "id": "REQ-54",
-        "summary": "Update the centralized quotes data source to contain exactly the user-provided quotes (exact wording and punctuation), and ensure the random selection utility returns 2–3 non-repeating quotes per page render/load.",
+        "id": "REQ-6",
+        "summary": "Render products on the public Shop page as flippable product cards, using the existing FlipCard component, and include the product image and the new product fields in the card front/back content.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/data/quotes.ts",
-          "frontend/src/lib/randomQuotes.ts",
-          "frontend/src/hooks/useRandomQuotes.ts"
+          "frontend/src/components/shop/ProductFlipCard.tsx",
+          "frontend/src/pages/Shop.tsx",
+          "frontend/src/components/shop/ProductDetailsModal.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/data/quotes.ts",
-          "frontend/src/lib/randomQuotes.ts",
-          "frontend/src/hooks/useRandomQuotes.ts"
+          "frontend/src/components/shop/ProductFlipCard.tsx",
+          "frontend/src/pages/Shop.tsx",
+          "frontend/src/components/shop/ProductDetailsModal.tsx"
         ]
       },
       {
-        "id": "REQ-55",
-        "summary": "Change the randomized quotes display behavior so that randomized quotes render on every page including the About page, and ensure the presentation is visually appealing (pull-quote/card style) and does not overwhelm the reader.",
+        "id": "REQ-7",
+        "summary": "Add a public “Create Testimony” flow on the Testimonies page that lets customers submit: (a) review text up to 800 characters, (b) 1–5 star rating, and (c) photo and video uploads; submitted testimonies must become publicly visible.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/quotes/RandomQuotes.tsx",
-          "frontend/src/components/layout/AppLayout.tsx",
-          "frontend/src/index.css"
+          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "frontend/src/pages/Testimonies.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/quotes/RandomQuotes.tsx",
-          "frontend/src/components/layout/AppLayout.tsx",
-          "frontend/src/index.css"
+          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "frontend/src/pages/Testimonies.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
-        "id": "REQ-56",
-        "summary": "Resolve the prior build/deploy failure by ensuring the project builds successfully (typecheck + production build) after the About and quotes changes, without modifying frontend immutable paths.",
+        "id": "REQ-8",
+        "summary": "Style testimony star ratings so filled stars appear golden moss-green with a glow effect; apply this styling consistently anywhere a testimony rating is displayed.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/layout/AppLayout.tsx",
-          "frontend/src/pages/About.tsx"
+          "frontend/src/index.css",
+          "frontend/src/components/testimonies/StarRating.tsx",
+          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/layout/AppLayout.tsx",
-          "frontend/src/pages/About.tsx"
+          "frontend/src/index.css",
+          "frontend/src/components/testimonies/StarRating.tsx",
+          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx"
         ]
+      },
+      {
+        "id": "REQ-9",
+        "summary": "Add backend support for customer testimony creation and admin moderation so admins can remove inappropriate/vulgar submissions while leaving respectful criticism; removed items must no longer be publicly visible.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/blob-storage/Mixin.mo",
+    "backend/blob-storage/Storage.mo",
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/layout/AppLayout.tsx",
-    "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/quotes/RandomQuotes.tsx",
-    "frontend/src/data/quotes.ts",
-    "frontend/src/hooks/useRandomQuotes.ts",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/admin/AdminProductsTab.tsx",
+    "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+    "frontend/src/components/adminplus/TestimonyManagerSection.tsx",
+    "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
+    "frontend/src/components/shop/ProductDetailsModal.tsx",
+    "frontend/src/components/shop/ProductFlipCard.tsx",
+    "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+    "frontend/src/components/testimonies/StarRating.tsx",
+    "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useOfflineMutationReplay.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useQueuedMutations.ts",
     "frontend/src/index.css",
-    "frontend/src/lib/randomQuotes.ts",
-    "frontend/src/pages/About.tsx",
+    "frontend/src/pages/Admin.tsx",
+    "frontend/src/pages/Homepage.tsx",
+    "frontend/src/pages/Services.tsx",
+    "frontend/src/pages/Shop.tsx",
+    "frontend/src/pages/Testimonies.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

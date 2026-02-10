@@ -1,106 +1,217 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "About page rewrite for “The Creator of Side Quests” + randomized quotes on all routes",
+  "title": "Phase 3 frontend: homepage/service widgets, shop FlipCards + product creation fields, public testimony submission + admin moderation UI",
   "requirements": [
     {
-      "id": "REQ-53",
-      "summary": "Replace /about with the user-provided “The Creator of Side Quests” About copy (verbatim narrative block, labeled Mission & Vision) and remove remaining “Arcane Artifacts” branding from the About page.",
+      "id": "REQ-1",
+      "summary": "Add a responsive Portfolio preview widget to Homepage and Services with a clear link to /portfolio.",
       "acceptanceCriteria": [
-        "The /about route renders with a page title and description aligned to “The Creator of Side Quests” (no remaining “Arcane Artifacts” branding on the About page).",
-        "The About page contains the provided narrative block exactly as written (including punctuation and emojis) and is presented as readable, multi-paragraph website copy.",
-        "The Mission Statement and Vision Statement appear clearly labeled on the About page and match the user-provided wording exactly.",
-        "All user-facing text added/changed for this requirement is in English."
+        "Homepage shows a Portfolio widget section with at least a short preview/teaser and a working link to /portfolio.",
+        "Services page shows a Portfolio widget section with at least a short preview/teaser and a working link to /portfolio.",
+        "Widget layout is responsive and consistent with the existing site styling (cards, section-spacing, FadeInSection usage)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/About.tsx",
-          "operation": "modify",
-          "description": "Rewrite the About page content to use the user-provided “The Creator of Side Quests” copy: update PageLayout title/description, render the narrative block verbatim as multi-paragraph readable website copy, and add clearly labeled Mission Statement and Vision Statement sections matching the provided wording exactly. Remove/replace any Arcane Artifacts-specific story/values/timeline/team content that conflicts with the new branding."
+          "path": "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
+          "operation": "create",
+          "description": "Create a reusable Portfolio widget section that fetches portfolio items (via existing query hooks) and renders a small preview (e.g., a few cards) plus a prominent Link/Button to /portfolio. Use the existing FadeInSection component for consistent animation; verify the component's usage instructions before implementing."
         },
+        {
+          "path": "frontend/src/pages/Homepage.tsx",
+          "operation": "modify",
+          "description": "Insert the new PortfolioWidgetSection into the Homepage layout (without disrupting existing hero, carousel, quick links, and announcements), using section-spacing and existing card styling conventions."
+        },
+        {
+          "path": "frontend/src/pages/Services.tsx",
+          "operation": "modify",
+          "description": "Add the PortfolioWidgetSection to the Services page in a way that matches existing spacing and FadeInSection usage, and includes a working link to /portfolio."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Add a responsive Testimonies preview widget to Homepage and Services with a clear link to /testimonies.",
+      "acceptanceCriteria": [
+        "Homepage shows a Testimonies widget section with at least a short preview/teaser and a working link to /testimonies.",
+        "Services page shows a Testimonies widget section with at least a short preview/teaser and a working link to /testimonies.",
+        "Widgets do not break existing Homepage sections (hero, featured carousel, quick links, announcements)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
+          "operation": "create",
+          "description": "Create a reusable Testimonies widget section that previews a few approved testimonies (including StarRating where available) and includes a prominent Link/Button to /testimonies. Use existing FadeInSection and card styles for consistency; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Homepage.tsx",
+          "operation": "modify",
+          "description": "Place the TestimoniesWidgetSection onto the Homepage while preserving the existing section order/behavior and ensuring responsive layout."
+        },
+        {
+          "path": "frontend/src/pages/Services.tsx",
+          "operation": "modify",
+          "description": "Add the TestimoniesWidgetSection to the Services page with consistent spacing/styling and a working link to /testimonies."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Ensure main navigation shows Shop, Portfolio, and Testimonies links on desktop and mobile menus.",
+      "acceptanceCriteria": [
+        "Desktop header navigation shows working links for Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) in the top-right link cluster.",
+        "Mobile hamburger menu shows the same three links and they navigate correctly.",
+        "Navigation behavior remains unchanged for existing links (Home, About, Services, Dashboard, Contact)."
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/components/layout/HeaderNav.tsx",
           "operation": "modify",
-          "description": "Update the header’s visible branding text (currently “Arcane Artifacts”) to match “The Creator of Side Quests” where appropriate so navigation into /about aligns with the updated About page branding (keep routes/links unchanged)."
+          "description": "Confirm Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) are present in the shared navLinks list so they render in both the desktop link cluster and the mobile hamburger menu; keep existing link behavior unchanged."
         }
       ]
     },
     {
-      "id": "REQ-54",
-      "summary": "Centralize the 10 user-provided quotes verbatim and implement random selection that returns 2–3 non-repeating quotes per page load/render.",
+      "id": "REQ-5",
+      "summary": "Enhance Admin Dashboard Create Product UI to collect image, custom price, stock status, availability, and short description; publish immediately and support React Query refetch/invalidation and offline queue messaging.",
       "acceptanceCriteria": [
-        "The quotes data source includes all 10 quotes exactly as provided and does not alter quote text.",
-        "The random quote selection returns either 2 or 3 quotes (configurable or deterministic) and never repeats the same quote within the same page render.",
-        "No runtime errors occur when quote selection is invoked across routes."
+        "Admin “Create New Product” form includes: image upload control, price input, stock status control, availability control, and short description input.",
+        "Form validates required fields and shows user-friendly English errors via existing toast/error patterns.",
+        "On successful creation, the Shop page product list reflects the new product without manual page reload (via React Query invalidation/refetch).",
+        "If offline-queue behavior applies to product creation, the UI clearly indicates queued vs created states and does not crash."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/data/quotes.ts",
-          "operation": "create",
-          "description": "Create a centralized quotes data module that exports the quotes array containing exactly the 10 user-provided strings (verbatim punctuation/quotes)."
-        },
-        {
-          "path": "frontend/src/lib/randomQuotes.ts",
-          "operation": "create",
-          "description": "Add a small utility to select 2–3 quotes from the centralized quotes list without repeating within a single selection; expose a function suitable for use on route changes / page load."
-        },
-        {
-          "path": "frontend/src/hooks/useRandomQuotes.ts",
-          "operation": "create",
-          "description": "Create a React hook that uses the random selection utility to produce 2–3 non-repeating quotes per route render/load (e.g., reseed on pathname change) and returns stable results during a single page view."
-        }
-      ]
-    },
-    {
-      "id": "REQ-55",
-      "summary": "Render randomized quotes (2–3) on every existing route including /about in an unobtrusive pull-quote/card style consistent with the site theme.",
-      "acceptanceCriteria": [
-        "Randomized quotes are visible on /about as well as all other existing routes (/, /services, /shop, /dashboard, /contact, /blog, /faq, /terms, /privacy, /admin).",
-        "The quotes component styling remains consistent with the existing site theme and uses an unobtrusive pull-quote/card presentation.",
-        "Quotes do not cause layout shift or overflow issues on mobile widths."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/quotes/RandomQuotes.tsx",
-          "operation": "create",
-          "description": "Create a quotes display component that renders 2–3 quotes using an unobtrusive pull-quote/card presentation (compose existing shadcn-ui Card/typography patterns; do not edit any files under frontend/src/components/ui). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "path": "frontend/src/components/admin/AdminProductsTab.tsx",
           "operation": "modify",
-          "description": "Wire the randomized quotes to appear on every page by rendering the new RandomQuotes component within the global layout around the routed content (use current route location to trigger a new selection per page view). Verify the component's usage instructions before implementing."
+          "description": "Update the Create Product dialog UI to include: product image file input, custom price, stock status (in stock/out of stock), availability select (delivery/pickup/drop-off), and short description; keep English validation and existing toast patterns. Convert uploaded file bytes into a blob-storage ExternalBlob for submission; verify the component's usage instructions before implementing."
         },
+        {
+          "path": "frontend/src/components/admin/AdminProductsTab.tsx",
+          "operation": "modify",
+          "description": "Update the Edit Product dialog and product list rendering to display and edit the new fields where applicable (price, stock status, availability, short description, image), while keeping stock update behavior intact."
+        },
+        {
+          "path": "frontend/src/hooks/useQueuedMutations.ts",
+          "operation": "modify",
+          "description": "Update queued product creation/edit mutation wrappers to accept and forward the new product fields (including blob-storage ExternalBlob for image) and to keep the existing queued/offline messaging semantics consistent; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Align product-related mutations with the current backend interface for createProduct/editProduct so they include the new fields (image, isInStock, availability, shortDescription, and updated price/description). Ensure React Query invalidation for the products query remains in place."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Render public Shop products as flippable cards using FlipCard, including product image and the new fields on front/back.",
+      "acceptanceCriteria": [
+        "In Shop grid view, each product is displayed as a FlipCard interaction (click/keyboard flips).",
+        "The card front shows at minimum: product image, name, price, and stock status.",
+        "The card back shows at minimum: short description and availability (delivery/pickup/drop-off) and a clear call-to-action (e.g., View Details) that preserves existing modal/cart flows.",
+        "Reduced-motion users keep accessible behavior (FlipCard respects prefers-reduced-motion as implemented)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/shop/ProductFlipCard.tsx",
+          "operation": "create",
+          "description": "Create a ProductFlipCard component that uses the existing FlipCard component to present front/back content, including the product image (via blob-storage ExternalBlob direct URL), name, price, and stock status on the front; and short description + availability + a 'View Details' CTA on the back. Verify the FlipCard component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Shop.tsx",
+          "operation": "modify",
+          "description": "Replace the grid-mode product rendering to use ProductFlipCard (FlipCard-based) while preserving list view behavior, existing ProductDetailsModal opening flow, keyboard accessibility, and reduced-motion compatibility."
+        },
+        {
+          "path": "frontend/src/components/shop/ProductDetailsModal.tsx",
+          "operation": "modify",
+          "description": "Update the product details modal display to include the new product fields (image, price, stock status, availability, short description) without breaking existing save/cart flows."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Add a public Create Testimony flow on the Testimonies page with 800-char limit, 1–5 rating, and photo/video upload; new submissions appear without refresh.",
+      "acceptanceCriteria": [
+        "Testimonies page includes a prominent “Create Testimony” button that opens a form (dialog or inline section).",
+        "The form enforces a maximum of 800 characters for the review text and prevents submission when exceeded.",
+        "The form supports selecting a rating from 1 to 5 and submits it with the testimony.",
+        "The form supports uploading at least one image/video file and includes basic client-side validation (e.g., file type must be image/* or video/*).",
+        "After submission succeeds, the new testimony appears in the public testimonies list without a manual page refresh (React Query invalidation/refetch)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "operation": "create",
+          "description": "Implement a public Create Testimony dialog/section that collects author name, review text (max 800), star rating (1–5), and optional photo/video uploads with client-side type validation. Use blob-storage ExternalBlob for media handling (direct URL + upload progress where appropriate); verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Testimonies.tsx",
+          "operation": "modify",
+          "description": "Add a prominent “Create Testimony” button to open CreateTestimonyDialog and wire submission success to React Query invalidation/refetch of approved testimonies so new items appear without manual refresh."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add/adjust testimony creation query/mutation hooks to call the backend createTestimony capability with rating and blob-storage ExternalBlob media parameters, and invalidate the approved testimonies query on success; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Update testimony star rating styling to golden moss-green with glow, consistently across display and input controls.",
+      "acceptanceCriteria": [
+        "Filled stars use a golden moss-green tone (not the current arcane-gold) and include a visible glow (e.g., drop-shadow) on dark background.",
+        "Unfilled stars remain visually subdued and accessible.",
+        "Star styling is consistent on the testimonies listing and on the testimony submission control."
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Add minimal global utility classes (or extend existing utilities) to support the pull-quote/card layout spacing and responsive behavior (no overflow on mobile, reserved vertical space to prevent layout shift), without changing any immutable paths."
+          "description": "Add theme-consistent CSS variables and/or utility classes for testimony star filled/unfilled styling, including a golden moss-green color and glow effect that works on dark backgrounds."
+        },
+        {
+          "path": "frontend/src/components/testimonies/StarRating.tsx",
+          "operation": "modify",
+          "description": "Update StarRating to use the new golden moss-green + glow styling for filled stars and subdued styling for unfilled stars, ensuring accessibility (aria-label) remains intact."
+        },
+        {
+          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "operation": "modify",
+          "description": "Ensure the rating selection control in the Create Testimony flow uses the same star styling as StarRating for consistent appearance."
         }
       ]
     },
     {
-      "id": "REQ-56",
-      "summary": "Ensure the frontend builds/typechecks successfully after About + quotes changes without changing immutable paths.",
+      "id": "REQ-10",
+      "summary": "Add an Admin Dashboard Testimony Management section for admins (not owner-only) to review and remove submitted testimonies.",
       "acceptanceCriteria": [
-        "Frontend TypeScript build completes without errors.",
-        "Canister build completes without errors.",
-        "No changes are made to any paths listed in frontend.immutablePaths.",
-        "After the changes, the app runs locally (or in preview) and /about renders without runtime exceptions."
+        "Admin page shows a “Testimonies” tab/section for admins (not owner-only) that lists testimonies and provides a remove action.",
+        "Remove action updates the UI immediately after success (or shows queued/offline messaging if applicable).",
+        "Owner-only Admin+ remains functional and unchanged, but admin users no longer need owner role to access basic testimony moderation in Admin Dashboard."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Verify routing/lazy-loading still typechecks after About and global quotes wiring changes; adjust imports/types if needed to eliminate TypeScript and production-build errors (do not change route paths)."
+          "path": "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+          "operation": "create",
+          "description": "Create an admin-only testimonies moderation tab that lists testimonies (including media/rating where available) and provides a remove action. Use existing admin UI patterns (cards, loading/error states, toast feedback) and reflect changes immediately via React Query invalidation/refetch."
         },
         {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "path": "frontend/src/pages/Admin.tsx",
           "operation": "modify",
-          "description": "Harden the global quotes rendering against runtime failures (e.g., empty quotes array) and confirm it does not interfere with existing layout structure across all routes."
+          "description": "Add a “Testimonies” tab visible to all admins (without RequireOwner), wire it to AdminTestimoniesTab, and keep owner-only sections (e.g., portfolios and Admin+ route behavior) unchanged."
         },
         {
-          "path": "frontend/src/pages/About.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Validate the updated About page content renders without runtime exceptions, maintains multi-paragraph readability, and does not rely on removed Arcane Artifacts sections/components."
+          "description": "Add/adjust admin moderation hooks for fetching all testimonies and removing a testimony, and ensure relevant queries are invalidated after removal so removed items disappear from the list."
+        },
+        {
+          "path": "frontend/src/hooks/useQueuedMutations.ts",
+          "operation": "modify",
+          "description": "If offline queue behavior is used for admin mutations, add support for queued testimony removal (or integrate with existing queue patterns) so the UI can indicate queued vs completed states without crashing."
         }
       ]
     }
