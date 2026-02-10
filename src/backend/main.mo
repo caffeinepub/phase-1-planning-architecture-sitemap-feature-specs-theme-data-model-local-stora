@@ -5,8 +5,12 @@ import Text "mo:core/Text";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+
+
+// Apply migration function on upgrades
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -108,17 +112,62 @@ actor {
     email : Text;
   };
 
+  public type GuildOrder = {
+    id : Nat;
+    title : Text;
+    description : Text;
+    reward : Nat;
+    status : Text;
+    assignedTo : ?Principal;
+  };
+
+  public type CartItem = {
+    productId : Nat;
+    quantity : Nat;
+  };
+
   // Persistent Storage Structures
-  let users = Map.empty<Nat, User>();
-  let products = Map.empty<Nat, Product>();
-  let orders = Map.empty<Nat, Order>();
-  let savedArtifacts = Map.empty<Principal, [SavedArtifact]>();
-  let userProfiles = Map.empty<Principal, UserProfile>();
+  var users = Map.empty<Nat, User>();
+  var products = Map.empty<Nat, Product>();
+  var orders = Map.empty<Nat, Order>();
+  var guildOrders = Map.empty<Nat, GuildOrder>();
+  var savedArtifacts = Map.empty<Principal, [SavedArtifact]>();
+  var userProfiles = Map.empty<Principal, UserProfile>();
+  var userCarts = Map.empty<Principal, [CartItem]>();
 
   // IDs counters
   var nextUserId = 1;
   var nextProductId = 1;
   var nextOrderId = 1;
+  var nextGuildOrderId = 1;
+
+  ////////////////////////////////////////////////////
+  // User Role Management (Moved from frontend)
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func assignAdminRole(user : Principal) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can assign admin role");
+    };
+    AccessControl.assignRole(
+      accessControlState,
+      caller,
+      user,
+      #admin,
+    );
+  };
+
+  public shared ({ caller }) func removeAdminRole(user : Principal) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can remove admin role");
+    };
+    AccessControl.assignRole(
+      accessControlState,
+      caller,
+      user,
+      #user,
+    );
+  };
 
   ////////////////////////////////////////////////////
   // User Profile Management
@@ -199,10 +248,10 @@ actor {
     nextProductId += 1;
     let product : Product = {
       id = productId;
-      name = name;
-      description = description;
-      price = price;
-      stock = stock;
+      name;
+      description;
+      price;
+      stock;
     };
     products.add(productId, product);
     productId;
@@ -220,6 +269,25 @@ actor {
           description = product.description;
           price = product.price;
           stock = newStock;
+        };
+        products.add(productId, updatedProduct);
+      };
+      case (null) { Runtime.trap("Product not found") };
+    };
+  };
+
+  public shared ({ caller }) func editProduct(productId : Nat, name : Text, description : Text, price : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can edit products");
+    };
+    switch (products.get(productId)) {
+      case (?product) {
+        let updatedProduct : Product = {
+          id = product.id;
+          name;
+          description;
+          price;
+          stock = product.stock;
         };
         products.add(productId, updatedProduct);
       };
@@ -271,8 +339,8 @@ actor {
     let order : Order = {
       id = orderId;
       userId = caller;
-      productIds = productIds;
-      totalAmount = totalAmount;
+      productIds;
+      totalAmount;
     };
     orders.add(orderId, order);
     orderId;
@@ -312,7 +380,7 @@ actor {
     };
     let artifact : SavedArtifact = {
       userId = caller;
-      productId = productId;
+      productId;
     };
     let currentArtifacts = switch (savedArtifacts.get(caller)) {
       case (?artifacts) { artifacts };
@@ -335,5 +403,161 @@ actor {
       };
       case (null) { /* No artifacts to remove */ };
     };
+  };
+
+  ////////////////////////////////////////////////////
+  // Guild Orders / Quests Management
+  ////////////////////////////////////////////////////
+
+  public query func getGuildOrder(id : Nat) : async GuildOrder {
+    switch (guildOrders.get(id)) {
+      case (?guildOrder) { guildOrder };
+      case (null) { Runtime.trap("Guild order not found") };
+    };
+  };
+
+  public query func getAllGuildOrders() : async [GuildOrder] {
+    guildOrders.values().toArray();
+  };
+
+  public shared ({ caller }) func createGuildOrder(title : Text, description : Text, reward : Nat) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can create guild orders");
+    };
+    let guildOrderId = nextGuildOrderId;
+    nextGuildOrderId += 1;
+    let guildOrder : GuildOrder = {
+      id = guildOrderId;
+      title;
+      description;
+      reward;
+      status = "open";
+      assignedTo = null;
+    };
+    guildOrders.add(guildOrderId, guildOrder);
+    guildOrderId;
+  };
+
+  public shared ({ caller }) func updateGuildOrderStatus(guildOrderId : Nat, status : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update guild order status");
+    };
+    switch (guildOrders.get(guildOrderId)) {
+      case (?guildOrder) {
+        let updatedGuildOrder : GuildOrder = {
+          id = guildOrder.id;
+          title = guildOrder.title;
+          description = guildOrder.description;
+          reward = guildOrder.reward;
+          status;
+          assignedTo = guildOrder.assignedTo;
+        };
+        guildOrders.add(guildOrderId, updatedGuildOrder);
+      };
+      case (null) { Runtime.trap("Guild order not found") };
+    };
+  };
+
+  public shared ({ caller }) func assignGuildOrder(guildOrderId : Nat, userId : Principal) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can assign guild orders");
+    };
+    switch (guildOrders.get(guildOrderId)) {
+      case (?guildOrder) {
+        let updatedGuildOrder : GuildOrder = {
+          id = guildOrder.id;
+          title = guildOrder.title;
+          description = guildOrder.description;
+          reward = guildOrder.reward;
+          status = guildOrder.status;
+          assignedTo = ?userId;
+        };
+        guildOrders.add(guildOrderId, updatedGuildOrder);
+      };
+      case (null) { Runtime.trap("Guild order not found") };
+    };
+  };
+
+  ////////////////////////////////////////////////////
+  // Cart and Checkout Management
+  ////////////////////////////////////////////////////
+
+  public query ({ caller }) func getCart() : async [CartItem] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access cart");
+    };
+    switch (userCarts.get(caller)) {
+      case (?cartItems) { cartItems };
+      case (null) { [] };
+    };
+  };
+
+  public shared ({ caller }) func addToCart(productId : Nat, quantity : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add to cart");
+    };
+    let cartItem : CartItem = {
+      productId;
+      quantity;
+    };
+    let currentCart = switch (userCarts.get(caller)) {
+      case (?cartItems) { cartItems };
+      case (null) { [] };
+    };
+    let updatedCart = currentCart.concat([cartItem]);
+    userCarts.add(caller, updatedCart);
+  };
+
+  public shared ({ caller }) func removeFromCart(productId : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can remove from cart");
+    };
+    switch (userCarts.get(caller)) {
+      case (?cartItems) {
+        let updatedCart = cartItems.filter(func(item : CartItem) : Bool {
+          item.productId != productId;
+        });
+        userCarts.add(caller, updatedCart);
+      };
+      case (null) { /* No items to remove */ };
+    };
+  };
+
+  public shared ({ caller }) func checkoutCart() : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can checkout");
+    };
+    let cartItems = switch (userCarts.get(caller)) {
+      case (?items) { items };
+      case (null) { [] };
+    };
+    if (cartItems.size() == 0) {
+      Runtime.trap("Cart is empty");
+    };
+
+    let productIds = cartItems.map(func(item) { item.productId });
+    var totalAmount = 0;
+    for (item in cartItems.values()) {
+      switch (products.get(item.productId)) {
+        case (?product) {
+          totalAmount += product.price * item.quantity;
+        };
+        case (null) { Runtime.trap("Product not found") };
+      };
+    };
+
+    let orderId = nextOrderId;
+    nextOrderId += 1;
+    let order : Order = {
+      id = orderId;
+      userId = caller;
+      productIds;
+      totalAmount;
+    };
+    orders.add(orderId, order);
+
+    userCarts.add(caller, []);
+
+    orderId;
   };
 };

@@ -1,259 +1,266 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Phase 1 Frontend Scaffold: Sitemap Docs, Routes, Theme, Local Storage, Static Assets",
+  "title": "Phase 5 polishing: animations, error handling, offline sync UX, performance, responsiveness, accessibility & SEO",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Create a Phase 1 planning document describing the sitemap/page list, navigation structure, and access levels (public vs authenticated vs admin-only).",
+      "id": "REQ-34",
+      "summary": "Standardize site-wide animations/interactions with reduced-motion support and no layout shift.",
       "acceptanceCriteria": [
-        "A repository doc exists (e.g., /docs/phase1-planning.md) containing a clearly labeled sitemap/page list covering all pages the user listed",
-        "The document includes intended navigation (top nav/footer links) and notes which pages are public vs. authenticated vs. admin-only (if applicable)"
+        "Flip-card, hover-lift/glow, and fade-in-on-scroll behaviors look visually consistent across Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, and Privacy.",
+        "When the OS/browser prefers-reduced-motion setting is enabled, flip/fade/parallax/hover motion effects are disabled or minimized without breaking layout or hiding content.",
+        "Animations do not cause noticeable content reflow/layout shift during entry/hover/flip interactions."
       ],
       "file_operations": [
-        {
-          "path": "frontend/docs/phase1-planning.md",
-          "operation": "create",
-          "description": "Add Phase 1 planning doc with a clearly labeled sitemap/page list for Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal (Terms + Privacy); include intended top-nav/footer navigation and identify access levels (public/authenticated/admin-only)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Implement route/page skeletons for all planned pages with consistent layout, titles, placeholder copy, and global navigation (including footer links to Terms/Privacy).",
-      "acceptanceCriteria": [
-        "All listed pages are reachable in the UI via navigation links",
-        "Each page renders without runtime errors and shows at minimum: page title + placeholder copy in English",
-        "Legal pages are split into Terms and Privacy and are reachable from the footer (or equivalent global navigation)"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/package.json",
-          "operation": "modify",
-          "description": "Ensure the frontend has a routing library available (e.g., react-router) to support multi-page navigation for all required pages."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "create",
-          "description": "Create the root App component that wires the router and renders the global layout shell (header/nav + main content + footer). Use shadcn-ui components (e.g., Button, Card, Separator, NavigationMenu where appropriate) for consistent skeleton UI; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
-          "operation": "create",
-          "description": "Add a shared layout component that applies the global themed container, renders the header/nav and footer, and provides a consistent content area for all page skeletons."
-        },
-        {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
-          "operation": "create",
-          "description": "Implement top navigation links for Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin (Admin/Dashboard can be shown conditionally if authenticated/admin). Use shadcn-ui navigation primitives/buttons for a consistent skeleton; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/Footer.tsx",
-          "operation": "create",
-          "description": "Implement footer navigation that includes Legal links for Terms and Privacy, plus any secondary navigation consistent with the sitemap."
-        },
-        {
-          "path": "frontend/src/components/auth/RequireAuth.tsx",
-          "operation": "create",
-          "description": "Add a simple authenticated guard wrapper for pages like Dashboard (and any other authenticated-only pages). Use the selected authorization component guidance (Internet Identity state via existing hooks) and show a friendly access-denied/please-login message when unauthenticated; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/auth/RequireAdmin.tsx",
-          "operation": "create",
-          "description": "Add an admin-only guard wrapper for the Admin page using the selected authorization component guidance (role-based access). Render an access denied screen/message when not authorized; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/auth/LoginButton.tsx",
-          "operation": "create",
-          "description": "Add a login/logout button for the header using the selected authorization component guidance (Internet Identity). On logout, clear cached app data (React Query cache) and coordinate with the local-storage strategy to clear session-state keys; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Homepage.tsx",
-          "operation": "create",
-          "description": "Create Homepage skeleton with clear page title and short placeholder description in English; include placeholder sub-sections aligned to the planning doc."
-        },
-        {
-          "path": "frontend/src/pages/About.tsx",
-          "operation": "create",
-          "description": "Create About page skeleton with clear page title and short placeholder description in English."
-        },
-        {
-          "path": "frontend/src/pages/Services.tsx",
-          "operation": "create",
-          "description": "Create Services page skeleton with clear page title and short placeholder description in English."
-        },
-        {
-          "path": "frontend/src/pages/Shop.tsx",
-          "operation": "create",
-          "description": "Create Shop page skeleton with clear page title and short placeholder description in English; include placeholder sections for list, filters, and product detail preview region (skeleton only)."
-        },
-        {
-          "path": "frontend/src/pages/Dashboard.tsx",
-          "operation": "create",
-          "description": "Create Dashboard page skeleton with clear page title and short placeholder description in English; wrap in RequireAuth to reflect authenticated-only access intent."
-        },
-        {
-          "path": "frontend/src/pages/Contact.tsx",
-          "operation": "create",
-          "description": "Create Contact page skeleton with clear page title and short placeholder description in English; include placeholder contact form section (non-functional)."
-        },
-        {
-          "path": "frontend/src/pages/BlogLore.tsx",
-          "operation": "create",
-          "description": "Create Blog/Lore page skeleton with clear page title and short placeholder description in English; include placeholder sections for posts/lore entries."
-        },
-        {
-          "path": "frontend/src/pages/FAQ.tsx",
-          "operation": "create",
-          "description": "Create FAQ page skeleton with clear page title and short placeholder description in English; include placeholder accordion/list sections."
-        },
-        {
-          "path": "frontend/src/pages/Admin.tsx",
-          "operation": "create",
-          "description": "Create Admin page skeleton with clear page title and short placeholder description in English; wrap in RequireAdmin to reflect admin-only access intent."
-        },
-        {
-          "path": "frontend/src/pages/Terms.tsx",
-          "operation": "create",
-          "description": "Create Terms page skeleton with clear page title and short placeholder description in English."
-        },
-        {
-          "path": "frontend/src/pages/Privacy.tsx",
-          "operation": "create",
-          "description": "Create Privacy page skeleton with clear page title and short placeholder description in English."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Create a Phase 1 feature specification document organized by page, tagging items as Phase 1 vs later and explicitly including the provided examples.",
-      "acceptanceCriteria": [
-        "A repository doc exists (e.g., /docs/phase1-features-by-page.md) with a per-page feature list for every page in the sitemap",
-        "Features explicitly mention the examples provided (hover effects, flip cards, filters, inventory syncing) in the relevant sections",
-        "Each feature item is tagged with a phase/status (e.g., Phase 1: placeholder/spec, Phase 2+: build) so scope is unambiguous"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/docs/phase1-features-by-page.md",
-          "operation": "create",
-          "description": "Add an English feature spec organized by page covering all sitemap pages; explicitly include hover effects, flip cards, filters, and inventory syncing in relevant sections; tag each feature as Phase 1 (skeleton/spec only) vs later implementation."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Define and apply a dark fantasy design system (parchment tones + subtle glow accents) across the global layout and all page skeletons.",
-      "acceptanceCriteria": [
-        "A short design spec exists (can be in the Phase 1 planning doc or a dedicated /docs/design-direction.md) describing colors, fonts, and interaction styling",
-        "All page skeletons use a consistent theme (background, typography, card styles, hover states) aligned with the dark fantasy/parchment/glow direction",
-        "No default/unstyled pages remain (i.e., theme is visibly applied across the app)"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/docs/design-direction.md",
-          "operation": "create",
-          "description": "Create a short design-direction spec documenting the dark fantasy theme: parchment-toned surfaces, dark background, glowing accents, typography choices, spacing scale, button/hover states, and card styling."
-        },
         {
           "path": "frontend/src/index.css",
-          "operation": "create",
-          "description": "Define global CSS variables/tokens and base styles to implement the dark fantasy/parchment/glow design system (backgrounds, text, links, focus/hover states) and ensure consistent styling across all pages."
+          "operation": "modify",
+          "description": "Refine and standardize shared animation utility classes (hover lift/glow, fade-in-on-scroll, flip-card) to only animate opacity/transform, add consistent durations/easings, and ensure prefers-reduced-motion produces stable, non-hidden content without layout shift."
         },
         {
           "path": "frontend/tailwind.config.js",
           "operation": "modify",
-          "description": "Extend Tailwind theme tokens (colors/shadows/typography as needed) to support the parchment + glow design direction in a consistent, reusable way."
+          "description": "Align Tailwind animation/transition tokens (durations/easings/box-shadow glow) with the standardized utilities so pages/components reuse consistent interaction styling."
         },
         {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "path": "frontend/src/components/effects/FadeInSection.tsx",
           "operation": "modify",
-          "description": "Apply the design system in the shared layout (background, container, typography defaults, card styling, hover/focus states) so no page remains unstyled."
+          "description": "Adjust FadeInSection behavior to ensure it never hides content under reduced-motion and avoids any style changes that could trigger layout reflow (transform/opacity only)."
         },
         {
-          "path": "frontend/src/pages/Homepage.tsx",
+          "path": "frontend/src/components/effects/FlipCard.tsx",
           "operation": "modify",
-          "description": "Ensure the Homepage skeleton uses the shared design system styling (themed sections/cards/hover states) consistent with the rest of the app."
+          "description": "Tighten FlipCard interaction semantics and motion handling so it remains accessible and stable (no layout shift when flipping), and ensure reduced-motion uses a non-animated swap that still preserves content visibility."
         },
         {
-          "path": "frontend/src/pages/Shop.tsx",
+          "path": "frontend/src/components/effects/ParallaxLayer.tsx",
           "operation": "modify",
-          "description": "Ensure the Shop skeleton uses themed cards and placeholder interactive states (e.g., hover affordances for items/filters) to match the design direction."
+          "description": "Ensure parallax applies only transform-based movement and is fully disabled/minimized under prefers-reduced-motion without impacting layout."
+        },
+        {
+          "path": "frontend/src/components/about/TeamSection.tsx",
+          "operation": "modify",
+          "description": "Apply the standardized flip-card and hover interaction utilities consistently to the team flip cards, ensuring stable card sizing so flipping does not cause content reflow."
+        },
+        {
+          "path": "frontend/src/components/home/QuickLinksGrid.tsx",
+          "operation": "modify",
+          "description": "Standardize hover glow/lift interactions for quick-link cards to match site-wide utilities and ensure no layout shift on hover."
+        },
+        {
+          "path": "frontend/src/components/home/Announcements.tsx",
+          "operation": "modify",
+          "description": "Standardize hover/entry interactions for announcement cards to match site-wide utilities and respect reduced-motion preferences."
+        },
+        {
+          "path": "frontend/src/pages/Privacy.tsx",
+          "operation": "modify",
+          "description": "Ensure Privacy page sections use the standardized fade-in utilities consistently and remain fully readable under reduced-motion."
+        },
+        {
+          "path": "frontend/src/pages/Terms.tsx",
+          "operation": "modify",
+          "description": "Ensure Terms page sections use standardized fade-in/hover utilities consistently and remain stable under reduced-motion."
         }
       ]
     },
     {
-      "id": "REQ-6",
-      "summary": "Implement a centralized, versioned local storage strategy (recently viewed, offline drafts, session state) with docs and a small demo on a page skeleton.",
+      "id": "REQ-35",
+      "summary": "Strengthen frontend error handling for offline mode and failed canister/API calls with clear feedback and retry actions across the app.",
       "acceptanceCriteria": [
-        "A doc section exists describing what is stored locally (recently viewed, offline drafts, session state), including key names and retention rules",
-        "Frontend includes a reusable local-storage utility (or hooks) that can set/get/remove versioned entries and handles JSON parse failures gracefully",
-        "At least one page skeleton (e.g., Shop) demonstrates writing/reading a ‘recently viewed’ placeholder entry to validate the approach (without needing real backend data)"
+        "All primary data-fetching views (e.g., Shop product list, Dashboard panels, Admin tabs) show a clear error state when a query fails, using English user-facing text.",
+        "Mutations that are queued for offline sync provide clear feedback that the action was queued, and do not leave the UI in an ambiguous state.",
+        "A user can manually retry failed actions (either by retrying the failed view or triggering a replay of queued actions) without refreshing the page."
       ],
       "file_operations": [
         {
-          "path": "frontend/docs/local-storage-strategy.md",
+          "path": "frontend/src/components/system/ErrorState.tsx",
           "operation": "create",
-          "description": "Document local storage strategy in English: key names for recently viewed items, offline drafts, and session state; schema/versioning approach; retention/expiry rules; and when data is cleared (e.g., on logout)."
+          "description": "Create a reusable error state component that displays an English error message and provides a Retry action callback for failed data-fetching views."
         },
         {
-          "path": "frontend/src/lib/localStorage.ts",
+          "path": "frontend/src/hooks/useOnlineStatus.ts",
           "operation": "create",
-          "description": "Add a centralized utility for versioned local storage reads/writes/removals with safe JSON parsing (graceful fallback on parse failures), optional expiry handling, and a helper to clear session-scoped keys."
-        },
-        {
-          "path": "frontend/src/hooks/useRecentlyViewed.ts",
-          "operation": "create",
-          "description": "Create a small hook that uses the localStorage utility to manage a 'recently viewed' list (placeholder IDs/objects), including max length and expiry/retention behavior."
-        },
-        {
-          "path": "frontend/src/hooks/useOfflineDrafts.ts",
-          "operation": "create",
-          "description": "Create a hook to store/retrieve 'offline edits (drafts)' in local storage using the versioned utility (skeleton only, no real editor required)."
-        },
-        {
-          "path": "frontend/src/hooks/useSessionState.ts",
-          "operation": "create",
-          "description": "Create a hook to store/retrieve lightweight session state (e.g., last visited page, UI preferences) using the versioned utility, with explicit clear-on-logout integration points."
-        },
-        {
-          "path": "frontend/src/components/auth/LoginButton.tsx",
-          "operation": "modify",
-          "description": "On logout, clear frontend cached data and call the local-storage utility clear routine for session-state keys. Use the selected authorization component guidance for logout flow; verify the component's usage instructions before implementing."
+          "description": "Add a small hook that tracks online/offline state (navigator.onLine + events) so pages can present offline-aware messaging and safe recovery actions."
         },
         {
           "path": "frontend/src/pages/Shop.tsx",
           "operation": "modify",
-          "description": "Demonstrate the local storage approach by writing/reading a 'recently viewed' placeholder entry from the Shop skeleton (e.g., simulate selecting a product card and render a small 'Recently viewed' placeholder list)."
+          "description": "Add explicit error-state rendering for product list fetching (including offline-aware messaging) using the shared ErrorState component, and wire a manual retry action that re-triggers the relevant query without page refresh."
+        },
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Ensure dashboard panels show clear user-facing error states when dependent queries fail, and provide per-panel retry actions without requiring a full page refresh."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminProductsTab.tsx",
+          "operation": "modify",
+          "description": "Add clear error-state UI for product list query failures in the admin products tab (English text) and provide a retry action; keep queued mutation feedback unambiguous when offline."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminOrdersTab.tsx",
+          "operation": "modify",
+          "description": "Verify/adjust admin orders tab to consistently show a clear error state on query failure with an in-tab retry control (no refresh needed)."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminUsersTab.tsx",
+          "operation": "modify",
+          "description": "Verify/adjust admin users tab to consistently show clear error feedback for failed calls and ensure queued/offline actions are communicated unambiguously with a recovery path."
+        },
+        {
+          "path": "frontend/src/components/system/OfflineSyncStatus.tsx",
+          "operation": "modify",
+          "description": "Enhance the global offline sync status UI to include an explicit user action to retry syncing queued actions (manual replay) when errors occur."
         }
       ]
     },
     {
-      "id": "REQ-7",
-      "summary": "Add generated static theme assets (parchment background + arcane sigil emblem) and integrate them into the global UI with graceful fallbacks.",
+      "id": "REQ-36",
+      "summary": "Improve offline sync conflict handling UX by classifying failures, surfacing stuck/failed queued actions, and allowing users to retry or remove queued actions with confirmation.",
       "acceptanceCriteria": [
-        "Generated images exist under frontend/public/assets/generated and are referenced by the app theme (e.g., background image on main layout, emblem in header/footer)",
-        "The app still loads and renders correctly if images fail to load (graceful fallback colors)"
+        "When queued mutation replay fails, the UI indicates how many actions remain queued and presents an English explanation that includes whether the failure is retryable.",
+        "Users have an in-app way to retry syncing queued actions and to clear/remove stuck actions from the queue (with a confirmation step).",
+        "Queued actions that exceed the configured retry limit are surfaced as failed (not silently dropped) and can be cleared by the user."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/parchment-bg.dim_1920x1080.png",
-          "operation": "create",
-          "description": "Add the generated parchment background asset as a static file at frontend/public/assets/generated/parchment-bg.dim_1920x1080.png."
+          "path": "frontend/src/lib/offlineMutationQueue.ts",
+          "operation": "modify",
+          "description": "Extend the queued mutation model to persist failure metadata needed for UX (e.g., last error text, whether it is retryable, and a failed/stuck state) and add helpers to remove individual mutations and to clear only failed/stuck items."
         },
         {
-          "path": "frontend/public/assets/generated/arcane-sigil.dim_512x512.png",
+          "path": "frontend/src/hooks/useOfflineMutationReplay.ts",
+          "operation": "modify",
+          "description": "Update replay logic to distinguish transient vs permanent failures (retryable vs non-retryable), stop silently dropping items that exceed retry limits, and expose remaining queued/failed counts plus a manual replay trigger for the UI."
+        },
+        {
+          "path": "frontend/src/components/system/OfflineSyncQueueDialog.tsx",
           "operation": "create",
-          "description": "Add the generated arcane sigil emblem asset as a static file at frontend/public/assets/generated/arcane-sigil.dim_512x512.png."
+          "description": "Create an in-app queue inspection dialog that lists remaining queued actions, shows failure reason in English (including retryable vs non-retryable), provides Retry All / Retry Item, and Remove Item / Clear Failed actions with a confirmation step."
+        },
+        {
+          "path": "frontend/src/components/system/OfflineSyncStatus.tsx",
+          "operation": "modify",
+          "description": "Wire the new OfflineSyncQueueDialog into the existing sync status UI (e.g., a 'View queued actions' control) and ensure the status message includes the remaining count and retryability when failures occur."
         },
         {
           "path": "frontend/src/components/layout/AppLayout.tsx",
           "operation": "modify",
-          "description": "Reference frontend/public/assets/generated/parchment-bg.dim_1920x1080.png as the app background in the global layout while providing fallback solid colors if the image fails to load."
+          "description": "Ensure the enhanced offline sync status (and queue inspection entry point) is rendered consistently site-wide so users can always inspect/retry/clear queued actions from within the app."
+        }
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "summary": "Optimize performance via route code-splitting, lazy-loading heavy UI sections, image lazy-loading with sizing, and reducing unnecessary re-renders.",
+      "acceptanceCriteria": [
+        "Non-initial routes are code-split so that navigating to secondary pages does not require loading all page code upfront.",
+        "Any image elements added in the UI use lazy loading where appropriate and include explicit sizing to avoid layout shift.",
+        "React Query caching settings remain effective (no regressions to current staleTime/refetch behavior), and obvious avoidable re-renders are reduced in frequently-used views (e.g., Shop list rendering)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Implement route-level code splitting for non-initial routes (lazy-load page components) while preserving existing routing behavior and current React Query default options."
+        },
+        {
+          "path": "frontend/src/pages/Shop.tsx",
+          "operation": "modify",
+          "description": "Reduce avoidable re-renders in Shop list rendering (e.g., memoizing derived data and extracting memoized list/grid item components) and ensure any present images use lazy loading and explicit sizing where applicable."
+        },
+        {
+          "path": "frontend/src/components/shop/ProductDetailsModal.tsx",
+          "operation": "modify",
+          "description": "Lazy-load any non-critical/heavy sub-sections within the modal if applicable and ensure modal content remains performant on mobile (avoid unnecessary re-renders while open)."
+        },
+        {
+          "path": "frontend/src/components/home/FeaturedCarousel.tsx",
+          "operation": "modify",
+          "description": "Assess and optimize carousel rendering (avoid unnecessary re-renders; consider lazy-loading if it is non-critical to initial load) while keeping behavior unchanged."
+        }
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "summary": "Fix responsive layout issues across breakpoints for navigation, modals, grids, and dashboard/admin tabs.",
+      "acceptanceCriteria": [
+        "Key pages (Homepage, Shop, Dashboard, Admin, Contact) render correctly at common breakpoints (mobile, tablet, desktop) with no horizontal scrolling caused by layout overflow.",
+        "Header navigation and mobile menu remain usable on small screens and do not overlap main content.",
+        "Modals (e.g., product details) are fully usable on mobile (content scrolls within viewport, controls remain reachable)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "operation": "modify",
+          "description": "Harden mobile navigation behavior (menu open/close, focus/scroll interaction, and layout stacking) to prevent overlap with main content and avoid horizontal overflow on small screens."
+        },
+        {
+          "path": "frontend/src/components/shop/ProductDetailsModal.tsx",
+          "operation": "modify",
+          "description": "Improve mobile usability of the product details modal (viewport-constrained height, internal scrolling, and reachable controls) without causing background page scrolling issues."
+        },
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Adjust dashboard tab layout and panel grids to remain usable at mobile/tablet/desktop breakpoints and prevent overflow-driven horizontal scrolling."
+        },
+        {
+          "path": "frontend/src/pages/Admin.tsx",
+          "operation": "modify",
+          "description": "Ensure admin tabs and tab content remain usable on small screens (responsive tab list, spacing, and overflow) without horizontal scrolling."
+        },
+        {
+          "path": "frontend/src/pages/Contact.tsx",
+          "operation": "modify",
+          "description": "Validate and fix contact form and FAQ section layout at mobile/tablet/desktop breakpoints to prevent overflow and maintain readable spacing."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add/adjust global responsive safeguards (e.g., overflow-x handling for root layout, media-safe spacing utilities) to prevent horizontal scrolling due to wide elements."
+        }
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "summary": "Improve accessibility and SEO basics (alt text, semantic landmarks, keyboard accessibility, and route-appropriate meta title/description).",
+      "acceptanceCriteria": [
+        "`frontend/index.html` contains an appropriate app title and includes basic SEO meta tags (at minimum: title and meta description) in English.",
+        "All interactive controls have accessible names (visible labels or aria-label) and are keyboard operable; focus states are visible.",
+        "Any presentational images/icons that convey meaning have appropriate alt text (or are correctly marked decorative), and major page regions use semantic structure (e.g., main content area, headings in logical order)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Update the document title to an app-appropriate English title and add an English meta description tag to satisfy baseline SEO requirements."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Ensure semantic landmarks are present and correctly structured (header/main/footer), and that skip/keyboard navigation is practical within the layout."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Ensure visible focus styles for keyboard users (e.g., focus-visible treatment) and confirm reduced-motion rules do not suppress necessary focus indicators."
         },
         {
           "path": "frontend/src/components/layout/HeaderNav.tsx",
           "operation": "modify",
-          "description": "Integrate the emblem frontend/public/assets/generated/arcane-sigil.dim_512x512.png into the header (and/or footer) with accessible alt text and a graceful fallback if the image fails to load."
+          "description": "Improve accessibility of navigation (ARIA for menu toggle, keyboard behavior when opening/closing mobile menu, and ensure logo image alt text remains meaningful)."
+        },
+        {
+          "path": "frontend/src/pages/Shop.tsx",
+          "operation": "modify",
+          "description": "Ensure shop controls are accessible (search input labeling/accessible name, view toggle button names already present, and correct heading structure within the page content)."
+        },
+        {
+          "path": "frontend/src/components/effects/FlipCard.tsx",
+          "operation": "modify",
+          "description": "Refine flip-card accessibility (clear accessible name/state, keyboard operation, and focus behavior) while keeping motion respectful of reduced-motion preferences."
         }
       ]
     }

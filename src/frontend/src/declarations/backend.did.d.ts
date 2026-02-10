@@ -10,10 +10,19 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface CartItem { 'productId' : bigint, 'quantity' : bigint }
 export interface Feature {
   'description' : string,
   'phase' : { 'later' : null } |
     { 'phase1' : null },
+}
+export interface GuildOrder {
+  'id' : bigint,
+  'status' : string,
+  'reward' : bigint,
+  'title' : string,
+  'assignedTo' : [] | [Principal],
+  'description' : string,
 }
 export interface Order {
   'id' : bigint,
@@ -37,15 +46,24 @@ export type UserRole = { 'admin' : null } |
   { 'guest' : null };
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addToCart' : ActorMethod<[bigint, bigint], undefined>,
+  'assignAdminRole' : ActorMethod<[Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'assignGuildOrder' : ActorMethod<[bigint, Principal], undefined>,
+  'checkoutCart' : ActorMethod<[], bigint>,
+  'createGuildOrder' : ActorMethod<[string, string, bigint], bigint>,
   'createOrder' : ActorMethod<[Array<bigint>, bigint], bigint>,
   'createProduct' : ActorMethod<[string, string, bigint, bigint], bigint>,
   'createUser' : ActorMethod<[string, string], bigint>,
+  'editProduct' : ActorMethod<[bigint, string, string, bigint], undefined>,
+  'getAllGuildOrders' : ActorMethod<[], Array<GuildOrder>>,
   'getAllOrders' : ActorMethod<[], Array<Order>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCart' : ActorMethod<[], Array<CartItem>>,
   'getFeatureSpecification' : ActorMethod<[], Array<PageFeatures>>,
+  'getGuildOrder' : ActorMethod<[bigint], GuildOrder>,
   'getMyOrders' : ActorMethod<[], Array<Order>>,
   'getMySavedArtifacts' : ActorMethod<[], Array<SavedArtifact>>,
   'getOrder' : ActorMethod<[bigint], Order>,
@@ -54,9 +72,12 @@ export interface _SERVICE {
   'getUser' : ActorMethod<[bigint], User>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'removeAdminRole' : ActorMethod<[Principal], undefined>,
+  'removeFromCart' : ActorMethod<[bigint], undefined>,
   'removeSavedArtifact' : ActorMethod<[bigint], undefined>,
   'saveArtifact' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateGuildOrderStatus' : ActorMethod<[bigint, string], undefined>,
   'updateProductStock' : ActorMethod<[bigint, bigint], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;

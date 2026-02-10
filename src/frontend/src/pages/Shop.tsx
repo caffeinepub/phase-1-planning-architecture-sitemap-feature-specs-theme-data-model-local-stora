@@ -1,135 +1,231 @@
+import { useState, useMemo, memo } from 'react';
+import { useGetAllProducts, useGetMySavedArtifacts } from '../hooks/useQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useGetAllProducts } from '../hooks/useQueries';
-import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
-import { Search, Filter, Grid, List } from 'lucide-react';
-import { useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Grid, List, Search, Eye } from 'lucide-react';
+import PageLayout from '../components/layout/PageLayout';
+import FadeInSection from '../components/effects/FadeInSection';
+import ProductDetailsModal from '../components/shop/ProductDetailsModal';
+import { useShopFilters } from '../components/shop/useShopFilters';
+import ErrorState from '../components/system/ErrorState';
+import type { Product } from '../backend';
 
-export default function Shop() {
-  const { data: products, isLoading } = useGetAllProducts();
-  const { items: recentlyViewed, addItem } = useRecentlyViewed();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+// Memoized product card component to prevent unnecessary re-renders
+const ProductCard = memo(({ 
+  product, 
+  viewMode, 
+  isSaved, 
+  onClick 
+}: { 
+  product: Product; 
+  viewMode: 'grid' | 'list'; 
+  isSaved: boolean; 
+  onClick: () => void;
+}) => {
+  const inStock = Number(product.stock) > 0;
 
-  const handleProductView = (product: any) => {
-    addItem({
-      productId: Number(product.id),
-      productName: product.name,
-      productPrice: Number(product.price),
-    });
-  };
+  if (viewMode === 'list') {
+    return (
+      <Card
+        className="border-border/40 hover:border-arcane-gold/50 transition-all hover-lift cursor-pointer"
+        onClick={onClick}
+      >
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4 flex-col sm:flex-row">
+            <div className="flex-1">
+              <CardTitle className="text-xl">{product.name}</CardTitle>
+              <CardDescription className="mt-2">{product.description}</CardDescription>
+            </div>
+            <div className="text-left sm:text-right flex-shrink-0 w-full sm:w-auto">
+              <p className="text-2xl font-bold text-arcane-gold mb-2">
+                {Number(product.price)} ICP
+              </p>
+              <Badge
+                variant={inStock ? 'secondary' : 'destructive'}
+                className={inStock ? 'bg-arcane-gold/20 text-arcane-gold border-arcane-gold/30' : ''}
+              >
+                {inStock ? `${product.stock.toString()} in stock` : 'Out of Stock'}
+              </Badge>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" className="w-full gap-2">
+            <Eye className="h-4 w-4" />
+            View Details
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-          Artifact Shop
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Browse our collection of authentic arcane artifacts
-        </p>
-      </div>
-
-      {/* Search & Filters */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search artifacts..."
-            className="pl-10"
-          />
+    <Card
+      className="border-border/40 hover:border-arcane-gold/50 transition-all hover-lift cursor-pointer"
+      onClick={onClick}
+    >
+      <CardHeader>
+        <CardTitle>{product.name}</CardTitle>
+        <CardDescription className="line-clamp-2">{product.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-2xl font-bold text-arcane-gold">
+            {Number(product.price)} ICP
+          </p>
+          <Badge
+            variant={inStock ? 'secondary' : 'destructive'}
+            className={inStock ? 'bg-arcane-gold/20 text-arcane-gold border-arcane-gold/30' : ''}
+          >
+            {inStock ? `${product.stock.toString()} in stock` : 'Out of Stock'}
+          </Badge>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Filter className="h-4 w-4" />
-            Filters
-          </Button>
-          <div className="flex border border-border rounded-md">
-            <Button
-              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+        <Button variant="outline" className="w-full gap-2">
+          <Eye className="h-4 w-4" />
+          View Details
+        </Button>
+      </CardContent>
+    </Card>
+  );
+});
 
-      {/* Recently Viewed */}
-      {recentlyViewed.length > 0 && (
-        <div className="mb-8">
-          <h2 className="font-display text-2xl font-bold mb-4">Recently Viewed</h2>
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {recentlyViewed.slice(0, 5).map((item) => (
-              <Card key={item.productId} className="min-w-[200px] border-border/40">
-                <CardHeader>
-                  <CardTitle className="text-sm">{item.productName}</CardTitle>
-                  <CardDescription className="text-xs">
-                    {item.productPrice} cycles
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+ProductCard.displayName = 'ProductCard';
 
-      {/* Products Grid */}
-      <div className={viewMode === 'grid' ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-        {isLoading ? (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">Loading artifacts...</p>
-          </div>
-        ) : products && products.length > 0 ? (
-          products.map((product) => (
-            <Card
-              key={product.id.toString()}
-              className="border-border/40 hover:border-arcane-gold/50 transition-all hover:shadow-lg cursor-pointer"
-              onClick={() => handleProductView(product)}
-            >
+export default function Shop() {
+  const { data: products = [], isLoading, error, refetch } = useGetAllProducts();
+  const { identity } = useInternetIdentity();
+  const { data: savedArtifacts = [] } = useGetMySavedArtifacts();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const { searchQuery, setSearchQuery, filteredProducts } = useShopFilters(products);
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setModalOpen(true);
+  };
+
+  // Memoize saved product IDs set
+  const savedProductIds = useMemo(
+    () => new Set(savedArtifacts.map(a => a.productId.toString())),
+    [savedArtifacts]
+  );
+
+  if (error) {
+    return (
+      <PageLayout title="Shop" description="Browse our collection of mystical artifacts">
+        <ErrorState error={error} onRetry={refetch} />
+      </PageLayout>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Shop" description="Browse our collection of mystical artifacts">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="border-border/40">
               <CardHeader>
-                <CardTitle>{product.name}</CardTitle>
-                <CardDescription className="line-clamp-2">
-                  {product.description}
-                </CardDescription>
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
               </CardHeader>
+            </Card>
+          ))}
+        </div>
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout
+      title="Mystical Artifacts Shop"
+      description="Discover and acquire authentic mystical artifacts from our curated collection."
+    >
+      <FadeInSection>
+        <section className="section-spacing">
+          {/* Filters and View Controls */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="relative flex-1">
+              <Label htmlFor="search-artifacts" className="sr-only">
+                Search artifacts
+              </Label>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
+              <Input
+                id="search-artifacts"
+                type="text"
+                placeholder="Search artifacts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="icon"
+                onClick={() => setViewMode('grid')}
+                aria-label="Grid view"
+                aria-pressed={viewMode === 'grid'}
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="icon"
+                onClick={() => setViewMode('list')}
+                aria-label="List view"
+                aria-pressed={viewMode === 'list'}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Products Display */}
+          {filteredProducts.length === 0 ? (
+            <Card className="border-border/40 text-center py-12">
               <CardContent>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-2xl font-bold text-arcane-gold">
-                      {Number(product.price)} cycles
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {Number(product.stock)} in stock
-                    </p>
-                  </div>
-                  <Button variant="outline">View Details</Button>
-                </div>
+                <p className="text-muted-foreground">
+                  {searchQuery ? 'No artifacts match your search.' : 'No artifacts available at the moment.'}
+                </p>
               </CardContent>
             </Card>
-          ))
-        ) : (
-          <Card className="col-span-full border-border/40">
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">
-                No artifacts available yet. Check back soon!
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Admins can add products via the Admin panel.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
+          ) : (
+            <div
+              className={
+                viewMode === 'grid'
+                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                  : 'space-y-4'
+              }
+            >
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id.toString()}
+                  product={product}
+                  viewMode={viewMode}
+                  isSaved={savedProductIds.has(product.id.toString())}
+                  onClick={() => handleProductClick(product)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </FadeInSection>
+
+      <ProductDetailsModal
+        product={selectedProduct}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        isSaved={selectedProduct ? savedProductIds.has(selectedProduct.id.toString()) : false}
+        isAuthenticated={!!identity}
+      />
+    </PageLayout>
   );
 }

@@ -16,9 +16,21 @@ export interface User {
     name: string;
     email: string;
 }
+export interface GuildOrder {
+    id: bigint;
+    status: string;
+    reward: bigint;
+    title: string;
+    assignedTo?: Principal;
+    description: string;
+}
 export interface PageFeatures {
     features: Array<Feature>;
     page: string;
+}
+export interface CartItem {
+    productId: bigint;
+    quantity: bigint;
 }
 export interface Feature {
     description: string;
@@ -51,15 +63,24 @@ export enum Variant_later_phase1 {
     phase1 = "phase1"
 }
 export interface backendInterface {
+    addToCart(productId: bigint, quantity: bigint): Promise<void>;
+    assignAdminRole(user: Principal): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    assignGuildOrder(guildOrderId: bigint, userId: Principal): Promise<void>;
+    checkoutCart(): Promise<bigint>;
+    createGuildOrder(title: string, description: string, reward: bigint): Promise<bigint>;
     createOrder(productIds: Array<bigint>, totalAmount: bigint): Promise<bigint>;
     createProduct(name: string, description: string, price: bigint, stock: bigint): Promise<bigint>;
     createUser(name: string, email: string): Promise<bigint>;
+    editProduct(productId: bigint, name: string, description: string, price: bigint): Promise<void>;
+    getAllGuildOrders(): Promise<Array<GuildOrder>>;
     getAllOrders(): Promise<Array<Order>>;
     getAllProducts(): Promise<Array<Product>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getCart(): Promise<Array<CartItem>>;
     getFeatureSpecification(): Promise<Array<PageFeatures>>;
+    getGuildOrder(id: bigint): Promise<GuildOrder>;
     getMyOrders(): Promise<Array<Order>>;
     getMySavedArtifacts(): Promise<Array<SavedArtifact>>;
     getOrder(id: bigint): Promise<Order>;
@@ -68,8 +89,11 @@ export interface backendInterface {
     getUser(id: bigint): Promise<User>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    removeAdminRole(user: Principal): Promise<void>;
+    removeFromCart(productId: bigint): Promise<void>;
     removeSavedArtifact(productId: bigint): Promise<void>;
     saveArtifact(productId: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    updateGuildOrderStatus(guildOrderId: bigint, status: string): Promise<void>;
     updateProductStock(productId: bigint, newStock: bigint): Promise<void>;
 }

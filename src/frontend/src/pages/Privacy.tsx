@@ -1,101 +1,89 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import PageLayout from '../components/layout/PageLayout';
+import FadeInSection from '../components/effects/FadeInSection';
 
 export default function Privacy() {
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            Privacy Policy
-          </h1>
-          <p className="text-muted-foreground">
-            Last updated: February 10, 2026
-          </p>
-        </div>
-
-        <Card className="border-border/40">
+    <PageLayout
+      title="Privacy Policy"
+      description="Learn how we collect, use, and protect your personal information."
+    >
+      <FadeInSection>
+        <Card className="border-border/40 hover-lift">
           <CardContent className="pt-6 space-y-6">
             <section>
               <CardTitle className="text-xl mb-3">1. Information We Collect</CardTitle>
               <p className="text-muted-foreground">
-                We collect information that you provide directly to us through Internet Identity authentication 
-                and profile creation. This is placeholder text for Phase 1 and will be replaced with actual 
-                privacy policy reviewed by legal counsel.
+                We collect information you provide directly to us, such as when you create an account, make a purchase, or contact us for support. This may include your name, email address, and transaction history.
               </p>
             </section>
 
-            <Separator className="bg-border/40" />
+            <Separator />
 
             <section>
               <CardTitle className="text-xl mb-3">2. How We Use Your Information</CardTitle>
               <p className="text-muted-foreground">
-                We use the information we collect to provide, maintain, and improve our services. 
-                Placeholder text for Phase 1 - actual privacy practices to be documented.
+                We use the information we collect to provide, maintain, and improve our services, process transactions, send you technical notices and support messages, and respond to your comments and questions.
               </p>
             </section>
 
-            <Separator className="bg-border/40" />
+            <Separator />
 
             <section>
               <CardTitle className="text-xl mb-3">3. Information Sharing</CardTitle>
               <p className="text-muted-foreground">
-                We do not share your personal information with third parties except as described in this 
-                privacy policy. Placeholder text for Phase 1.
+                We do not share your personal information with third parties except as described in this policy. We may share information with service providers who perform services on our behalf, or when required by law.
               </p>
             </section>
 
-            <Separator className="bg-border/40" />
+            <Separator />
 
             <section>
               <CardTitle className="text-xl mb-3">4. Data Security</CardTitle>
               <p className="text-muted-foreground">
-                We use the Internet Computer's decentralized infrastructure to secure your data. 
-                Placeholder text for Phase 1 - actual security measures to be documented.
+                We take reasonable measures to protect your personal information from unauthorized access, use, or disclosure. Our platform is built on the Internet Computer blockchain, providing enhanced security through decentralization.
               </p>
             </section>
 
-            <Separator className="bg-border/40" />
+            <Separator />
 
             <section>
               <CardTitle className="text-xl mb-3">5. Your Rights</CardTitle>
               <p className="text-muted-foreground">
-                You have the right to access, update, or delete your personal information. 
-                Placeholder text for Phase 1 - actual rights and procedures to be documented.
+                You have the right to access, update, or delete your personal information. You may also opt out of receiving promotional communications from us at any time.
               </p>
             </section>
 
-            <Separator className="bg-border/40" />
+            <Separator />
 
             <section>
-              <CardTitle className="text-xl mb-3">6. Cookies and Local Storage</CardTitle>
+              <CardTitle className="text-xl mb-3">6. Cookies and Tracking</CardTitle>
               <p className="text-muted-foreground">
-                We use local storage to enhance your experience, including storing recently viewed items 
-                and session preferences. Placeholder text for Phase 1.
+                We use cookies and similar tracking technologies to collect information about your browsing activities and to personalize your experience on our platform.
               </p>
             </section>
 
-            <Separator className="bg-border/40" />
+            <Separator />
 
             <section>
-              <CardTitle className="text-xl mb-3">7. Changes to Privacy Policy</CardTitle>
+              <CardTitle className="text-xl mb-3">7. Changes to This Policy</CardTitle>
               <p className="text-muted-foreground">
-                We may update this privacy policy from time to time. We will notify you of any changes 
-                by posting the new policy on this page. Placeholder text for Phase 1.
+                We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last Updated" date.
+              </p>
+            </section>
+
+            <Separator />
+
+            <section>
+              <CardTitle className="text-xl mb-3">8. Contact Us</CardTitle>
+              <p className="text-muted-foreground">
+                If you have any questions about this Privacy Policy, please contact us at privacy@arcaneartifacts.com.
               </p>
             </section>
           </CardContent>
         </Card>
-
-        <Card className="mt-6 border-arcane-gold/30 bg-accent/20">
-          <CardContent className="py-6">
-            <p className="text-sm text-muted-foreground text-center">
-              <strong>Note:</strong> This is placeholder legal text for Phase 1 development. 
-              Actual privacy policy will be drafted and reviewed by legal counsel before production deployment.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      </FadeInSection>
+    </PageLayout>
   );
 }

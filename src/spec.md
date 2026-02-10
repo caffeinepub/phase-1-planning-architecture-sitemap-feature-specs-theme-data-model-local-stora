@@ -1,15 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Produce Phase 1 planning/architecture docs and scaffold a themed multi-page frontend with IC-native data model placeholders and a documented local storage strategy.
+**Goal:** Polish the existing app experience by standardizing UX animations, improving error/offline handling, optimizing performance, and ensuring strong responsiveness, accessibility, and basic SEO across major routes.
 
 **Planned changes:**
-- Add Phase 1 planning document with full sitemap/page list, purpose per page, navigation structure, and access notes (public vs authenticated vs admin-only).
-- Implement frontend route/page skeletons for: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, Privacy; include global navigation and footer links to Terms/Privacy.
-- Add a Phase 1 features-by-page specification documenting intended features per page (including hover effects, flip cards, filters, inventory syncing) and tag each as Phase 1 (spec/skeleton) vs later.
-- Define and apply a consistent dark fantasy design direction (parchment tones + subtle glowing accents) via a small design system (colors, typography, spacing, buttons/hover, cards) across global layout and all pages.
-- Create an IC canister-native data architecture plan mapping “tables” (Users, Inventory, Products, Orders, Saved Artifacts, etc.) to Motoko entities/relationships and implement corresponding Motoko types + placeholder storage in a single backend actor.
-- Implement a versioned, centralized frontend local storage utility/hooks for recently viewed items, offline drafts, and session state; document keys and retention/expiry; demonstrate recently viewed on at least one page (e.g., Shop).
-- Add generated static theme-matching visual assets under `frontend/public/assets/generated` and reference them in the global UI with graceful fallbacks.
+- Standardize site-wide animation/interactions (flip cards, hover glows/lifts, scroll-based fade-ins) across all pages, avoid layout shift, and respect prefers-reduced-motion.
+- Add consistent user-facing error states and recovery actions for failed queries/mutations and offline scenarios (retry, continue offline where safe) across primary data views.
+- Improve offline sync conflict UX by classifying retryable vs non-retryable failures and providing an in-app way to inspect, retry, or remove queued actions (with confirmation), including surfacing actions that exceed retry limits.
+- Implement performance optimizations: code-split non-initial routes/heavy sections, lazy-load images with explicit sizing, and reduce avoidable re-renders in frequently-used views.
+- Complete responsive testing and fix layout issues across mobile/tablet/desktop for navigation, modals, grids, and dashboard/admin tabs to avoid overflow and usability problems.
+- Improve accessibility and SEO basics: ensure alt text/decoration handling, semantic landmarks and heading structure, keyboard operability with visible focus, and route-appropriate title/meta description in `frontend/index.html`.
 
-**User-visible outcome:** Users can navigate to all planned pages via a consistent dark-fantasy themed UI, see clear page titles/placeholder sections, and the project includes Phase 1 docs for sitemap, features, design direction, data architecture, and local storage; the app also shows basic usage of “recently viewed” storage and includes themed static assets.
+**User-visible outcome:** Pages feel smoother and more consistent, load faster, work well on mobile through desktop, provide clear feedback and recovery when offline or when API calls fail (including managing queued actions), and are more accessible with improved baseline SEO metadata.

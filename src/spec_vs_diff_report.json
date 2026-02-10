@@ -1,134 +1,84 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T06:28:09.504Z",
-  "summary": "Diff adds frontend routing/layout/theme scaffolding, auth-gated components, and localStorage utilities/hooks, plus backend Motoko types and placeholder storage. However, required Phase 1 documentation artifacts (planning/sitemap, per-page feature spec doc, design-direction doc, data-architecture doc, and local-storage strategy doc) are not evidenced in the shown diff summary, and the presence of the required generated image assets cannot be confirmed from the provided file list.",
+  "generatedAt": "2026-02-10T07:15:59.880Z",
+  "summary": "Diff implements several Phase 5 polishing items: standardized animation utilities with reduced-motion support, route-level code-splitting via React.lazy/Suspense, improved offline sync status UI with a queue management dialog, and stronger error-state UI used in at least Shop and Dashboard. However, some requirements are only partially evidenced (notably per-route SEO meta handling and explicit image lazy-loading/sizing), and several new UI sections/components and docs appear that were not requested in the BuildRequest.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Create a Phase 1 planning document with full sitemap/page list, navigation structure, and public vs authenticated vs admin-only notes.",
-      "reason": "No documentation file (e.g., /docs/phase1-planning.md) is shown in the diff summary.",
-      "evidence": []
-    },
-    {
-      "id": "REQ-3",
-      "requirement": "Create a Phase 1 feature specification document organized by page, mentioning hover effects, flip cards, filters, and inventory syncing, with Phase 1 vs later tagging.",
-      "reason": "No repository doc (e.g., /docs/phase1-features-by-page.md) is shown; the backend includes a feature-spec query, but the requirement explicitly calls for a repository document.",
+      "id": "REQ-36",
+      "requirement": "When queued mutation replay fails, the UI indicates how many actions remain queued and presents an English explanation that includes whether the failure is retryable (transient) vs non-retryable (permanent).",
+      "reason": "Offline sync UI shows remaining count and error text, and replay logic classifies errors as retryable/non-retryable, but the shown UI text does not clearly surface whether a failure is retryable vs permanent.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/components/system/OfflineSyncStatus.tsx",
+        "frontend/src/hooks/useOfflineMutationReplay.ts"
       ]
     },
     {
-      "id": "REQ-4",
-      "requirement": "Provide a design-direction spec document describing colors, fonts, and interaction styling.",
-      "reason": "Theme tokens and typography are implemented in CSS, but no design spec doc (e.g., /docs/design-direction.md or within planning doc) is shown in the diff summary.",
+      "id": "REQ-37",
+      "requirement": "Any image elements added in the UI use lazy loading where appropriate and include explicit sizing to avoid layout shift.",
+      "reason": "The diff shows an <img> in HeaderNav with explicit sizing classes, but no lazy-loading attribute is shown; no other image lazy-loading/sizing changes are evidenced.",
       "evidence": [
-        "frontend/src/index.css"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "requirement": "Produce a data-architecture plan doc mapping requested tables (Users, Inventory, Products, Orders, Saved Artifacts, etc.) to IC-native canister data models, including stable/persisted fields.",
-      "reason": "Backend type definitions/storage are present, but no /docs/data-architecture.md (or equivalent) is shown in the diff summary.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "requirement": "Document the local storage strategy (recently viewed, offline drafts, session state) including key names and retention/expiry rules.",
-      "reason": "Utilities/hooks exist, but no doc section/file is shown describing what is stored and retention rules.",
-      "evidence": [
-        "frontend/src/lib/localStorage.ts",
-        "frontend/src/hooks/useRecentlyViewed.ts",
-        "frontend/src/hooks/useOfflineDrafts.ts",
-        "frontend/src/hooks/useSessionState.ts"
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "requirement": "Add generated static assets under frontend/public/assets/generated (parchment background + emblem) and integrate them with graceful fallbacks.",
-      "reason": "Assets are referenced in layout/header, but the diff summary does not show the actual image files under frontend/public/assets/generated, so existence cannot be verified from provided evidence.",
-      "evidence": [
-        "frontend/src/components/layout/AppLayout.tsx",
         "frontend/src/components/layout/HeaderNav.tsx"
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "requirement": "Add/ensure appropriate meta tags (title/description) for the application and major routes.",
+      "reason": "Only frontend/index.html is shown with title and meta description; no evidence of per-route title/description management for major routes is present in the diff summary.",
+      "evidence": [
+        "frontend/index.html",
+        "frontend/src/App.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Backend-exposed 'feature specification' API/types embedded in Motoko (getFeatureSpecification) rather than (or in addition to) the requested repository documentation.",
-      "reason": "REQ-3 requires a repository doc; implementing an on-chain/query API for feature specs is not requested.",
+      "description": "Added new homepage/section-level UI features (e.g., FeaturedCarousel, QuickLinksGrid, Announcements) not explicitly requested as part of Phase 5 polishing.",
+      "reason": "BuildRequest constraints include non-goal of adding new product features; these appear to be new content/features rather than polishing-only changes, based on the diff summary file list.",
       "evidence": [
-        "backend/main.mo"
+        "frontend-file-summaries.txt (\"frontend/src/components/home/FeaturedCarousel.tsx\", \"frontend/src/components/home/QuickLinksGrid.tsx\", \"frontend/src/components/home/Announcements.tsx\")"
       ]
     },
     {
-      "description": "Access control/authorization framework with admin secret initialization via URL parameter (caffeineAdminToken) and authorization mixins/state.",
-      "reason": "BuildRequest focuses on Phase 1 planning/docs, page skeletons, theme, IC-native data model scaffolding, and local storage; secret-token-based admin initialization/authorization system is not requested.",
+      "description": "Added new About/Services content components (TeamSection, TimelineSection, ServiceDetailsAccordion) not explicitly requested.",
+      "reason": "Not part of the specified requirements; may constitute new page functionality/content beyond stated polishing scope.",
       "evidence": [
-        "backend/main.mo",
-        "frontend/src/hooks/useActor.ts"
+        "frontend-file-summaries.txt (\"frontend/src/components/about/TeamSection.tsx\", \"frontend/src/components/about/TimelineSection.tsx\", \"frontend/src/components/services/ServiceDetailsAccordion.tsx\")"
       ]
     },
     {
-      "description": "User profile setup modal and profile persistence hooks (ProfileSetup, saveCallerUserProfile) beyond page skeleton requirements.",
-      "reason": "Not part of the listed Phase 1 page skeleton requirements; introduces additional functional UI flows.",
+      "description": "Added documentation files (data-architecture.md, local-storage-strategy.md) not requested.",
+      "reason": "Documentation additions are not included in Phase 5 requirements.",
       "evidence": [
-        "frontend/src/components/auth/ProfileSetup.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend-file-summaries.txt (\"frontend/docs/data-architecture.md\", \"frontend/docs/local-storage-strategy.md\")"
       ]
     },
     {
-      "description": "Admin/auth gating components (RequireAuth/RequireAdmin) with role checks and login prompts.",
-      "reason": "REQ-2 only requires page skeletons and navigation reachability; specific auth-gating/role enforcement UI is not explicitly requested in Phase 1.",
+      "description": "Added a ParallaxLayer effect component not explicitly requested.",
+      "reason": "REQ-34 asks to standardize existing animations/interactions; adding a new parallax effect component is not requested and could be considered new interaction scope.",
       "evidence": [
-        "frontend/src/components/auth/RequireAuth.tsx",
-        "frontend/src/components/auth/RequireAdmin.tsx"
+        "frontend-file-summaries.txt (\"frontend/src/components/effects/ParallaxLayer.tsx\")"
       ]
     }
   ],
   "confidence": 0.66,
   "changed_files": [
-    "all_files_summary.json",
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/docs/data-architecture.md",
-    "frontend/docs/design-direction.md",
-    "frontend/docs/local-storage-strategy.md",
-    "frontend/docs/phase1-features-by-page.md",
-    "frontend/docs/phase1-planning.md",
-    "frontend/index.css",
     "frontend/index.html",
     "frontend/src/App.tsx",
-    "frontend/src/components/auth/LoginButton.tsx",
-    "frontend/src/components/auth/ProfileSetup.tsx",
-    "frontend/src/components/auth/RequireAdmin.tsx",
-    "frontend/src/components/auth/RequireAuth.tsx",
+    "frontend/src/components/effects/FlipCard.tsx",
     "frontend/src/components/layout/AppLayout.tsx",
-    "frontend/src/components/layout/Footer.tsx",
     "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/hooks/useActor.ts",
-    "frontend/src/hooks/useInternetIdentity.ts",
-    "frontend/src/hooks/useOfflineDrafts.ts",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useRecentlyViewed.ts",
-    "frontend/src/hooks/useSessionState.ts",
+    "frontend/src/components/shop/ProductDetailsModal.tsx",
+    "frontend/src/components/system/ErrorState.tsx",
+    "frontend/src/components/system/OfflineSyncQueueDialog.tsx",
+    "frontend/src/components/system/OfflineSyncStatus.tsx",
+    "frontend/src/hooks/useOfflineMutationReplay.ts",
+    "frontend/src/hooks/useOnlineStatus.ts",
     "frontend/src/index.css",
-    "frontend/src/lib/localStorage.ts",
-    "frontend/src/main.tsx",
-    "frontend/src/pages/About.tsx",
-    "frontend/src/pages/Admin.tsx",
-    "frontend/src/pages/BlogLore.tsx",
-    "frontend/src/pages/Contact.tsx",
+    "frontend/src/lib/offlineMutationQueue.ts",
     "frontend/src/pages/Dashboard.tsx",
-    "frontend/src/pages/FAQ.tsx",
-    "frontend/src/pages/Homepage.tsx",
-    "frontend/src/pages/Privacy.tsx",
-    "frontend/src/pages/Services.tsx",
     "frontend/src/pages/Shop.tsx",
-    "frontend/src/pages/Terms.tsx",
-    "frontend/src/utils/urlParams.ts",
     "frontend/tailwind.config.js",
     "project_state.json"
   ]

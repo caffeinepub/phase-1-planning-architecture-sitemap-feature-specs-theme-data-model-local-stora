@@ -1,117 +1,251 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Philosopher:ital,wght@0,400;0,700;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-    :root {
-        --radius: 0.625rem;
-        --background: 0.97 0.01 60;
-        --foreground: 0.25 0.01 30;
-        --card: 0.95 0.01 55;
-        --card-foreground: 0.25 0.01 30;
-        --popover: 0.95 0.01 55;
-        --popover-foreground: 0.25 0.01 30;
-        --primary: 0.35 0.02 35;
-        --primary-foreground: 0.97 0.01 60;
-        --secondary: 0.85 0.02 60;
-        --secondary-foreground: 0.25 0.01 30;
-        --muted: 0.88 0.01 50;
-        --muted-foreground: 0.55 0.02 30;
-        --accent: 0.90 0.02 55;
-        --accent-foreground: 0.25 0.01 30;
-        --destructive: 0.55 0.22 25;
-        --destructive-foreground: 0.97 0.01 60;
-        --border: 0.80 0.01 45;
-        --input: 0.85 0.01 50;
-        --ring: 0.75 0.12 85;
-        --chart-1: 0.65 0.18 45;
-        --chart-2: 0.55 0.15 300;
-        --chart-3: 0.75 0.12 85;
-        --chart-4: 0.45 0.10 200;
-        --chart-5: 0.70 0.18 75;
-        --sidebar: 0.95 0.01 55;
-        --sidebar-foreground: 0.25 0.01 30;
-        --sidebar-primary: 0.35 0.02 35;
-        --sidebar-primary-foreground: 0.97 0.01 60;
-        --sidebar-accent: 0.90 0.02 55;
-        --sidebar-accent-foreground: 0.25 0.01 30;
-        --sidebar-border: 0.80 0.01 45;
-        --sidebar-ring: 0.75 0.12 85;
-        
-        /* Custom dark fantasy colors */
-        --arcane-gold: 0.75 0.12 85;
-        --ember-orange: 0.65 0.18 45;
-        --shadow-purple: 0.45 0.15 300;
-    }
+  :root {
+    /* Base colors - OKLCH format */
+    --background: oklch(0.15 0.02 270);
+    --foreground: oklch(0.95 0.01 90);
 
-    .dark {
-        --background: 0.145 0 0;
-        --foreground: 0.92 0.01 60;
-        --card: 0.20 0.01 30;
-        --card-foreground: 0.92 0.01 60;
-        --popover: 0.18 0.01 30;
-        --popover-foreground: 0.92 0.01 60;
-        --primary: 0.75 0.12 85;
-        --primary-foreground: 0.20 0.01 30;
-        --secondary: 0.30 0.02 35;
-        --secondary-foreground: 0.92 0.01 60;
-        --muted: 0.30 0.02 35;
-        --muted-foreground: 0.65 0.02 40;
-        --accent: 0.35 0.03 40;
-        --accent-foreground: 0.92 0.01 60;
-        --destructive: 0.55 0.22 25;
-        --destructive-foreground: 0.92 0.01 60;
-        --border: 0.30 0.01 35;
-        --input: 0.25 0.01 32;
-        --ring: 0.75 0.12 85;
-        --chart-1: 0.65 0.18 45;
-        --chart-2: 0.55 0.15 300;
-        --chart-3: 0.75 0.12 85;
-        --chart-4: 0.45 0.10 200;
-        --chart-5: 0.70 0.18 75;
-        --sidebar: 0.20 0.01 30;
-        --sidebar-foreground: 0.92 0.01 60;
-        --sidebar-primary: 0.75 0.12 85;
-        --sidebar-primary-foreground: 0.20 0.01 30;
-        --sidebar-accent: 0.30 0.02 35;
-        --sidebar-accent-foreground: 0.92 0.01 60;
-        --sidebar-border: 0.30 0.01 35;
-        --sidebar-ring: 0.75 0.12 85;
-        
-        /* Custom dark fantasy colors */
-        --arcane-gold: 0.75 0.12 85;
-        --ember-orange: 0.65 0.18 45;
-        --shadow-purple: 0.45 0.15 300;
-    }
+    /* Card colors */
+    --card: oklch(0.18 0.02 270);
+    --card-foreground: oklch(0.95 0.01 90);
 
-    * {
-        @apply border-border;
-    }
-    
-    body {
-        @apply bg-background text-foreground;
-        font-family: 'Crimson Text', Georgia, serif;
-    }
-    
-    h1, h2, h3, h4, h5, h6 {
-        font-family: 'Cinzel', Georgia, serif;
-    }
+    /* Popover colors */
+    --popover: oklch(0.18 0.02 270);
+    --popover-foreground: oklch(0.95 0.01 90);
+
+    /* Primary - Arcane Gold */
+    --primary: oklch(0.75 0.15 75);
+    --primary-foreground: oklch(0.15 0.02 270);
+
+    /* Secondary - Deep Purple */
+    --secondary: oklch(0.35 0.08 285);
+    --secondary-foreground: oklch(0.95 0.01 90);
+
+    /* Muted colors */
+    --muted: oklch(0.25 0.02 270);
+    --muted-foreground: oklch(0.65 0.01 270);
+
+    /* Accent colors */
+    --accent: oklch(0.25 0.03 270);
+    --accent-foreground: oklch(0.95 0.01 90);
+
+    /* Destructive colors */
+    --destructive: oklch(0.55 0.22 25);
+    --destructive-foreground: oklch(0.98 0.01 90);
+
+    /* Border and input */
+    --border: oklch(0.30 0.02 270);
+    --input: oklch(0.30 0.02 270);
+    --ring: oklch(0.75 0.15 75);
+
+    /* Chart colors */
+    --chart-1: oklch(0.75 0.15 75);
+    --chart-2: oklch(0.65 0.18 45);
+    --chart-3: oklch(0.55 0.12 285);
+    --chart-4: oklch(0.70 0.10 180);
+    --chart-5: oklch(0.60 0.15 330);
+
+    /* Custom theme colors */
+    --arcane-gold: oklch(0.75 0.15 75);
+    --ember-orange: oklch(0.65 0.18 45);
+    --shadow-purple: oklch(0.35 0.08 285);
+
+    /* Radius */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Already using dark theme by default */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    overflow-x: hidden;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Crimson Text', serif;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cinzel', serif;
+  }
+
+  /* Visible focus styles for keyboard navigation */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
 }
 
 @layer utilities {
-    .text-arcane-gold {
-        color: oklch(var(--arcane-gold));
-    }
-    
-    .bg-arcane-gold {
-        background-color: oklch(var(--arcane-gold));
-    }
-    
-    .border-arcane-gold {
-        border-color: oklch(var(--arcane-gold));
-    }
-    
-    .font-display {
-        font-family: 'Cinzel', Georgia, serif;
-    }
+  /* Page container utilities */
+  .page-container {
+    @apply container mx-auto px-4 py-8 md:py-12 max-w-full;
+  }
+
+  .page-header {
+    @apply text-center mb-12;
+  }
+
+  .page-title {
+    @apply font-display text-3xl md:text-5xl font-bold mb-4 text-foreground;
+  }
+
+  .page-description {
+    @apply text-lg text-muted-foreground max-w-3xl mx-auto;
+  }
+
+  /* Section utilities */
+  .section-spacing {
+    @apply py-12 md:py-16;
+  }
+
+  .section-title {
+    @apply font-display text-2xl md:text-4xl font-bold text-center mb-4;
+  }
+
+  .section-description {
+    @apply text-base md:text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-8;
+  }
+
+  /* Standardized hover effects */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-1;
+    box-shadow: 0 10px 25px -5px oklch(0.75 0.15 75 / 0.15), 0 8px 10px -6px oklch(0.75 0.15 75 / 0.1);
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px oklch(0.75 0.15 75 / 0.3), 0 0 40px oklch(0.75 0.15 75 / 0.15);
+  }
+
+  /* Fade in animation */
+  .fade-in-section {
+    @apply opacity-0 transition-all duration-700 ease-out;
+    transform: translateY(2rem);
+  }
+
+  .fade-in-section.fade-in-visible {
+    @apply opacity-100;
+    transform: translateY(0);
+  }
+
+  /* Flip card styles */
+  .flip-card {
+    @apply cursor-pointer;
+    perspective: 1000px;
+  }
+
+  .flip-card-inner {
+    @apply relative w-full h-full transition-transform duration-600 ease-out;
+    transform-style: preserve-3d;
+  }
+
+  .flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    @apply absolute w-full h-full;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .flip-card-back {
+    transform: rotateY(180deg);
+  }
+
+  /* Reduced motion flip card */
+  .flip-card.no-motion .flip-card-inner {
+    @apply transition-none;
+  }
+
+  .flip-card.no-motion:not(.flipped) .flip-card-back {
+    @apply hidden;
+  }
+
+  .flip-card.no-motion.flipped .flip-card-front {
+    @apply hidden;
+  }
+
+  .flip-card.no-motion.flipped .flip-card-back {
+    @apply block;
+    transform: none;
+  }
+
+  /* Parallax layer */
+  .parallax-layer {
+    will-change: transform;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .fade-in-section {
+    @apply opacity-100;
+    transform: translateY(0) !important;
+  }
+
+  .hover-lift:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .hover-glow:hover {
+    box-shadow: none !important;
+  }
+
+  .flip-card-inner {
+    @apply transition-none;
+  }
+
+  .parallax-layer {
+    transform: none !important;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
 }

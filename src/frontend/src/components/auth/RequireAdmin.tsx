@@ -1,5 +1,6 @@
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useGetCallerUserRole } from '../../hooks/useQueries';
+import { useActor } from '../../hooks/useActor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShieldAlert, ShieldX } from 'lucide-react';
@@ -11,9 +12,12 @@ interface RequireAdminProps {
 
 export default function RequireAdmin({ children }: RequireAdminProps) {
   const { identity, login, isInitializing } = useInternetIdentity();
-  const { data: userRole, isLoading: roleLoading } = useGetCallerUserRole();
+  const { isFetching: actorFetching } = useActor();
+  const { data: userRole, isLoading: roleLoading, isFetched: roleFetched } = useGetCallerUserRole();
 
-  if (isInitializing || roleLoading) {
+  const isLoading = isInitializing || actorFetching || roleLoading;
+
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[60vh]">
         <Card className="max-w-md w-full">
@@ -40,7 +44,7 @@ export default function RequireAdmin({ children }: RequireAdminProps) {
           </CardHeader>
           <CardContent>
             <Button onClick={login} className="w-full">
-              Login with Internet Identity
+              Login
             </Button>
           </CardContent>
         </Card>
@@ -48,7 +52,7 @@ export default function RequireAdmin({ children }: RequireAdminProps) {
     );
   }
 
-  if (userRole !== 'admin') {
+  if (roleFetched && userRole !== 'admin') {
     return (
       <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[60vh]">
         <Card className="max-w-md w-full">

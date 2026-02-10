@@ -1,24 +1,52 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
+import { StrictMode, lazy, Suspense } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider, createRouter, createRootRoute, createRoute } from '@tanstack/react-router';
 import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/sonner';
 import AppLayout from './components/layout/AppLayout';
 import Homepage from './pages/Homepage';
-import About from './pages/About';
-import Services from './pages/Services';
-import Shop from './pages/Shop';
-import Dashboard from './pages/Dashboard';
-import Contact from './pages/Contact';
-import BlogLore from './pages/BlogLore';
-import FAQ from './pages/FAQ';
-import Admin from './pages/Admin';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Create root route with layout
+// Lazy load secondary routes for code splitting
+const About = lazy(() => import('./pages/About'));
+const Services = lazy(() => import('./pages/Services'));
+const Shop = lazy(() => import('./pages/Shop'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Contact = lazy(() => import('./pages/Contact'));
+const BlogLore = lazy(() => import('./pages/BlogLore'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Admin = lazy(() => import('./pages/Admin'));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// Loading fallback component
+const PageLoadingFallback = () => (
+  <div className="page-container">
+    <div className="space-y-4">
+      <Skeleton className="h-12 w-3/4 mx-auto" />
+      <Skeleton className="h-6 w-1/2 mx-auto" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-64 w-full" />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 const rootRoute = createRootRoute({
   component: AppLayout,
 });
 
-// Define all routes
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
@@ -28,64 +56,103 @@ const indexRoute = createRoute({
 const aboutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/about',
-  component: About,
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <About />
+    </Suspense>
+  ),
 });
 
 const servicesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/services',
-  component: Services,
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Services />
+    </Suspense>
+  ),
 });
 
 const shopRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/shop',
-  component: Shop,
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Shop />
+    </Suspense>
+  ),
 });
 
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard',
-  component: Dashboard,
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Dashboard />
+    </Suspense>
+  ),
 });
 
 const contactRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/contact',
-  component: Contact,
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Contact />
+    </Suspense>
+  ),
 });
 
 const blogRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/blog',
-  component: BlogLore,
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <BlogLore />
+    </Suspense>
+  ),
 });
 
 const faqRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/faq',
-  component: FAQ,
-});
-
-const adminRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/admin',
-  component: Admin,
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <FAQ />
+    </Suspense>
+  ),
 });
 
 const termsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/terms',
-  component: Terms,
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Terms />
+    </Suspense>
+  ),
 });
 
 const privacyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/privacy',
-  component: Privacy,
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Privacy />
+    </Suspense>
+  ),
 });
 
-// Create route tree
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin',
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Admin />
+    </Suspense>
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   aboutRoute,
@@ -95,15 +162,13 @@ const routeTree = rootRoute.addChildren([
   contactRoute,
   blogRoute,
   faqRoute,
-  adminRoute,
   termsRoute,
   privacyRoute,
+  adminRoute,
 ]);
 
-// Create router
 const router = createRouter({ routeTree });
 
-// Type declaration for router
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
@@ -112,8 +177,13 @@ declare module '@tanstack/react-router' {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <StrictMode>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <Toaster />
+        </QueryClientProvider>
+      </ThemeProvider>
+    </StrictMode>
   );
 }

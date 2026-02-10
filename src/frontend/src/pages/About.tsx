@@ -1,126 +1,105 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Scroll, Users, Target } from 'lucide-react';
+import PageLayout from '../components/layout/PageLayout';
+import FadeInSection from '../components/effects/FadeInSection';
+import TeamSection from '../components/about/TeamSection';
+import TimelineSection from '../components/about/TimelineSection';
 
 export default function About() {
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            About Arcane Artifacts
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Preserving the mystical heritage of forgotten realms
-          </p>
-        </div>
+    <PageLayout
+      title="About Arcane Artifacts"
+      description="Discover our story, mission, and the dedicated team behind the world's premier mystical artifact collection."
+    >
+      {/* Mission Section */}
+      <FadeInSection>
+        <section className="section-spacing">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="border-border/40 hover:border-arcane-gold/30 transition-all hover-lift">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-full bg-arcane-gold/10 flex items-center justify-center mb-4">
+                  <Scroll className="h-6 w-6 text-arcane-gold" />
+                </div>
+                <CardTitle>Our Story</CardTitle>
+                <CardDescription>
+                  Founded over two centuries ago, Arcane Artifacts began as a small guild of collectors dedicated to preserving mystical heritage. Today, we are the world's most trusted source for authentic magical artifacts.
+                </CardDescription>
+              </CardHeader>
+            </Card>
 
-        {/* Story Section */}
-        <Card className="mb-8 border-border/40">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <Scroll className="h-6 w-6 text-arcane-gold" />
-              <CardTitle>Our Story</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="prose prose-invert max-w-none">
-            <p className="text-muted-foreground">
-              Founded in the depths of ancient libraries and forgotten vaults, Arcane Artifacts 
-              emerged from a passion for preserving the mystical heritage of bygone eras. Our 
-              curators travel across realms, seeking out authentic relics and enchanted items 
-              that carry the weight of history and the whisper of magic.
-            </p>
-            <p className="text-muted-foreground mt-4">
-              Each artifact in our collection has been carefully authenticated and documented, 
-              ensuring that collectors receive genuine pieces of arcane history. We believe 
-              that these objects are more than mere curiosities—they are gateways to understanding 
-              the mystical forces that shaped our world.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Mission & Vision */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card className="border-border/40">
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <Target className="h-6 w-6 text-arcane-gold" />
+            <Card className="border-border/40 hover:border-arcane-gold/30 transition-all hover-lift">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-full bg-arcane-gold/10 flex items-center justify-center mb-4">
+                  <Target className="h-6 w-6 text-arcane-gold" />
+                </div>
                 <CardTitle>Our Mission</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                To connect collectors with authentic arcane artifacts while preserving the 
-                stories and knowledge embedded within each piece. We strive to make mystical 
-                history accessible to all who seek it.
-              </p>
-            </CardContent>
-          </Card>
+                <CardDescription>
+                  We strive to connect collectors with authentic mystical artifacts while preserving the rich history and lore of each piece. Every transaction supports ongoing research and preservation efforts.
+                </CardDescription>
+              </CardHeader>
+            </Card>
 
-          <Card className="border-border/40">
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <Users className="h-6 w-6 text-arcane-gold" />
+            <Card className="border-border/40 hover:border-arcane-gold/30 transition-all hover-lift">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-full bg-arcane-gold/10 flex items-center justify-center mb-4">
+                  <Users className="h-6 w-6 text-arcane-gold" />
+                </div>
                 <CardTitle>Our Community</CardTitle>
+                <CardDescription>
+                  Join thousands of collectors, scholars, and enthusiasts who share a passion for the mystical and the extraordinary. Together, we preserve the magic of the past for future generations.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </section>
+      </FadeInSection>
+
+      {/* Values Section */}
+      <FadeInSection delay={100}>
+        <section className="section-spacing">
+          <h2 className="section-title">Our Values</h2>
+          <Card className="border-border/40">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-display font-semibold text-lg mb-2 text-arcane-gold">Authenticity</h3>
+                  <p className="text-muted-foreground">
+                    Every artifact undergoes rigorous authentication by our team of experts. We guarantee the provenance and magical integrity of each item in our collection.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-display font-semibold text-lg mb-2 text-arcane-gold">Preservation</h3>
+                  <p className="text-muted-foreground">
+                    We are committed to preserving mystical heritage for future generations through proper care, documentation, and ethical acquisition practices.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-display font-semibold text-lg mb-2 text-arcane-gold">Education</h3>
+                  <p className="text-muted-foreground">
+                    We believe in sharing knowledge about the history, lore, and significance of mystical artifacts with collectors and the broader community.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="font-display font-semibold text-lg mb-2 text-arcane-gold">Innovation</h3>
+                  <p className="text-muted-foreground">
+                    By leveraging blockchain technology, we bring transparency and security to the artifact market while honoring traditional practices.
+                  </p>
+                </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                We've built a thriving community of collectors, scholars, and enthusiasts 
-                who share a passion for the arcane. Together, we preserve and celebrate 
-                the mystical heritage of forgotten realms.
-              </p>
             </CardContent>
           </Card>
-        </div>
+        </section>
+      </FadeInSection>
 
-        {/* Values */}
-        <Card className="border-border/40">
-          <CardHeader>
-            <CardTitle>Our Values</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <span className="text-arcane-gold font-bold">•</span>
-                <div>
-                  <strong className="text-foreground">Authenticity:</strong>
-                  <span className="text-muted-foreground ml-2">
-                    Every artifact is verified and documented
-                  </span>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-arcane-gold font-bold">•</span>
-                <div>
-                  <strong className="text-foreground">Knowledge:</strong>
-                  <span className="text-muted-foreground ml-2">
-                    We share the lore and history behind each piece
-                  </span>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-arcane-gold font-bold">•</span>
-                <div>
-                  <strong className="text-foreground">Community:</strong>
-                  <span className="text-muted-foreground ml-2">
-                    Building connections among collectors and enthusiasts
-                  </span>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-arcane-gold font-bold">•</span>
-                <div>
-                  <strong className="text-foreground">Innovation:</strong>
-                  <span className="text-muted-foreground ml-2">
-                    Leveraging blockchain technology for secure, decentralized transactions
-                  </span>
-                </div>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      {/* Timeline */}
+      <FadeInSection delay={200}>
+        <TimelineSection />
+      </FadeInSection>
+
+      {/* Team */}
+      <FadeInSection delay={300}>
+        <TeamSection />
+      </FadeInSection>
+    </PageLayout>
   );
 }

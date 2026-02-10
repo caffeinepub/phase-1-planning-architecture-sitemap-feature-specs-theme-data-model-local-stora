@@ -1,164 +1,128 @@
 {
   "kind": "build_request",
-  "title": "Phase 1: Planning & Architecture (Sitemap, Feature Specs, Theme, Data Model, Local Storage)",
+  "title": "Phase 5 polishing: UX animations, robust error handling, performance, responsiveness, accessibility & SEO",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Create a Phase 1 planning document that defines the full site map/page list and navigation structure for: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal pages (Terms + Privacy). Include a concise description of the purpose of each page and any key sub-sections (e.g., Shop: list, filters, product detail; Legal: Terms, Privacy).",
+      "id": "REQ-34",
+      "text": "Refine and standardize site-wide animations/interactions (flip cards, hover glows, scroll-based fade-ins) so they are consistent across all pages/components, do not cause layout shift, and fully respect reduced-motion preferences.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-6"
         ],
         "quotes": [
-          "1. **Site Map & Page List:** Draw all pages: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Legal pages."
+          "Animations & Interactions: Flip cards, hover glows, scroll-based fade-ins."
         ]
       },
       "acceptanceCriteria": [
-        "A repository doc exists (e.g., /docs/phase1-planning.md) containing a clearly labeled sitemap/page list covering all pages the user listed",
-        "The document includes intended navigation (top nav/footer links) and notes which pages are public vs. authenticated vs. admin-only (if applicable)"
+        "Flip-card, hover-lift/glow, and fade-in-on-scroll behaviors look visually consistent across Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, and Privacy.",
+        "When the OS/browser prefers-reduced-motion setting is enabled, flip/fade/parallax/hover motion effects are disabled or minimized without breaking layout or hiding content.",
+        "Animations do not cause noticeable content reflow/layout shift during entry/hover/flip interactions."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Implement a frontend route/page skeleton for each planned page (Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, Privacy) with basic layouts and placeholder sections that match the Phase 1 sitemap. Each page must render a clear page title and a short placeholder description in English.",
+      "id": "REQ-35",
+      "text": "Strengthen frontend error handling for offline mode and failed canister/API calls by providing clear, user-facing feedback and recovery actions (retry, continue offline where safe) across the app.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-6"
         ],
         "quotes": [
-          "1. **Site Map & Page List:** Draw all pages: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Legal pages."
+          "Error Handling: Handle offline errors, failed API calls, and syncing conflicts."
         ]
       },
       "acceptanceCriteria": [
-        "All listed pages are reachable in the UI via navigation links",
-        "Each page renders without runtime errors and shows at minimum: page title + placeholder copy in English",
-        "Legal pages are split into Terms and Privacy and are reachable from the footer (or equivalent global navigation)"
+        "All primary data-fetching views (e.g., Shop product list, Dashboard panels, Admin tabs) show a clear error state when a query fails, using English user-facing text.",
+        "Mutations that are queued for offline sync provide clear feedback that the action was queued, and do not leave the UI in an ambiguous state.",
+        "A user can manually retry failed actions (either by retrying the failed view or triggering a replay of queued actions) without refreshing the page."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Create a Phase 1 feature specification that details every feature per page (including UI interactions like hover effects, flip cards, filters, inventory syncing) and clearly marks each item as Phase 1 (skeleton/spec only) vs. later implementation. The spec must be written in English and organized by page.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "2. **Feature List:** Detail every feature per page (hover effects, flip cards, filters, inventory syncing, etc.)."
-        ]
-      },
-      "acceptanceCriteria": [
-        "A repository doc exists (e.g., /docs/phase1-features-by-page.md) with a per-page feature list for every page in the sitemap",
-        "Features explicitly mention the examples provided (hover effects, flip cards, filters, inventory syncing) in the relevant sections",
-        "Each feature item is tagged with a phase/status (e.g., Phase 1: placeholder/spec, Phase 2+: build) so scope is unambiguous"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Establish and apply a consistent design direction across the frontend based on a dark fantasy theme with parchment tones and subtle glowing accents. Define a small design system (color tokens, typography choices, spacing, button/hover states, card styling) and apply it to global layout components and all page skeletons.",
+      "id": "REQ-36",
+      "text": "Improve offline sync conflict handling UX for queued mutation replay by distinguishing transient failures (retryable) vs permanent failures (non-retryable), and by letting the user inspect and resolve remaining queued actions (retry or remove).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-6"
         ],
         "quotes": [
-          "3. **Design Direction:** Decide colors, fonts, theme (dark fantasy, parchment tones, glowing accents)."
+          "Error Handling: Handle offline errors, failed API calls, and syncing conflicts."
         ]
       },
       "acceptanceCriteria": [
-        "A short design spec exists (can be in the Phase 1 planning doc or a dedicated /docs/design-direction.md) describing colors, fonts, and interaction styling",
-        "All page skeletons use a consistent theme (background, typography, card styles, hover states) aligned with the dark fantasy/parchment/glow direction",
-        "No default/unstyled pages remain (i.e., theme is visibly applied across the app)"
+        "When queued mutation replay fails, the UI indicates how many actions remain queued and presents an English explanation that includes whether the failure is retryable.",
+        "Users have an in-app way to retry syncing queued actions and to clear/remove stuck actions from the queue (with a confirmation step).",
+        "Queued actions that exceed the configured retry limit are surfaced as failed (not silently dropped) and can be cleared by the user."
       ]
     },
     {
-      "id": "REQ-5",
-      "text": "Produce a Phase 1 data architecture plan that maps the requested “Supabase tables” concept (Users, Inventory, Products, Orders, Saved Artifacts, etc.) into Internet Computer canister-backed data models. Define the entities, key fields, identifiers, and relationships, and specify which fields must be stable/persisted. Implement corresponding Motoko type definitions and placeholder storage structures in the single main actor to reflect this plan (no external DB integration).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "4. **Data Architecture:** Plan Supabase tables: Users, Inventory, Products, Orders, Saved Artifacts, etc."
-        ]
-      },
-      "acceptanceCriteria": [
-        "A repository doc exists (e.g., /docs/data-architecture.md) listing entities equivalent to the requested tables (Users, Inventory, Products, Orders, Saved Artifacts) with fields and relationships",
-        "backend/main.mo contains Motoko type definitions for each entity and a clear placeholder persistence approach compatible with canister storage (single-actor)",
-        "No Supabase integration is added; the plan explicitly describes the IC-native alternative"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Define and implement a local storage strategy for the frontend covering: recently viewed items, offline edits (drafts), and session state. Provide a small, centralized utility layer (and/or React hooks) to read/write these keys safely, version the stored data, and clear/expire data when appropriate. Document what is stored, retention/expiry rules, and how it will be used later.",
+      "id": "REQ-37",
+      "text": "Implement performance optimizations: lazy-load non-critical route code and heavy UI sections, lazy-load images where applicable, and reduce unnecessary re-renders to minimize bundle size and improve initial load performance.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-6"
         ],
         "quotes": [
-          "5. **Local Storage Strategy:** Identify what will be cached locally (recently viewed items, offline edits, session state)."
+          "Performance Optimization: Lazy loading images, caching, and minimizing bundle size."
         ]
       },
       "acceptanceCriteria": [
-        "A doc section exists describing what is stored locally (recently viewed, offline drafts, session state), including key names and retention rules",
-        "Frontend includes a reusable local-storage utility (or hooks) that can set/get/remove versioned entries and handles JSON parse failures gracefully",
-        "At least one page skeleton (e.g., Shop) demonstrates writing/reading a ‘recently viewed’ placeholder entry to validate the approach (without needing real backend data)"
+        "Non-initial routes are code-split so that navigating to secondary pages does not require loading all page code upfront.",
+        "Any image elements added in the UI use lazy loading where appropriate and include explicit sizing to avoid layout shift.",
+        "React Query caching settings remain effective (no regressions to current staleTime/refetch behavior), and obvious avoidable re-renders are reduced in frequently-used views (e.g., Shop list rendering)."
       ]
     },
     {
-      "id": "REQ-7",
-      "text": "Add generated static visual assets that match the chosen dark fantasy parchment + glowing accent theme and integrate them into the global UI (e.g., background texture and a simple emblem). Assets must be stored as static files and referenced directly by the frontend (not served through the backend).",
+      "id": "REQ-38",
+      "text": "Complete responsive testing and fix layout issues across mobile, tablet, and desktop breakpoints, ensuring navigation, modals, grids, and dashboard tabs remain usable and visually consistent.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-6"
         ],
         "quotes": [
-          "3. **Design Direction:** Decide colors, fonts, theme (dark fantasy, parchment tones, glowing accents)."
+          "Responsive Testing: Mobile, tablet, desktop layouts."
         ]
       },
       "acceptanceCriteria": [
-        "Generated images exist under frontend/public/assets/generated and are referenced by the app theme (e.g., background image on main layout, emblem in header/footer)",
-        "The app still loads and renders correctly if images fail to load (graceful fallback colors)"
+        "Key pages (Homepage, Shop, Dashboard, Admin, Contact) render correctly at common breakpoints (mobile, tablet, desktop) with no horizontal scrolling caused by layout overflow.",
+        "Header navigation and mobile menu remain usable on small screens and do not overlap main content.",
+        "Modals (e.g., product details) are fully usable on mobile (content scrolls within viewport, controls remain reachable)."
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "text": "Improve accessibility and SEO basics by adding/ensuring alt text, semantic HTML landmarks, keyboard accessibility, and appropriate meta tags (title/description) for the application and major routes.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Accessibility & SEO: Add alt text, semantic HTML, meta tags. Build it."
+        ]
+      },
+      "acceptanceCriteria": [
+        "`frontend/index.html` contains an appropriate app title and includes basic SEO meta tags (at minimum: title and meta description) in English.",
+        "All interactive controls have accessible names (visible labels or aria-label) and are keyboard operable; focus states are visible.",
+        "Any presentational images/icons that convey meaning have appropriate alt text (or are correctly marked decorative), and major page regions use semantic structure (e.g., main content area, headings in logical order)."
       ]
     }
   ],
   "constraints": [
-    "Use English for any user-facing text",
-    "Backend must remain a single Motoko actor (all Motoko logic in backend/main.mo)",
-    "Do not edit files in frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui",
-    "Do not add Supabase or any external database/service integration; data architecture must be IC canister-native"
+    "Do not edit files under frontend/immutablePaths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Keep the backend as a single Motoko actor; do not introduce additional backend services or external databases."
   ],
   "nonGoals": [
-    "Building full e-commerce functionality (real checkout, payment processing) in Phase 1",
-    "Implementing real inventory syncing logic beyond documenting and scaffolding the intended approach",
-    "Implementing full Admin moderation tools beyond page skeleton and planned data models",
-    "Adding third-party authentication providers (only Internet Identity is supported)"
+    "Adding new product features or new pages beyond the existing sitemap.",
+    "Changing the authentication provider (must remain Internet Identity).",
+    "Introducing third-party SEO services, analytics, or external monitoring integrations."
   ],
   "imageRequirements": {
-    "required": [
-      "Parchment texture background with subtle dark fantasy wear, warm sepia tones, faint vignette (parchment-bg.dim_1920x1080.png)",
-      "Arcane circular sigil emblem, minimal line-art with soft golden glow on transparent background (arcane-sigil.dim_512x512.png)"
-    ],
+    "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [
-      "Plan and scaffold a dark-fantasy themed multi-page site (Shop, Dashboard, Admin) on the Internet Computer with clear architecture and data model"
-    ],
-    "goalsToRemove": [],
-    "preferencesToAdd": [
-      "Dark fantasy visual style with parchment tones and subtle glowing accents"
-    ],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }
