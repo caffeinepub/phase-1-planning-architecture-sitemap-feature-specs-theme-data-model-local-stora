@@ -2,6 +2,8 @@ import { Outlet } from '@tanstack/react-router';
 import HeaderNav from './HeaderNav';
 import Footer from './Footer';
 import OfflineSyncStatus from '../system/OfflineSyncStatus';
+import AnalyticsProvider from '../system/AnalyticsProvider';
+import RandomQuotes from '../quotes/RandomQuotes';
 
 export default function AppLayout() {
   return (
@@ -18,6 +20,8 @@ export default function AppLayout() {
       <div className="relative z-10 flex flex-col min-h-screen">
         <HeaderNav />
         <main className="flex-1" id="main-content">
+          {/* Random quotes appear on every page */}
+          <RandomQuotes />
           <Outlet />
         </main>
         <Footer />
@@ -25,6 +29,9 @@ export default function AppLayout() {
 
       {/* Offline sync status indicator */}
       <OfflineSyncStatus />
+      
+      {/* Analytics tracking */}
+      <AnalyticsProvider />
     </div>
   );
 }

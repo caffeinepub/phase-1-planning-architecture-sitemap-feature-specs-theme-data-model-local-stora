@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { UserProfile, Product, Order, SavedArtifact, UserRole, GuildOrder } from '../backend';
+import type { UserProfile, Product, Order, SavedArtifact, UserRole, GuildOrder, Feedback } from '../backend';
 import { Principal } from '@dfinity/principal';
 
 // User Profile Queries
@@ -326,5 +326,19 @@ export function useAssignGuildOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guildOrders'] });
     },
+  });
+}
+
+// Feedback Queries
+export function useGetAllFeedback() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Feedback[]>({
+    queryKey: ['feedback'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllFeedback();
+    },
+    enabled: !!actor && !isFetching,
   });
 }

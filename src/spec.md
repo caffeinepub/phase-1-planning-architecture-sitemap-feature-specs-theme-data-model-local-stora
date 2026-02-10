@@ -1,14 +1,15 @@
 # Specification
 
 ## Summary
-**Goal:** Polish the existing app experience by standardizing UX animations, improving error/offline handling, optimizing performance, and ensuring strong responsiveness, accessibility, and basic SEO across major routes.
+**Goal:** Update the /about page to reflect “The Creator of Side Quests” and show 2–3 randomized, non-repeating user-provided quotes on every page (including About), while restoring a successful build/deploy.
 
 **Planned changes:**
-- Standardize site-wide animation/interactions (flip cards, hover glows/lifts, scroll-based fade-ins) across all pages, avoid layout shift, and respect prefers-reduced-motion.
-- Add consistent user-facing error states and recovery actions for failed queries/mutations and offline scenarios (retry, continue offline where safe) across primary data views.
-- Improve offline sync conflict UX by classifying retryable vs non-retryable failures and providing an in-app way to inspect, retry, or remove queued actions (with confirmation), including surfacing actions that exceed retry limits.
-- Implement performance optimizations: code-split non-initial routes/heavy sections, lazy-load images with explicit sizing, and reduce avoidable re-renders in frequently-used views.
-- Complete responsive testing and fix layout issues across mobile/tablet/desktop for navigation, modals, grids, and dashboard/admin tabs to avoid overflow and usability problems.
-- Improve accessibility and SEO basics: ensure alt text/decoration handling, semantic landmarks and heading structure, keyboard operability with visible focus, and route-appropriate title/meta description in `frontend/index.html`.
+- Replace the existing /about content with the user-provided “The Creator of Side Quests” narrative, formatted as polished, multi-paragraph website copy while keeping the provided text verbatim.
+- Update the /about page title/description to match “The Creator of Side Quests” and remove any remaining “Arcane Artifacts” branding from the About page.
+- Ensure Mission Statement and Vision Statement appear clearly labeled on /about and match the user-provided wording exactly.
+- Update the centralized quotes data source to include exactly the 10 user-provided quotes (unchanged wording/punctuation).
+- Update the random quote selection utility to return 2–3 quotes per page render/load with no repeats within the same render.
+- Render the randomized quotes on all existing routes (/, /services, /shop, /dashboard, /contact, /blog, /faq, /terms, /privacy, /admin, and /about) in a consistent, unobtrusive pull-quote/card style that remains mobile-safe.
+- Resolve build/typecheck/deploy failures introduced by the prior attempt, without modifying any frontend immutable paths or files under frontend/src/components/ui.
 
-**User-visible outcome:** Pages feel smoother and more consistent, load faster, work well on mobile through desktop, provide clear feedback and recovery when offline or when API calls fail (including managing queued actions), and are more accessible with improved baseline SEO metadata.
+**User-visible outcome:** Visitors see the updated “The Creator of Side Quests” About page and 2–3 randomly selected (non-repeating) quotes displayed tastefully on every page, with the app building and running without errors.

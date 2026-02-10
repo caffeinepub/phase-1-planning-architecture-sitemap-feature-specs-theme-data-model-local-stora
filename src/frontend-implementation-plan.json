@@ -1,266 +1,106 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Phase 5 polishing: animations, error handling, offline sync UX, performance, responsiveness, accessibility & SEO",
+  "title": "About page rewrite for “The Creator of Side Quests” + randomized quotes on all routes",
   "requirements": [
     {
-      "id": "REQ-34",
-      "summary": "Standardize site-wide animations/interactions with reduced-motion support and no layout shift.",
+      "id": "REQ-53",
+      "summary": "Replace /about with the user-provided “The Creator of Side Quests” About copy (verbatim narrative block, labeled Mission & Vision) and remove remaining “Arcane Artifacts” branding from the About page.",
       "acceptanceCriteria": [
-        "Flip-card, hover-lift/glow, and fade-in-on-scroll behaviors look visually consistent across Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, and Privacy.",
-        "When the OS/browser prefers-reduced-motion setting is enabled, flip/fade/parallax/hover motion effects are disabled or minimized without breaking layout or hiding content.",
-        "Animations do not cause noticeable content reflow/layout shift during entry/hover/flip interactions."
+        "The /about route renders with a page title and description aligned to “The Creator of Side Quests” (no remaining “Arcane Artifacts” branding on the About page).",
+        "The About page contains the provided narrative block exactly as written (including punctuation and emojis) and is presented as readable, multi-paragraph website copy.",
+        "The Mission Statement and Vision Statement appear clearly labeled on the About page and match the user-provided wording exactly.",
+        "All user-facing text added/changed for this requirement is in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/pages/About.tsx",
           "operation": "modify",
-          "description": "Refine and standardize shared animation utility classes (hover lift/glow, fade-in-on-scroll, flip-card) to only animate opacity/transform, add consistent durations/easings, and ensure prefers-reduced-motion produces stable, non-hidden content without layout shift."
+          "description": "Rewrite the About page content to use the user-provided “The Creator of Side Quests” copy: update PageLayout title/description, render the narrative block verbatim as multi-paragraph readable website copy, and add clearly labeled Mission Statement and Vision Statement sections matching the provided wording exactly. Remove/replace any Arcane Artifacts-specific story/values/timeline/team content that conflicts with the new branding."
         },
         {
-          "path": "frontend/tailwind.config.js",
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
           "operation": "modify",
-          "description": "Align Tailwind animation/transition tokens (durations/easings/box-shadow glow) with the standardized utilities so pages/components reuse consistent interaction styling."
-        },
-        {
-          "path": "frontend/src/components/effects/FadeInSection.tsx",
-          "operation": "modify",
-          "description": "Adjust FadeInSection behavior to ensure it never hides content under reduced-motion and avoids any style changes that could trigger layout reflow (transform/opacity only)."
-        },
-        {
-          "path": "frontend/src/components/effects/FlipCard.tsx",
-          "operation": "modify",
-          "description": "Tighten FlipCard interaction semantics and motion handling so it remains accessible and stable (no layout shift when flipping), and ensure reduced-motion uses a non-animated swap that still preserves content visibility."
-        },
-        {
-          "path": "frontend/src/components/effects/ParallaxLayer.tsx",
-          "operation": "modify",
-          "description": "Ensure parallax applies only transform-based movement and is fully disabled/minimized under prefers-reduced-motion without impacting layout."
-        },
-        {
-          "path": "frontend/src/components/about/TeamSection.tsx",
-          "operation": "modify",
-          "description": "Apply the standardized flip-card and hover interaction utilities consistently to the team flip cards, ensuring stable card sizing so flipping does not cause content reflow."
-        },
-        {
-          "path": "frontend/src/components/home/QuickLinksGrid.tsx",
-          "operation": "modify",
-          "description": "Standardize hover glow/lift interactions for quick-link cards to match site-wide utilities and ensure no layout shift on hover."
-        },
-        {
-          "path": "frontend/src/components/home/Announcements.tsx",
-          "operation": "modify",
-          "description": "Standardize hover/entry interactions for announcement cards to match site-wide utilities and respect reduced-motion preferences."
-        },
-        {
-          "path": "frontend/src/pages/Privacy.tsx",
-          "operation": "modify",
-          "description": "Ensure Privacy page sections use the standardized fade-in utilities consistently and remain fully readable under reduced-motion."
-        },
-        {
-          "path": "frontend/src/pages/Terms.tsx",
-          "operation": "modify",
-          "description": "Ensure Terms page sections use standardized fade-in/hover utilities consistently and remain stable under reduced-motion."
+          "description": "Update the header’s visible branding text (currently “Arcane Artifacts”) to match “The Creator of Side Quests” where appropriate so navigation into /about aligns with the updated About page branding (keep routes/links unchanged)."
         }
       ]
     },
     {
-      "id": "REQ-35",
-      "summary": "Strengthen frontend error handling for offline mode and failed canister/API calls with clear feedback and retry actions across the app.",
+      "id": "REQ-54",
+      "summary": "Centralize the 10 user-provided quotes verbatim and implement random selection that returns 2–3 non-repeating quotes per page load/render.",
       "acceptanceCriteria": [
-        "All primary data-fetching views (e.g., Shop product list, Dashboard panels, Admin tabs) show a clear error state when a query fails, using English user-facing text.",
-        "Mutations that are queued for offline sync provide clear feedback that the action was queued, and do not leave the UI in an ambiguous state.",
-        "A user can manually retry failed actions (either by retrying the failed view or triggering a replay of queued actions) without refreshing the page."
+        "The quotes data source includes all 10 quotes exactly as provided and does not alter quote text.",
+        "The random quote selection returns either 2 or 3 quotes (configurable or deterministic) and never repeats the same quote within the same page render.",
+        "No runtime errors occur when quote selection is invoked across routes."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/system/ErrorState.tsx",
+          "path": "frontend/src/data/quotes.ts",
           "operation": "create",
-          "description": "Create a reusable error state component that displays an English error message and provides a Retry action callback for failed data-fetching views."
+          "description": "Create a centralized quotes data module that exports the quotes array containing exactly the 10 user-provided strings (verbatim punctuation/quotes)."
         },
         {
-          "path": "frontend/src/hooks/useOnlineStatus.ts",
+          "path": "frontend/src/lib/randomQuotes.ts",
           "operation": "create",
-          "description": "Add a small hook that tracks online/offline state (navigator.onLine + events) so pages can present offline-aware messaging and safe recovery actions."
+          "description": "Add a small utility to select 2–3 quotes from the centralized quotes list without repeating within a single selection; expose a function suitable for use on route changes / page load."
         },
         {
-          "path": "frontend/src/pages/Shop.tsx",
-          "operation": "modify",
-          "description": "Add explicit error-state rendering for product list fetching (including offline-aware messaging) using the shared ErrorState component, and wire a manual retry action that re-triggers the relevant query without page refresh."
-        },
-        {
-          "path": "frontend/src/pages/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Ensure dashboard panels show clear user-facing error states when dependent queries fail, and provide per-panel retry actions without requiring a full page refresh."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminProductsTab.tsx",
-          "operation": "modify",
-          "description": "Add clear error-state UI for product list query failures in the admin products tab (English text) and provide a retry action; keep queued mutation feedback unambiguous when offline."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminOrdersTab.tsx",
-          "operation": "modify",
-          "description": "Verify/adjust admin orders tab to consistently show a clear error state on query failure with an in-tab retry control (no refresh needed)."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminUsersTab.tsx",
-          "operation": "modify",
-          "description": "Verify/adjust admin users tab to consistently show clear error feedback for failed calls and ensure queued/offline actions are communicated unambiguously with a recovery path."
-        },
-        {
-          "path": "frontend/src/components/system/OfflineSyncStatus.tsx",
-          "operation": "modify",
-          "description": "Enhance the global offline sync status UI to include an explicit user action to retry syncing queued actions (manual replay) when errors occur."
+          "path": "frontend/src/hooks/useRandomQuotes.ts",
+          "operation": "create",
+          "description": "Create a React hook that uses the random selection utility to produce 2–3 non-repeating quotes per route render/load (e.g., reseed on pathname change) and returns stable results during a single page view."
         }
       ]
     },
     {
-      "id": "REQ-36",
-      "summary": "Improve offline sync conflict handling UX by classifying failures, surfacing stuck/failed queued actions, and allowing users to retry or remove queued actions with confirmation.",
+      "id": "REQ-55",
+      "summary": "Render randomized quotes (2–3) on every existing route including /about in an unobtrusive pull-quote/card style consistent with the site theme.",
       "acceptanceCriteria": [
-        "When queued mutation replay fails, the UI indicates how many actions remain queued and presents an English explanation that includes whether the failure is retryable.",
-        "Users have an in-app way to retry syncing queued actions and to clear/remove stuck actions from the queue (with a confirmation step).",
-        "Queued actions that exceed the configured retry limit are surfaced as failed (not silently dropped) and can be cleared by the user."
+        "Randomized quotes are visible on /about as well as all other existing routes (/, /services, /shop, /dashboard, /contact, /blog, /faq, /terms, /privacy, /admin).",
+        "The quotes component styling remains consistent with the existing site theme and uses an unobtrusive pull-quote/card presentation.",
+        "Quotes do not cause layout shift or overflow issues on mobile widths."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/offlineMutationQueue.ts",
-          "operation": "modify",
-          "description": "Extend the queued mutation model to persist failure metadata needed for UX (e.g., last error text, whether it is retryable, and a failed/stuck state) and add helpers to remove individual mutations and to clear only failed/stuck items."
-        },
-        {
-          "path": "frontend/src/hooks/useOfflineMutationReplay.ts",
-          "operation": "modify",
-          "description": "Update replay logic to distinguish transient vs permanent failures (retryable vs non-retryable), stop silently dropping items that exceed retry limits, and expose remaining queued/failed counts plus a manual replay trigger for the UI."
-        },
-        {
-          "path": "frontend/src/components/system/OfflineSyncQueueDialog.tsx",
+          "path": "frontend/src/components/quotes/RandomQuotes.tsx",
           "operation": "create",
-          "description": "Create an in-app queue inspection dialog that lists remaining queued actions, shows failure reason in English (including retryable vs non-retryable), provides Retry All / Retry Item, and Remove Item / Clear Failed actions with a confirmation step."
-        },
-        {
-          "path": "frontend/src/components/system/OfflineSyncStatus.tsx",
-          "operation": "modify",
-          "description": "Wire the new OfflineSyncQueueDialog into the existing sync status UI (e.g., a 'View queued actions' control) and ensure the status message includes the remaining count and retryability when failures occur."
+          "description": "Create a quotes display component that renders 2–3 quotes using an unobtrusive pull-quote/card presentation (compose existing shadcn-ui Card/typography patterns; do not edit any files under frontend/src/components/ui). Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/layout/AppLayout.tsx",
           "operation": "modify",
-          "description": "Ensure the enhanced offline sync status (and queue inspection entry point) is rendered consistently site-wide so users can always inspect/retry/clear queued actions from within the app."
+          "description": "Wire the randomized quotes to appear on every page by rendering the new RandomQuotes component within the global layout around the routed content (use current route location to trigger a new selection per page view). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add minimal global utility classes (or extend existing utilities) to support the pull-quote/card layout spacing and responsive behavior (no overflow on mobile, reserved vertical space to prevent layout shift), without changing any immutable paths."
         }
       ]
     },
     {
-      "id": "REQ-37",
-      "summary": "Optimize performance via route code-splitting, lazy-loading heavy UI sections, image lazy-loading with sizing, and reducing unnecessary re-renders.",
+      "id": "REQ-56",
+      "summary": "Ensure the frontend builds/typechecks successfully after About + quotes changes without changing immutable paths.",
       "acceptanceCriteria": [
-        "Non-initial routes are code-split so that navigating to secondary pages does not require loading all page code upfront.",
-        "Any image elements added in the UI use lazy loading where appropriate and include explicit sizing to avoid layout shift.",
-        "React Query caching settings remain effective (no regressions to current staleTime/refetch behavior), and obvious avoidable re-renders are reduced in frequently-used views (e.g., Shop list rendering)."
+        "Frontend TypeScript build completes without errors.",
+        "Canister build completes without errors.",
+        "No changes are made to any paths listed in frontend.immutablePaths.",
+        "After the changes, the app runs locally (or in preview) and /about renders without runtime exceptions."
       ],
       "file_operations": [
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Implement route-level code splitting for non-initial routes (lazy-load page components) while preserving existing routing behavior and current React Query default options."
-        },
-        {
-          "path": "frontend/src/pages/Shop.tsx",
-          "operation": "modify",
-          "description": "Reduce avoidable re-renders in Shop list rendering (e.g., memoizing derived data and extracting memoized list/grid item components) and ensure any present images use lazy loading and explicit sizing where applicable."
-        },
-        {
-          "path": "frontend/src/components/shop/ProductDetailsModal.tsx",
-          "operation": "modify",
-          "description": "Lazy-load any non-critical/heavy sub-sections within the modal if applicable and ensure modal content remains performant on mobile (avoid unnecessary re-renders while open)."
-        },
-        {
-          "path": "frontend/src/components/home/FeaturedCarousel.tsx",
-          "operation": "modify",
-          "description": "Assess and optimize carousel rendering (avoid unnecessary re-renders; consider lazy-loading if it is non-critical to initial load) while keeping behavior unchanged."
-        }
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "summary": "Fix responsive layout issues across breakpoints for navigation, modals, grids, and dashboard/admin tabs.",
-      "acceptanceCriteria": [
-        "Key pages (Homepage, Shop, Dashboard, Admin, Contact) render correctly at common breakpoints (mobile, tablet, desktop) with no horizontal scrolling caused by layout overflow.",
-        "Header navigation and mobile menu remain usable on small screens and do not overlap main content.",
-        "Modals (e.g., product details) are fully usable on mobile (content scrolls within viewport, controls remain reachable)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
-          "operation": "modify",
-          "description": "Harden mobile navigation behavior (menu open/close, focus/scroll interaction, and layout stacking) to prevent overlap with main content and avoid horizontal overflow on small screens."
-        },
-        {
-          "path": "frontend/src/components/shop/ProductDetailsModal.tsx",
-          "operation": "modify",
-          "description": "Improve mobile usability of the product details modal (viewport-constrained height, internal scrolling, and reachable controls) without causing background page scrolling issues."
-        },
-        {
-          "path": "frontend/src/pages/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Adjust dashboard tab layout and panel grids to remain usable at mobile/tablet/desktop breakpoints and prevent overflow-driven horizontal scrolling."
-        },
-        {
-          "path": "frontend/src/pages/Admin.tsx",
-          "operation": "modify",
-          "description": "Ensure admin tabs and tab content remain usable on small screens (responsive tab list, spacing, and overflow) without horizontal scrolling."
-        },
-        {
-          "path": "frontend/src/pages/Contact.tsx",
-          "operation": "modify",
-          "description": "Validate and fix contact form and FAQ section layout at mobile/tablet/desktop breakpoints to prevent overflow and maintain readable spacing."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Add/adjust global responsive safeguards (e.g., overflow-x handling for root layout, media-safe spacing utilities) to prevent horizontal scrolling due to wide elements."
-        }
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "summary": "Improve accessibility and SEO basics (alt text, semantic landmarks, keyboard accessibility, and route-appropriate meta title/description).",
-      "acceptanceCriteria": [
-        "`frontend/index.html` contains an appropriate app title and includes basic SEO meta tags (at minimum: title and meta description) in English.",
-        "All interactive controls have accessible names (visible labels or aria-label) and are keyboard operable; focus states are visible.",
-        "Any presentational images/icons that convey meaning have appropriate alt text (or are correctly marked decorative), and major page regions use semantic structure (e.g., main content area, headings in logical order)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Update the document title to an app-appropriate English title and add an English meta description tag to satisfy baseline SEO requirements."
+          "description": "Verify routing/lazy-loading still typechecks after About and global quotes wiring changes; adjust imports/types if needed to eliminate TypeScript and production-build errors (do not change route paths)."
         },
         {
           "path": "frontend/src/components/layout/AppLayout.tsx",
           "operation": "modify",
-          "description": "Ensure semantic landmarks are present and correctly structured (header/main/footer), and that skip/keyboard navigation is practical within the layout."
+          "description": "Harden the global quotes rendering against runtime failures (e.g., empty quotes array) and confirm it does not interfere with existing layout structure across all routes."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/pages/About.tsx",
           "operation": "modify",
-          "description": "Ensure visible focus styles for keyboard users (e.g., focus-visible treatment) and confirm reduced-motion rules do not suppress necessary focus indicators."
-        },
-        {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
-          "operation": "modify",
-          "description": "Improve accessibility of navigation (ARIA for menu toggle, keyboard behavior when opening/closing mobile menu, and ensure logo image alt text remains meaningful)."
-        },
-        {
-          "path": "frontend/src/pages/Shop.tsx",
-          "operation": "modify",
-          "description": "Ensure shop controls are accessible (search input labeling/accessible name, view toggle button names already present, and correct heading structure within the page content)."
-        },
-        {
-          "path": "frontend/src/components/effects/FlipCard.tsx",
-          "operation": "modify",
-          "description": "Refine flip-card accessibility (clear accessible name/state, keyboard operation, and focus behavior) while keeping motion respectful of reduced-motion preferences."
+          "description": "Validate the updated About page content renders without runtime exceptions, maintains multi-paragraph readability, and does not rely on removed Arcane Artifacts sections/components."
         }
       ]
     }

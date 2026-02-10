@@ -98,6 +98,13 @@ export interface User {
     name: string;
     email: string;
 }
+export interface Event {
+    id: bigint;
+    principal: Principal;
+    level: string;
+    message: string;
+    timestamp: bigint;
+}
 export interface GuildOrder {
     id: bigint;
     status: string;
@@ -110,13 +117,21 @@ export interface PageFeatures {
     features: Array<Feature>;
     page: string;
 }
-export interface CartItem {
-    productId: bigint;
-    quantity: bigint;
-}
 export interface Feature {
     description: string;
     phase: Variant_later_phase1;
+}
+export interface Feedback {
+    id: bigint;
+    status: Status;
+    userId: Principal;
+    message: string;
+}
+export interface HealthStatus {
+    status: string;
+    environment: string;
+    build: string;
+    deployedVersion: string;
 }
 export interface Order {
     id: bigint;
@@ -124,6 +139,26 @@ export interface Order {
     userId: Principal;
     totalAmount: bigint;
 }
+export interface CartItem {
+    productId: bigint;
+    quantity: bigint;
+}
+export type Status = {
+    __kind__: "open";
+    open: null;
+} | {
+    __kind__: "completed";
+    completed: {
+        admin: Principal;
+        response: string;
+    };
+} | {
+    __kind__: "reviewed";
+    reviewed: {
+        admin: Principal;
+        response?: string;
+    };
+};
 export interface Product {
     id: bigint;
     name: string;
@@ -151,17 +186,21 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     assignGuildOrder(guildOrderId: bigint, userId: Principal): Promise<void>;
     checkoutCart(): Promise<bigint>;
+    completeFeedback(feedbackId: bigint, admin: Principal, response: string): Promise<void>;
+    createFeedback(userId: Principal, message: string): Promise<bigint>;
     createGuildOrder(title: string, description: string, reward: bigint): Promise<bigint>;
     createOrder(productIds: Array<bigint>, totalAmount: bigint): Promise<bigint>;
     createProduct(name: string, description: string, price: bigint, stock: bigint): Promise<bigint>;
     createUser(name: string, email: string): Promise<bigint>;
     editProduct(productId: bigint, name: string, description: string, price: bigint): Promise<void>;
+    getAllFeedback(): Promise<Array<Feedback>>;
     getAllGuildOrders(): Promise<Array<GuildOrder>>;
     getAllOrders(): Promise<Array<Order>>;
     getAllProducts(): Promise<Array<Product>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCart(): Promise<Array<CartItem>>;
+    getEvents(): Promise<Array<Event>>;
     getFeatureSpecification(): Promise<Array<PageFeatures>>;
     getGuildOrder(id: bigint): Promise<GuildOrder>;
     getMyOrders(): Promise<Array<Order>>;
@@ -171,16 +210,19 @@ export interface backendInterface {
     getSavedArtifacts(userId: Principal): Promise<Array<SavedArtifact>>;
     getUser(id: bigint): Promise<User>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    healthCheck(): Promise<HealthStatus>;
     isCallerAdmin(): Promise<boolean>;
+    logEvent(message: string, level: string): Promise<void>;
     removeAdminRole(user: Principal): Promise<void>;
     removeFromCart(productId: bigint): Promise<void>;
     removeSavedArtifact(productId: bigint): Promise<void>;
+    reviewFeedback(feedbackId: bigint, admin: Principal, response: string): Promise<void>;
     saveArtifact(productId: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateGuildOrderStatus(guildOrderId: bigint, status: string): Promise<void>;
     updateProductStock(productId: bigint, newStock: bigint): Promise<void>;
 }
-import type { Feature as _Feature, GuildOrder as _GuildOrder, PageFeatures as _PageFeatures, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { Feature as _Feature, Feedback as _Feedback, GuildOrder as _GuildOrder, PageFeatures as _PageFeatures, Status as _Status, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -267,6 +309,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async completeFeedback(arg0: bigint, arg1: Principal, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.completeFeedback(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.completeFeedback(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async createFeedback(arg0: Principal, arg1: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createFeedback(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createFeedback(arg0, arg1);
+            return result;
+        }
+    }
     async createGuildOrder(arg0: string, arg1: string, arg2: bigint): Promise<bigint> {
         if (this.processError) {
             try {
@@ -337,18 +407,32 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getAllGuildOrders(): Promise<Array<GuildOrder>> {
+    async getAllFeedback(): Promise<Array<Feedback>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getAllGuildOrders();
+                const result = await this.actor.getAllFeedback();
                 return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getAllGuildOrders();
+            const result = await this.actor.getAllFeedback();
             return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllGuildOrders(): Promise<Array<GuildOrder>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllGuildOrders();
+                return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllGuildOrders();
+            return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
         }
     }
     async getAllOrders(): Promise<Array<Order>> {
@@ -383,28 +467,28 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n8(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n8(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCart(): Promise<Array<CartItem>> {
@@ -421,32 +505,46 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getEvents(): Promise<Array<Event>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getEvents();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getEvents();
+            return result;
+        }
+    }
     async getFeatureSpecification(): Promise<Array<PageFeatures>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getFeatureSpecification();
-                return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n17(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getFeatureSpecification();
-            return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n17(this._uploadFile, this._downloadFile, result);
         }
     }
     async getGuildOrder(arg0: bigint): Promise<GuildOrder> {
         if (this.processError) {
             try {
                 const result = await this.actor.getGuildOrder(arg0);
-                return from_candid_GuildOrder_n4(this._uploadFile, this._downloadFile, result);
+                return from_candid_GuildOrder_n11(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getGuildOrder(arg0);
-            return from_candid_GuildOrder_n4(this._uploadFile, this._downloadFile, result);
+            return from_candid_GuildOrder_n11(this._uploadFile, this._downloadFile, result);
         }
     }
     async getMyOrders(): Promise<Array<Order>> {
@@ -537,14 +635,28 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async healthCheck(): Promise<HealthStatus> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.healthCheck();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.healthCheck();
+            return result;
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -558,6 +670,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.isCallerAdmin();
+            return result;
+        }
+    }
+    async logEvent(arg0: string, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.logEvent(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.logEvent(arg0, arg1);
             return result;
         }
     }
@@ -600,6 +726,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.removeSavedArtifact(arg0);
+            return result;
+        }
+    }
+    async reviewFeedback(arg0: bigint, arg1: Principal, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.reviewFeedback(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.reviewFeedback(arg0, arg1, arg2);
             return result;
         }
     }
@@ -660,53 +800,34 @@ export class Backend implements backendInterface {
         }
     }
 }
-function from_candid_Feature_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Feature): Feature {
-    return from_candid_record_n15(_uploadFile, _downloadFile, value);
+function from_candid_Feature_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Feature): Feature {
+    return from_candid_record_n22(_uploadFile, _downloadFile, value);
 }
-function from_candid_GuildOrder_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _GuildOrder): GuildOrder {
+function from_candid_Feedback_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Feedback): Feedback {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_PageFeatures_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PageFeatures): PageFeatures {
+function from_candid_GuildOrder_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _GuildOrder): GuildOrder {
     return from_candid_record_n12(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n9(_uploadFile, _downloadFile, value);
+function from_candid_PageFeatures_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PageFeatures): PageFeatures {
+    return from_candid_record_n19(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [Principal]): Principal | null {
+function from_candid_Status_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Status): Status {
+    return from_candid_variant_n7(_uploadFile, _downloadFile, value);
+}
+function from_candid_UserRole_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n16(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [Principal]): Principal | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    features: Array<_Feature>;
-    page: string;
-}): {
-    features: Array<Feature>;
-    page: string;
-} {
-    return {
-        features: from_candid_vec_n13(_uploadFile, _downloadFile, value.features),
-        page: value.page
-    };
-}
-function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    description: string;
-    phase: {
-        later: null;
-    } | {
-        phase1: null;
-    };
-}): {
-    description: string;
-    phase: Variant_later_phase1;
-} {
-    return {
-        description: value.description,
-        phase: from_candid_variant_n16(_uploadFile, _downloadFile, value.phase)
-    };
-}
-function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     status: string;
     reward: bigint;
@@ -726,18 +847,69 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         status: value.status,
         reward: value.reward,
         title: value.title,
-        assignedTo: record_opt_to_undefined(from_candid_opt_n6(_uploadFile, _downloadFile, value.assignedTo)),
+        assignedTo: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.assignedTo)),
         description: value.description
     };
 }
-function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    later: null;
-} | {
-    phase1: null;
-}): Variant_later_phase1 {
-    return "later" in value ? Variant_later_phase1.later : "phase1" in value ? Variant_later_phase1.phase1 : value;
+function from_candid_record_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    features: Array<_Feature>;
+    page: string;
+}): {
+    features: Array<Feature>;
+    page: string;
+} {
+    return {
+        features: from_candid_vec_n20(_uploadFile, _downloadFile, value.features),
+        page: value.page
+    };
 }
-function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    description: string;
+    phase: {
+        later: null;
+    } | {
+        phase1: null;
+    };
+}): {
+    description: string;
+    phase: Variant_later_phase1;
+} {
+    return {
+        description: value.description,
+        phase: from_candid_variant_n23(_uploadFile, _downloadFile, value.phase)
+    };
+}
+function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    status: _Status;
+    userId: Principal;
+    message: string;
+}): {
+    id: bigint;
+    status: Status;
+    userId: Principal;
+    message: string;
+} {
+    return {
+        id: value.id,
+        status: from_candid_Status_n6(_uploadFile, _downloadFile, value.status),
+        userId: value.userId,
+        message: value.message
+    };
+}
+function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    admin: Principal;
+    response: [] | [string];
+}): {
+    admin: Principal;
+    response?: string;
+} {
+    return {
+        admin: value.admin,
+        response: record_opt_to_undefined(from_candid_opt_n9(_uploadFile, _downloadFile, value.response))
+    };
+}
+function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -746,14 +918,63 @@ function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function from_candid_vec_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_PageFeatures>): Array<PageFeatures> {
-    return value.map((x)=>from_candid_PageFeatures_n11(_uploadFile, _downloadFile, x));
+function from_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    later: null;
+} | {
+    phase1: null;
+}): Variant_later_phase1 {
+    return "later" in value ? Variant_later_phase1.later : "phase1" in value ? Variant_later_phase1.phase1 : value;
 }
-function from_candid_vec_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Feature>): Array<Feature> {
-    return value.map((x)=>from_candid_Feature_n14(_uploadFile, _downloadFile, x));
+function from_candid_variant_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    open: null;
+} | {
+    completed: {
+        admin: Principal;
+        response: string;
+    };
+} | {
+    reviewed: {
+        admin: Principal;
+        response: [] | [string];
+    };
+}): {
+    __kind__: "open";
+    open: null;
+} | {
+    __kind__: "completed";
+    completed: {
+        admin: Principal;
+        response: string;
+    };
+} | {
+    __kind__: "reviewed";
+    reviewed: {
+        admin: Principal;
+        response?: string;
+    };
+} {
+    return "open" in value ? {
+        __kind__: "open",
+        open: value.open
+    } : "completed" in value ? {
+        __kind__: "completed",
+        completed: value.completed
+    } : "reviewed" in value ? {
+        __kind__: "reviewed",
+        reviewed: from_candid_record_n8(_uploadFile, _downloadFile, value.reviewed)
+    } : value;
 }
-function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_GuildOrder>): Array<GuildOrder> {
-    return value.map((x)=>from_candid_GuildOrder_n4(_uploadFile, _downloadFile, x));
+function from_candid_vec_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_GuildOrder>): Array<GuildOrder> {
+    return value.map((x)=>from_candid_GuildOrder_n11(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_PageFeatures>): Array<PageFeatures> {
+    return value.map((x)=>from_candid_PageFeatures_n18(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Feature>): Array<Feature> {
+    return value.map((x)=>from_candid_Feature_n21(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Feedback>): Array<Feedback> {
+    return value.map((x)=>from_candid_Feedback_n4(_uploadFile, _downloadFile, x));
 }
 function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);

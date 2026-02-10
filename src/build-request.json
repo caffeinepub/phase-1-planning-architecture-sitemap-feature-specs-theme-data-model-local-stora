@@ -1,128 +1,123 @@
 {
   "kind": "build_request",
-  "title": "Phase 5 polishing: UX animations, robust error handling, performance, responsiveness, accessibility & SEO",
+  "title": "Update About page content for “The Creator of Side Quests” and enable randomized quotes on all pages (including About)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-34",
-      "text": "Refine and standardize site-wide animations/interactions (flip cards, hover glows, scroll-based fade-ins) so they are consistent across all pages/components, do not cause layout shift, and fully respect reduced-motion preferences.",
+      "id": "REQ-53",
+      "text": "Replace the existing About page content (/about) with the user-provided “The Creator of Side Quests” About page copy, ensuring the page is fully website-ready, multi-paragraph, polished, and keeps the provided narrative text verbatim while integrating it naturally into the page flow.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-7",
+          "msg-8"
         ],
         "quotes": [
-          "Animations & Interactions: Flip cards, hover glows, scroll-based fade-ins."
+          "Create a polished, website-ready About page and a collection of quotes for “The Creator of Side Quests.”",
+          "Include the following About page content verbatim and integrated naturally into the page:"
         ]
       },
       "acceptanceCriteria": [
-        "Flip-card, hover-lift/glow, and fade-in-on-scroll behaviors look visually consistent across Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, and Privacy.",
-        "When the OS/browser prefers-reduced-motion setting is enabled, flip/fade/parallax/hover motion effects are disabled or minimized without breaking layout or hiding content.",
-        "Animations do not cause noticeable content reflow/layout shift during entry/hover/flip interactions."
+        "The /about route renders with a page title and description aligned to “The Creator of Side Quests” (no remaining “Arcane Artifacts” branding on the About page).",
+        "The About page contains the provided narrative block exactly as written (including punctuation and emojis) and is presented as readable, multi-paragraph website copy.",
+        "The Mission Statement and Vision Statement appear clearly labeled on the About page and match the user-provided wording exactly.",
+        "All user-facing text added/changed for this requirement is in English."
       ]
     },
     {
-      "id": "REQ-35",
-      "text": "Strengthen frontend error handling for offline mode and failed canister/API calls by providing clear, user-facing feedback and recovery actions (retry, continue offline where safe) across the app.",
+      "id": "REQ-54",
+      "text": "Update the centralized quotes data source to contain exactly the user-provided quotes (exact wording and punctuation), and ensure the random selection utility returns 2–3 non-repeating quotes per page render/load.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-7"
         ],
         "quotes": [
-          "Error Handling: Handle offline errors, failed API calls, and syncing conflicts."
+          "Quotes to randomly appear across the website, 2–3 per page, including the About page:",
+          "“Side quests accepted, main quests optional.”",
+          "“Where chaotic creativity meets practical solutions.”",
+          "“If you can dream it, we can create it.”",
+          "“Hobbies turned into a chaotic dream job.”",
+          "“Crafting magic from chaos, one idea at a time.”",
+          "“ADHD energy, obsessive focus, infinite creativity.”",
+          "“Chaos is a toolbox, not a problem.”",
+          "“Every hyperfixation has a purpose, every obsession can become art.”",
+          "“Neurodivergent thinking fuels innovation and wonder.”",
+          "“Turning messy ideas into magical results.”"
         ]
       },
       "acceptanceCriteria": [
-        "All primary data-fetching views (e.g., Shop product list, Dashboard panels, Admin tabs) show a clear error state when a query fails, using English user-facing text.",
-        "Mutations that are queued for offline sync provide clear feedback that the action was queued, and do not leave the UI in an ambiguous state.",
-        "A user can manually retry failed actions (either by retrying the failed view or triggering a replay of queued actions) without refreshing the page."
+        "The quotes data source includes all 10 quotes exactly as provided and does not alter quote text.",
+        "The random quote selection returns either 2 or 3 quotes (configurable or deterministic) and never repeats the same quote within the same page render.",
+        "No runtime errors occur when quote selection is invoked across routes."
       ]
     },
     {
-      "id": "REQ-36",
-      "text": "Improve offline sync conflict handling UX for queued mutation replay by distinguishing transient failures (retryable) vs permanent failures (non-retryable), and by letting the user inspect and resolve remaining queued actions (retry or remove).",
+      "id": "REQ-55",
+      "text": "Change the randomized quotes display behavior so that randomized quotes render on every page including the About page, and ensure the presentation is visually appealing (pull-quote/card style) and does not overwhelm the reader.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-7"
         ],
         "quotes": [
-          "Error Handling: Handle offline errors, failed API calls, and syncing conflicts."
+          "Quotes to randomly appear across the website, 2–3 per page, including the About page",
+          "Quotes should appear naturally in the text or highlighted as small pull-quotes."
         ]
       },
       "acceptanceCriteria": [
-        "When queued mutation replay fails, the UI indicates how many actions remain queued and presents an English explanation that includes whether the failure is retryable.",
-        "Users have an in-app way to retry syncing queued actions and to clear/remove stuck actions from the queue (with a confirmation step).",
-        "Queued actions that exceed the configured retry limit are surfaced as failed (not silently dropped) and can be cleared by the user."
+        "Randomized quotes are visible on /about as well as all other existing routes (/, /services, /shop, /dashboard, /contact, /blog, /faq, /terms, /privacy, /admin).",
+        "The quotes component styling remains consistent with the existing site theme and uses an unobtrusive pull-quote/card presentation.",
+        "Quotes do not cause layout shift or overflow issues on mobile widths."
       ]
     },
     {
-      "id": "REQ-37",
-      "text": "Implement performance optimizations: lazy-load non-critical route code and heavy UI sections, lazy-load images where applicable, and reduce unnecessary re-renders to minimize bundle size and improve initial load performance.",
-      "target": "frontend",
+      "id": "REQ-56",
+      "text": "Resolve the prior build/deploy failure by ensuring the project builds successfully (typecheck + production build) after the About and quotes changes, without modifying frontend immutable paths.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1",
+          "msg-2",
+          "msg-3"
         ],
         "quotes": [
-          "Performance Optimization: Lazy loading images, caching, and minimizing bundle size."
+          "Deployment encountered an error",
+          "Can you try generating again it said deploy encountered an error",
+          "making sure the quotes appear on all of the different pages and then redeploy"
         ]
       },
       "acceptanceCriteria": [
-        "Non-initial routes are code-split so that navigating to secondary pages does not require loading all page code upfront.",
-        "Any image elements added in the UI use lazy loading where appropriate and include explicit sizing to avoid layout shift.",
-        "React Query caching settings remain effective (no regressions to current staleTime/refetch behavior), and obvious avoidable re-renders are reduced in frequently-used views (e.g., Shop list rendering)."
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "text": "Complete responsive testing and fix layout issues across mobile, tablet, and desktop breakpoints, ensuring navigation, modals, grids, and dashboard tabs remain usable and visually consistent.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Responsive Testing: Mobile, tablet, desktop layouts."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Key pages (Homepage, Shop, Dashboard, Admin, Contact) render correctly at common breakpoints (mobile, tablet, desktop) with no horizontal scrolling caused by layout overflow.",
-        "Header navigation and mobile menu remain usable on small screens and do not overlap main content.",
-        "Modals (e.g., product details) are fully usable on mobile (content scrolls within viewport, controls remain reachable)."
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "text": "Improve accessibility and SEO basics by adding/ensuring alt text, semantic HTML landmarks, keyboard accessibility, and appropriate meta tags (title/description) for the application and major routes.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Accessibility & SEO: Add alt text, semantic HTML, meta tags. Build it."
-        ]
-      },
-      "acceptanceCriteria": [
-        "`frontend/index.html` contains an appropriate app title and includes basic SEO meta tags (at minimum: title and meta description) in English.",
-        "All interactive controls have accessible names (visible labels or aria-label) and are keyboard operable; focus states are visible.",
-        "Any presentational images/icons that convey meaning have appropriate alt text (or are correctly marked decorative), and major page regions use semantic structure (e.g., main content area, headings in logical order)."
+        "Frontend TypeScript build completes without errors.",
+        "Canister build completes without errors.",
+        "No changes are made to any paths listed in frontend.immutablePaths.",
+        "After the changes, the app runs locally (or in preview) and /about renders without runtime exceptions."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/immutablePaths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "Keep the backend as a single Motoko actor; do not introduce additional backend services or external databases."
+    "Do not edit any files under frontend/src/components/ui or any path listed in frontend.immutablePaths (compose existing components instead).",
+    "Keep all backend logic within the single Motoko actor (backend/main.mo); create backend/migration.mo only if an upgrade-safe state migration is actually required.",
+    "All user-provided quote strings must be stored and displayed with exact wording and punctuation.",
+    "All user-facing text introduced/modified by this request must be in English."
   ],
   "nonGoals": [
-    "Adding new product features or new pages beyond the existing sitemap.",
-    "Changing the authentication provider (must remain Internet Identity).",
-    "Introducing third-party SEO services, analytics, or external monitoring integrations."
+    "Do not implement the full multi-page business-site revamp (homepage booking banner, portfolio gallery, testimonials, newsletter, services taxonomy, Hours & Policies page) unless explicitly requested in a separate task.",
+    "Do not change authentication/authorization behavior, roles, or Admin access control as part of this request.",
+    "Do not add third-party auth providers or external databases/services."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

@@ -11,10 +11,23 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export interface CartItem { 'productId' : bigint, 'quantity' : bigint }
+export interface Event {
+  'id' : bigint,
+  'principal' : Principal,
+  'level' : string,
+  'message' : string,
+  'timestamp' : bigint,
+}
 export interface Feature {
   'description' : string,
   'phase' : { 'later' : null } |
     { 'phase1' : null },
+}
+export interface Feedback {
+  'id' : bigint,
+  'status' : Status,
+  'userId' : Principal,
+  'message' : string,
 }
 export interface GuildOrder {
   'id' : bigint,
@@ -23,6 +36,12 @@ export interface GuildOrder {
   'title' : string,
   'assignedTo' : [] | [Principal],
   'description' : string,
+}
+export interface HealthStatus {
+  'status' : string,
+  'environment' : string,
+  'build' : string,
+  'deployedVersion' : string,
 }
 export interface Order {
   'id' : bigint,
@@ -39,6 +58,9 @@ export interface Product {
   'price' : bigint,
 }
 export interface SavedArtifact { 'userId' : Principal, 'productId' : bigint }
+export type Status = { 'open' : null } |
+  { 'completed' : { 'admin' : Principal, 'response' : string } } |
+  { 'reviewed' : { 'admin' : Principal, 'response' : [] | [string] } };
 export interface User { 'id' : bigint, 'name' : string, 'email' : string }
 export interface UserProfile { 'name' : string, 'email' : string }
 export type UserRole = { 'admin' : null } |
@@ -51,17 +73,21 @@ export interface _SERVICE {
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'assignGuildOrder' : ActorMethod<[bigint, Principal], undefined>,
   'checkoutCart' : ActorMethod<[], bigint>,
+  'completeFeedback' : ActorMethod<[bigint, Principal, string], undefined>,
+  'createFeedback' : ActorMethod<[Principal, string], bigint>,
   'createGuildOrder' : ActorMethod<[string, string, bigint], bigint>,
   'createOrder' : ActorMethod<[Array<bigint>, bigint], bigint>,
   'createProduct' : ActorMethod<[string, string, bigint, bigint], bigint>,
   'createUser' : ActorMethod<[string, string], bigint>,
   'editProduct' : ActorMethod<[bigint, string, string, bigint], undefined>,
+  'getAllFeedback' : ActorMethod<[], Array<Feedback>>,
   'getAllGuildOrders' : ActorMethod<[], Array<GuildOrder>>,
   'getAllOrders' : ActorMethod<[], Array<Order>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCart' : ActorMethod<[], Array<CartItem>>,
+  'getEvents' : ActorMethod<[], Array<Event>>,
   'getFeatureSpecification' : ActorMethod<[], Array<PageFeatures>>,
   'getGuildOrder' : ActorMethod<[bigint], GuildOrder>,
   'getMyOrders' : ActorMethod<[], Array<Order>>,
@@ -71,10 +97,13 @@ export interface _SERVICE {
   'getSavedArtifacts' : ActorMethod<[Principal], Array<SavedArtifact>>,
   'getUser' : ActorMethod<[bigint], User>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'healthCheck' : ActorMethod<[], HealthStatus>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'logEvent' : ActorMethod<[string, string], undefined>,
   'removeAdminRole' : ActorMethod<[Principal], undefined>,
   'removeFromCart' : ActorMethod<[bigint], undefined>,
   'removeSavedArtifact' : ActorMethod<[bigint], undefined>,
+  'reviewFeedback' : ActorMethod<[bigint, Principal, string], undefined>,
   'saveArtifact' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateGuildOrderStatus' : ActorMethod<[bigint, string], undefined>,

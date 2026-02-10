@@ -106,124 +106,123 @@ export default function Shop() {
 
   const { searchQuery, setSearchQuery, filteredProducts } = useShopFilters(products);
 
+  const savedProductIds = useMemo(
+    () => new Set(savedArtifacts.map((a) => Number(a.productId))),
+    [savedArtifacts]
+  );
+
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
     setModalOpen(true);
   };
 
-  // Memoize saved product IDs set
-  const savedProductIds = useMemo(
-    () => new Set(savedArtifacts.map(a => a.productId.toString())),
-    [savedArtifacts]
-  );
+  const handleModalClose = (open: boolean) => {
+    setModalOpen(open);
+    if (!open) {
+      // Small delay to prevent visual glitch
+      setTimeout(() => setSelectedProduct(null), 150);
+    }
+  };
 
   if (error) {
     return (
       <PageLayout title="Shop" description="Browse our collection of mystical artifacts">
-        <ErrorState error={error} onRetry={refetch} />
-      </PageLayout>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <PageLayout title="Shop" description="Browse our collection of mystical artifacts">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="border-border/40">
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
+        <ErrorState
+          title="Failed to load products"
+          description={error instanceof Error ? error.message : 'An error occurred'}
+          onRetry={refetch}
+        />
       </PageLayout>
     );
   }
 
   return (
     <PageLayout
-      title="Mystical Artifacts Shop"
-      description="Discover and acquire authentic mystical artifacts from our curated collection."
+      title="Artifact Shop"
+      description="Discover rare and powerful artifacts from across the realms"
     >
       <FadeInSection>
-        <section className="section-spacing">
-          {/* Filters and View Controls */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <div className="relative flex-1">
-              <Label htmlFor="search-artifacts" className="sr-only">
-                Search artifacts
-              </Label>
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          {/* Search */}
+          <div className="flex-1">
+            <Label htmlFor="search" className="sr-only">
+              Search products
+            </Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="search-artifacts"
-                type="text"
+                id="search"
+                type="search"
                 placeholder="Search artifacts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => setViewMode('grid')}
-                aria-label="Grid view"
-                aria-pressed={viewMode === 'grid'}
-              >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => setViewMode('list')}
-                aria-label="List view"
-                aria-pressed={viewMode === 'list'}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
 
-          {/* Products Display */}
-          {filteredProducts.length === 0 ? (
-            <Card className="border-border/40 text-center py-12">
-              <CardContent>
-                <p className="text-muted-foreground">
-                  {searchQuery ? 'No artifacts match your search.' : 'No artifacts available at the moment.'}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div
-              className={
-                viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-                  : 'space-y-4'
-              }
+          {/* View Toggle */}
+          <div className="flex gap-2" role="group" aria-label="View mode">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => setViewMode('grid')}
+              aria-label="Grid view"
+              aria-pressed={viewMode === 'grid'}
             >
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id.toString()}
-                  product={product}
-                  viewMode={viewMode}
-                  isSaved={savedProductIds.has(product.id.toString())}
-                  onClick={() => handleProductClick(product)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => setViewMode('list')}
+              aria-label="List view"
+              aria-pressed={viewMode === 'list'}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </FadeInSection>
 
+      {/* Products Grid/List */}
+      {isLoading ? (
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-64 w-full" />
+          ))}
+        </div>
+      ) : filteredProducts.length === 0 ? (
+        <FadeInSection>
+          <Card className="border-border/40">
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground">
+                {searchQuery ? 'No artifacts match your search.' : 'No artifacts available.'}
+              </p>
+            </CardContent>
+          </Card>
+        </FadeInSection>
+      ) : (
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+          {filteredProducts.map((product, index) => (
+            <FadeInSection key={Number(product.id)} delay={index * 50}>
+              <ProductCard
+                product={product}
+                viewMode={viewMode}
+                isSaved={savedProductIds.has(Number(product.id))}
+                onClick={() => handleProductClick(product)}
+              />
+            </FadeInSection>
+          ))}
+        </div>
+      )}
+
+      {/* Product Details Modal */}
       <ProductDetailsModal
         product={selectedProduct}
         open={modalOpen}
-        onOpenChange={setModalOpen}
-        isSaved={selectedProduct ? savedProductIds.has(selectedProduct.id.toString()) : false}
+        onOpenChange={handleModalClose}
+        isSaved={selectedProduct ? savedProductIds.has(Number(selectedProduct.id)) : false}
         isAuthenticated={!!identity}
       />
     </PageLayout>

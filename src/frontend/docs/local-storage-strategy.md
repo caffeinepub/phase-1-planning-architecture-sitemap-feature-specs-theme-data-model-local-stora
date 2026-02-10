@@ -18,8 +18,9 @@ These items are stored only in the browser and are not synced to the backend can
   - Version: 1
 
 - **Offline Drafts** (`app_offlineDrafts_v1`)
-  - Temporary form data saved while offline
-  - Cleared after successful submission
+  - Temporary form data saved while offline or in-progress
+  - Includes feedback form drafts
+  - Cleared after successful submission or after 7 days
   - Version: 1
 
 - **Local Cart** (`app_localCart_v1`)
@@ -30,6 +31,7 @@ These items are stored only in the browser and are not synced to the backend can
 
 - **Offline Mutation Queue** (`app_offlineMutationQueue_v1`)
   - Queue of failed canister mutations to replay when online
+  - Includes feedback submissions
   - Automatically processed when connectivity returns
   - Version: 1
 
@@ -60,6 +62,10 @@ These entities are persisted in the backend canister and fetched via React Query
   - Managed via `getCallerUserRole()`, `assignAdminRole()`, `removeAdminRole()`
   - Cached by React Query with key `['currentUserRole']`
 
+- **Feedback** (`Feedback`)
+  - Managed via `createFeedback()`, `getAllFeedback()`
+  - Cached by React Query with key `['feedback']`
+
 ## Data Consistency Strategy
 
 ### React Query Invalidation
@@ -69,6 +75,7 @@ All canister-backed data uses React Query for caching and automatic refetching. 
 - Creating an order → invalidate `['myOrders']` and `['allOrders']`
 - Saving/removing an artifact → invalidate `['mySavedArtifacts']`
 - Updating user role → invalidate `['currentUserRole']`
+- Creating feedback → invalidate `['feedback']`
 
 ### Offline Support
 The offline mutation queue (`app_offlineMutationQueue_v1`) stores failed mutations when the canister is unavailable. When connectivity returns, these mutations are automatically replayed in order and removed from the queue on success.
@@ -79,6 +86,14 @@ Supported offline mutations:
 - Create/edit products (admin)
 - Update product stock (admin)
 - Assign/remove admin roles (admin)
+- Submit feedback
+
+### Offline Drafts
+The offline drafts system (`app_offlineDrafts_v1`) preserves in-progress form data:
+- Feedback form: Restores category, description, and contact fields
+- Drafts expire after 7 days
+- Drafts are cleared on successful submission
+- Drafts are cleared when queued feedback is successfully replayed
 
 ### Logout Behavior
 On logout, we clear:

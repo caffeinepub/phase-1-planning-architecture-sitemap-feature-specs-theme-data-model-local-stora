@@ -25,6 +25,13 @@ export function useOfflineDrafts(formId: string) {
       // Check if expired
       if (Date.now() < formDraft.expiresAt) {
         setDraft(formDraft.data);
+      } else {
+        // Clear expired draft
+        const existingData = getStorageItem<DraftsData>(STORAGE_KEY);
+        if (existingData && existingData.drafts[formId]) {
+          delete existingData.drafts[formId];
+          setStorageItem<DraftsData>(STORAGE_KEY, existingData);
+        }
       }
     }
   }, [formId]);

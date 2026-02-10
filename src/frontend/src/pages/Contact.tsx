@@ -60,9 +60,11 @@ export default function Contact() {
                   <Input
                     id="name"
                     name="name"
+                    type="text"
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Your name"
+                    autoComplete="name"
                     required
                   />
                 </div>
@@ -75,6 +77,7 @@ export default function Contact() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="your.email@example.com"
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -83,6 +86,7 @@ export default function Contact() {
                   <Input
                     id="subject"
                     name="subject"
+                    type="text"
                     value={formData.subject}
                     onChange={handleChange}
                     placeholder="What is this regarding?"

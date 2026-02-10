@@ -2,101 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-refine-and-standardize-site-wide-animations-interactions-flip-cards-hover-glows-scroll-based-fade-ins-so-they-are-consistent-across-all-pages-components-do-not-cause-layout-shift-and-fully-respect-reduced-motion-preferences",
-      "featureTitle": "Refine and standardize site-wide animations/interactions (flip cards, hover glows, scroll-based fade-ins) so they are consistent across all pages/components, do not cause layout shift, and fully respect reduced-motion preferences.",
-      "files": [
-        "frontend/src/components/effects/FlipCard.tsx",
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-34"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-strengthen-frontend-error-handling-for-offline-mode-and-failed-canister-api-calls-by-providing-clear-user-facing-feedback-and-recovery-actions-retry-continue-offline-where-safe-across-the-app",
-      "featureTitle": "Strengthen frontend error handling for offline mode and failed canister/API calls by providing clear, user-facing feedback and recovery actions (retry, continue offline where safe) across the app.",
-      "files": [
-        "frontend/src/components/system/ErrorState.tsx",
-        "frontend/src/components/system/OfflineSyncStatus.tsx",
-        "frontend/src/hooks/useOnlineStatus.ts",
-        "frontend/src/pages/Dashboard.tsx",
-        "frontend/src/pages/Shop.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-35"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-improve-offline-sync-conflict-handling-ux-for-queued-mutation-replay-by-distinguishing-transient-failures-retryable-vs-permanent-failures-non-retryable-and-by-letting-the-user-inspect-and-resolve-remaining-queued-actions-retry-or-remove",
-      "featureTitle": "Improve offline sync conflict handling UX for queued mutation replay by distinguishing transient failures (retryable) vs permanent failures (non-retryable), and by letting the user inspect and resolve remaining queued actions (retry or remove).",
-      "files": [
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/components/system/OfflineSyncQueueDialog.tsx",
-        "frontend/src/components/system/OfflineSyncStatus.tsx",
-        "frontend/src/hooks/useOfflineMutationReplay.ts",
-        "frontend/src/lib/offlineMutationQueue.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-36"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-performance-optimizations-lazy-load-non-critical-route-code-and-heavy-ui-sections-lazy-load-images-where-applicable-and-reduce-unnecessary-re-renders-to-minimize-bundle-size-and-improve-initial-load-performance",
-      "featureTitle": "Implement performance optimizations: lazy-load non-critical route code and heavy UI sections, lazy-load images where applicable, and reduce unnecessary re-renders to minimize bundle size and improve initial load performance.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/shop/ProductDetailsModal.tsx",
-        "frontend/src/pages/Shop.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-37"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-complete-responsive-testing-and-fix-layout-issues-across-mobile-tablet-and-desktop-breakpoints-ensuring-navigation-modals-grids-and-dashboard-tabs-remain-usable-and-visually-consistent",
-      "featureTitle": "Complete responsive testing and fix layout issues across mobile, tablet, and desktop breakpoints, ensuring navigation, modals, grids, and dashboard tabs remain usable and visually consistent.",
+      "featureId": "feature-replace-the-existing-about-page-content-about-with-the-user-provided-the-creator-of-side-quests-about-page-copy-ensuring-the-page-is-fully-website-ready-multi-paragraph-polished-and-keeps-the-provided-narrative-text-verbatim-while-integrating-it-naturally-into-the-page-flow",
+      "featureTitle": "Replace the existing About page content (/about) with the user-provided “The Creator of Side Quests” About page copy, ensuring the page is fully website-ready, multi-paragraph, polished, and keeps the provided narrative text verbatim while integrating it naturally into the page flow.",
       "files": [
         "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/components/shop/ProductDetailsModal.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/Dashboard.tsx"
+        "frontend/src/pages/About.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -107,20 +17,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-38"
+        "REQ-53"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-improve-accessibility-and-seo-basics-by-adding-ensuring-alt-text-semantic-html-landmarks-keyboard-accessibility-and-appropriate-meta-tags-title-description-for-the-application-and-major-routes",
-      "featureTitle": "Improve accessibility and SEO basics by adding/ensuring alt text, semantic HTML landmarks, keyboard accessibility, and appropriate meta tags (title/description) for the application and major routes.",
+      "featureId": "feature-update-the-centralized-quotes-data-source-to-contain-exactly-the-user-provided-quotes-exact-wording-and-punctuation-and-ensure-the-random-selection-utility-returns-2-3-non-repeating-quotes-per-page-render-load",
+      "featureTitle": "Update the centralized quotes data source to contain exactly the user-provided quotes (exact wording and punctuation), and ensure the random selection utility returns 2–3 non-repeating quotes per page render/load.",
       "files": [
-        "frontend/index.html",
-        "frontend/src/components/effects/FlipCard.tsx",
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/Shop.tsx"
+        "frontend/src/data/quotes.ts",
+        "frontend/src/hooks/useRandomQuotes.ts",
+        "frontend/src/lib/randomQuotes.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -131,7 +38,48 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-39"
+        "REQ-54"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-change-the-randomized-quotes-display-behavior-so-that-randomized-quotes-render-on-every-page-including-the-about-page-and-ensure-the-presentation-is-visually-appealing-pull-quote-card-style-and-does-not-overwhelm-the-reader",
+      "featureTitle": "Change the randomized quotes display behavior so that randomized quotes render on every page including the About page, and ensure the presentation is visually appealing (pull-quote/card style) and does not overwhelm the reader.",
+      "files": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/quotes/RandomQuotes.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-55"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-resolve-the-prior-build-deploy-failure-by-ensuring-the-project-builds-successfully-typecheck-production-build-after-the-about-and-quotes-changes-without-modifying-frontend-immutable-paths",
+      "featureTitle": "Resolve the prior build/deploy failure by ensuring the project builds successfully (typecheck + production build) after the About and quotes changes, without modifying frontend immutable paths.",
+      "files": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/pages/About.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-56"
       ],
       "confidence": "high"
     }

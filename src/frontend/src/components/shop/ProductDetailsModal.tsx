@@ -79,7 +79,7 @@ export default function ProductDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
         <ScrollArea className="max-h-[90vh]">
           <div className="p-6">
             <DialogHeader>

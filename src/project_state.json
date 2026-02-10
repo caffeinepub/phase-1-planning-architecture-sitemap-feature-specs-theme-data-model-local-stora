@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 11,
-  "summary": "Phase 5 Advanced Features & Polishing: refine UX/UI with enhanced animations/interactions, strengthen error handling for offline and failed API/sync conflicts, optimize performance (lazy loading, caching, bundle minimization), complete responsive testing across breakpoints, and improve accessibility & SEO (alt text, semantic HTML, meta tags).",
+  "projectStateVersion": 19,
+  "summary": "Scope shift to building a premium-quality, mobile-optimized business website branded as “The Creator of Side Quests” with a fantasy-medieval–meets–modern-luxury-chic aesthetic and neurodivergent-centered copy. Add/replace page content (especially About) with provided verbatim narrative plus Mission/Vision, expand homepage and core business sections (services, portfolio, testimonials, newsletter, booking CTAs), and update the randomized quotes feature to display 2–3 quotes per page including the About page (conflicting with the earlier About-page exclusion rule). Also address a prior deployment error and redeploy after ensuring quotes appear across pages.",
   "architectural_notes": [
     "Planned pages include: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal pages.",
     "Design direction target: dark fantasy aesthetic with parchment tones and glowing accents.",
@@ -16,9 +16,13 @@
   ],
   "known_issues": [
     "Potential scope/architecture conflict: existing request AR-10 references Internet Computer canister-backed models, while Phase 2 steps specify Supabase as the backend.",
-    "Backend direction conflict remains: Phase 4 explicitly requests Supabase auth/data, while existing requests (e.g., AR-10/AR-16) target Internet Computer canister-backed models/auth."
+    "Backend direction conflict remains: Phase 4 explicitly requests Supabase auth/data, while existing requests (e.g., AR-10/AR-16) target Internet Computer canister-backed models/auth.",
+    "Phase 6 deployment direction specifies Supabase as backend, reinforcing the existing Supabase vs Internet Computer backend conflict in earlier requests (e.g., AR-10/AR-16).",
+    "Phase 7 reiterates a Supabase + local-storage syncing direction, increasing the existing architecture conflict with Internet Computer canister/Internet Identity-based requests (e.g., AR-10/AR-16).",
+    "Requirement conflict: earlier spec excluded randomized quotes on the About page, but latest request explicitly requires quotes (2–3 per page) including the About page.",
+    "Deployment previously failed (“deploy encountered an error”); needs investigation/fix before redeploy."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-a-phase-1-planning-document-that-defines-the-full-site-map-page-list-and-navigation-structure-for-homepage-about-services-shop-dashboard-contact-blog-lore-faq-admin-and-legal-pages-terms-privacy-include-a-concise-description-of-the-purpose-of-each-page-and-any-key-sub-sections-e-g-shop-list-filters-product-detail-legal-terms-privacy",
@@ -291,6 +295,126 @@
         "REQ-39"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-create-a-phase-6-qa-test-plan-document-that-enumerates-manual-test-cases-for-all-core-flows-internet-identity-login-logout-role-gated-admin-access-local-cart-inventory-operations-offline-mutation-queue-replay-checkout-order-creation-saved-artifacts-save-unsave-and-contact-form-submission",
+      "title": "Create a Phase 6 QA test plan document that enumerates manual test cases for all core flows: Internet Identity login/logout, role-gated Admin access, local cart/inventory operations, offline mutation queue + replay, checkout/order creation, saved artifacts save/unsave, and contact form submission.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-perform-cross-browser-and-device-qa-and-implement-fixes-for-any-discovered-issues-that-affect-usability-or-correctness-on-chrome-firefox-safari-edge-and-mobile-browsers-focusing-on-navigation-header-behavior-dialogs-modals-e-g-product-details-scroll-based-effects-fade-parallax-and-form-inputs",
+      "title": "Perform cross-browser and device QA and implement fixes for any discovered issues that affect usability or correctness on Chrome, Firefox, Safari, Edge, and mobile browsers, focusing on: navigation/header behavior, dialogs/modals (e.g., product details), scroll-based effects (fade/parallax), and form inputs.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-app-wide-frontend-error-boundary-and-global-client-side-error-capture-runtime-errors-and-unhandled-promise-rejections-that-records-a-privacy-minimal-error-log-locally-e-g-in-localstorage-and-presents-clear-english-guidance-to-the-user-when-the-ui-crashes",
+      "title": "Add an app-wide frontend error boundary and global client-side error capture (runtime errors and unhandled promise rejections) that records a privacy-minimal error log locally (e.g., in localStorage) and presents clear English guidance to the user when the UI crashes.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-optional-analytics-integration-on-the-frontend-that-can-run-in-two-modes-1-first-party-canister-event-logging-via-the-new-backend-apis-and-2-optional-google-analytics-style-script-integration-that-is-enabled-only-when-a-tracking-id-is-provided-via-environment-build-configuration",
+      "title": "Add optional analytics integration on the frontend that can run in two modes: (1) first-party canister event logging via the new backend APIs, and (2) optional Google Analytics-style script integration that is enabled only when a tracking ID is provided via environment/build configuration.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-production-deployment-documentation-that-reflects-the-actual-project-architecture-internet-computer-canister-backend-with-internet-identity-and-includes-steps-to-deploy-the-frontend-to-a-static-host-e-g-vercel-netlify-or-as-ic-hosted-assets-plus-required-environment-variables-and-post-deploy-validation-steps",
+      "title": "Provide production deployment documentation that reflects the actual project architecture (Internet Computer canister backend with Internet Identity) and includes steps to deploy the frontend to a static host (e.g., Vercel/Netlify) OR as IC-hosted assets, plus required environment variables and post-deploy validation steps.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-in-app-user-feedback-capture-flow-that-lets-users-submit-ux-feature-feedback-from-within-the-app-with-offline-first-behavior-drafts-queued-submit-and-clear-english-success-error-states",
+      "title": "Add an in-app user feedback capture flow that lets users submit UX/feature feedback from within the app, with offline-first behavior (drafts + queued submit) and clear English success/error states.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-admin-ui-section-for-reviewing-submitted-feedback-including-basic-filtering-and-status-handling-using-clear-english-user-facing-text",
+      "title": "Add an Admin UI section for reviewing submitted feedback, including basic filtering and status handling, using clear English user-facing text.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-phase-7-iteration-playbook-document-describing-how-feedback-is-collected-reviewed-and-turned-into-page-by-page-updates-while-maintaining-offline-first-behavior-and-canister-backed-persistence",
+      "title": "Create a Phase 7 iteration playbook document describing how feedback is collected, reviewed, and turned into page-by-page updates while maintaining offline-first behavior and canister-backed persistence.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-centralized-reusable-quotes-data-source-containing-all-user-provided-quotes-exact-wording-and-a-small-utility-to-select-a-random-subset-a-couple-of-non-repeating-quotes-for-display-on-a-page",
+      "title": "Create a centralized, reusable quotes data source containing all user-provided quotes (exact wording), and a small utility to select a random subset (a couple) of non-repeating quotes for display on a page.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-themed-random-quotes-ui-component-that-renders-the-randomly-selected-quotes-in-a-visually-consistent-card-blockquote-style-dark-fantasy-theme-suitable-for-embedding-into-pages-without-breaking-existing-layouts",
+      "title": "Implement a themed \"Random Quotes\" UI component that renders the randomly selected quotes in a visually consistent card/blockquote style (dark-fantasy theme), suitable for embedding into pages without breaking existing layouts.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-randomized-quotes-on-every-page-except-the-about-page-the-about-page-must-remain-unchanged-and-must-not-show-the-randomized-quotes-component",
+      "title": "Display randomized quotes on every page except the About page. The About page must remain unchanged and must not show the randomized quotes component.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-existing-about-page-content-about-with-the-user-provided-the-creator-of-side-quests-about-page-copy-ensuring-the-page-is-fully-website-ready-multi-paragraph-polished-and-keeps-the-provided-narrative-text-verbatim-while-integrating-it-naturally-into-the-page-flow",
+      "title": "Replace the existing About page content (/about) with the user-provided “The Creator of Side Quests” About page copy, ensuring the page is fully website-ready, multi-paragraph, polished, and keeps the provided narrative text verbatim while integrating it naturally into the page flow.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-centralized-quotes-data-source-to-contain-exactly-the-user-provided-quotes-exact-wording-and-punctuation-and-ensure-the-random-selection-utility-returns-2-3-non-repeating-quotes-per-page-render-load",
+      "title": "Update the centralized quotes data source to contain exactly the user-provided quotes (exact wording and punctuation), and ensure the random selection utility returns 2–3 non-repeating quotes per page render/load.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-change-the-randomized-quotes-display-behavior-so-that-randomized-quotes-render-on-every-page-including-the-about-page-and-ensure-the-presentation-is-visually-appealing-pull-quote-card-style-and-does-not-overwhelm-the-reader",
+      "title": "Change the randomized quotes display behavior so that randomized quotes render on every page including the About page, and ensure the presentation is visually appealing (pull-quote/card style) and does not overwhelm the reader.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-resolve-the-prior-build-deploy-failure-by-ensuring-the-project-builds-successfully-typecheck-production-build-after-the-about-and-quotes-changes-without-modifying-frontend-immutable-paths",
+      "title": "Resolve the prior build/deploy failure by ensuring the project builds successfully (typecheck + production build) after the About and quotes changes, without modifying frontend immutable paths.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -519,10 +643,140 @@
       "summary": "Phase 5: Accessibility & SEO improvements (alt text, semantic HTML, meta tags)",
       "reqIds": [],
       "status": "pending"
+    },
+    {
+      "id": "AR-53",
+      "summary": "Phase 6: Functionality testing of all core flows (login, inventory, offline/sync, checkout, forms)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-54",
+      "summary": "Phase 6: Cross-browser and mobile device testing (Chrome, Firefox, Safari, Edge + mobile)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "Phase 6: Bug fixing & QA pass across UI/UX and backend issues found during testing",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "Phase 6: Deployment setup for production (frontend on Vercel/Netlify or similar; backend on Supabase)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-57",
+      "summary": "Phase 6: Monitoring & analytics setup (Google Analytics or similar + error monitoring)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "Implement lightweight canister-backed monitoring endpoints in the existing single Motoko actor to support basic operational checks and optional event logging (no external database): add a public query health check (e.g., returns status/build info) and an authenticated event logging API suitable for recording high-level frontend events.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Phase 7: Collect and act on user feedback (UX + feature improvements) with an iteration cadence",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "Phase 7: Add new content over time (quests, products, services) and keep related UI/flows updated",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Phase 7: Ongoing performance optimization plus new/expanded animations and effects",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Phase 7: Periodically review and refine Supabase schema and local-storage syncing logic to maintain offline-first behavior",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-66",
+      "summary": "Phase 7: Adopt/continue page-by-page development while integrating persistence (Supabase) and offline-capable local storage for each feature",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-68",
+      "summary": "Extend the Motoko backend (single main actor) with canister-backed feedback storage and APIs to create and review feedback, including admin-only listing for moderation/review.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-69",
+      "summary": "Add site-wide randomized quotes: each non-About page shows a couple randomly selected quotes per load; About page content remains unchanged",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-70",
+      "summary": "Rebrand/upgrade site into “The Creator of Side Quests” premium business website: fantasy-medieval meets modern luxury-chic aesthetic (dark moss greens/purples/blacks + subtle metallic accents), polished accessible UI, mobile-optimized, cohesive across pages",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-71",
+      "summary": "Update randomized quotes behavior: show 2–3 quotes per page on all pages INCLUDING the About page; ensure quotes render in visually appealing, non-overwhelming pull-quote/card styles",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-72",
+      "summary": "Create/replace About page content for “The Creator of Side Quests” using provided verbatim narrative + clearly labeled Mission and Vision statements; ensure website-ready multi-paragraph polished copy with neurodivergent creativity tone",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-73",
+      "summary": "Add/curate centralized quotes collection for the new brand (exact provided quote list) and integrate into site-wide random quote rotation",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-74",
+      "summary": "Homepage revamp: add Now Booking/Availability banner, concise founder story intro, services overview, How It Works workflow, featured portfolio preview linking to gallery, testimonials preview, newsletter signup, and strong booking/inquiry CTAs throughout",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-75",
+      "summary": "Add business content/feature sections: Services page with detailed categories/subcategories and clear in-person/digital/hybrid labels + sales tax info; Contact page with professional inquiry form, business info, response hours (Mon–Thu) and no-response note (Fri–Sun), inclusivity messaging, and clickable social icons/bubbles; add Hours & Policies page with boundaries/inclusivity rules",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-76",
+      "summary": "Add interactive/dynamic elements: flippable cards (text vs magical/fantasy creation images), featured portfolio gallery, client testimonial cards, social media bubbles linking to platforms, newsletter signup embedded in multiple locations, and prominent CTAs for booking/custom requests",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-77",
+      "summary": "Fix deployment failure and redeploy after ensuring the quotes/updated content appear correctly across the different pages",
+      "reqIds": [],
+      "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Phase 1: Planning & Architecture (Sitemap, Feature Specs, Theme, Data Model, Local Storage)",
+  "projectName": "The Creator of Side Quests",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

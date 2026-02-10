@@ -167,3 +167,25 @@ export function useQueuedRemoveAdminRole() {
     },
   });
 }
+
+export function useQueuedCreateFeedback() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { userId: string; message: string }) => {
+      if (!actor) {
+        enqueueMutation('createFeedback', {
+          userId: params.userId,
+          message: params.message,
+        });
+        throw new Error('Queued for offline sync');
+      }
+      const principal = Principal.fromText(params.userId);
+      return actor.createFeedback(principal, params.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    },
+  });
+}

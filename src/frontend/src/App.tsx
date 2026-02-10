@@ -1,4 +1,4 @@
-import { StrictMode, lazy, Suspense } from 'react';
+import { StrictMode, lazy, Suspense, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createRouter, createRootRoute, createRoute } from '@tanstack/react-router';
 import { ThemeProvider } from 'next-themes';
@@ -6,6 +6,10 @@ import { Toaster } from '@/components/ui/sonner';
 import AppLayout from './components/layout/AppLayout';
 import Homepage from './pages/Homepage';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AppErrorBoundary } from './components/system/AppErrorBoundary';
+import TroubleshootingDialog from './components/system/TroubleshootingDialog';
+import { useGlobalErrorCapture } from './hooks/useGlobalErrorCapture';
+import { initAnalytics } from './lib/analytics';
 
 // Lazy load secondary routes for code splitting
 const About = lazy(() => import('./pages/About'));
@@ -27,6 +31,9 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Initialize analytics on app load
+initAnalytics();
 
 // Loading fallback component
 const PageLoadingFallback = () => (
@@ -175,15 +182,36 @@ declare module '@tanstack/react-router' {
   }
 }
 
+function AppContent() {
+  const [showTroubleshooting, setShowTroubleshooting] = useState(false);
+  
+  // Install global error capture
+  useGlobalErrorCapture();
+
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster />
+      <TroubleshootingDialog 
+        open={showTroubleshooting} 
+        onOpenChange={setShowTroubleshooting} 
+      />
+    </>
+  );
+}
+
 export default function App() {
+  const [showTroubleshooting, setShowTroubleshooting] = useState(false);
+
   return (
     <StrictMode>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-          <Toaster />
-        </QueryClientProvider>
-      </ThemeProvider>
+      <AppErrorBoundary onShowTroubleshooting={() => setShowTroubleshooting(true)}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          <QueryClientProvider client={queryClient}>
+            <AppContent />
+          </QueryClientProvider>
+        </ThemeProvider>
+      </AppErrorBoundary>
     </StrictMode>
   );
 }

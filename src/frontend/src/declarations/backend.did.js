@@ -13,6 +13,20 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const Status = IDL.Variant({
+  'open' : IDL.Null,
+  'completed' : IDL.Record({ 'admin' : IDL.Principal, 'response' : IDL.Text }),
+  'reviewed' : IDL.Record({
+    'admin' : IDL.Principal,
+    'response' : IDL.Opt(IDL.Text),
+  }),
+});
+export const Feedback = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : Status,
+  'userId' : IDL.Principal,
+  'message' : IDL.Text,
+});
 export const GuildOrder = IDL.Record({
   'id' : IDL.Nat,
   'status' : IDL.Text,
@@ -42,6 +56,13 @@ export const CartItem = IDL.Record({
   'productId' : IDL.Nat,
   'quantity' : IDL.Nat,
 });
+export const Event = IDL.Record({
+  'id' : IDL.Nat,
+  'principal' : IDL.Principal,
+  'level' : IDL.Text,
+  'message' : IDL.Text,
+  'timestamp' : IDL.Nat,
+});
 export const Feature = IDL.Record({
   'description' : IDL.Text,
   'phase' : IDL.Variant({ 'later' : IDL.Null, 'phase1' : IDL.Null }),
@@ -59,6 +80,12 @@ export const User = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
 });
+export const HealthStatus = IDL.Record({
+  'status' : IDL.Text,
+  'environment' : IDL.Text,
+  'build' : IDL.Text,
+  'deployedVersion' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -67,6 +94,8 @@ export const idlService = IDL.Service({
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'assignGuildOrder' : IDL.Func([IDL.Nat, IDL.Principal], [], []),
   'checkoutCart' : IDL.Func([], [IDL.Nat], []),
+  'completeFeedback' : IDL.Func([IDL.Nat, IDL.Principal, IDL.Text], [], []),
+  'createFeedback' : IDL.Func([IDL.Principal, IDL.Text], [IDL.Nat], []),
   'createGuildOrder' : IDL.Func([IDL.Text, IDL.Text, IDL.Nat], [IDL.Nat], []),
   'createOrder' : IDL.Func([IDL.Vec(IDL.Nat), IDL.Nat], [IDL.Nat], []),
   'createProduct' : IDL.Func(
@@ -76,12 +105,14 @@ export const idlService = IDL.Service({
     ),
   'createUser' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
   'editProduct' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text, IDL.Nat], [], []),
+  'getAllFeedback' : IDL.Func([], [IDL.Vec(Feedback)], ['query']),
   'getAllGuildOrders' : IDL.Func([], [IDL.Vec(GuildOrder)], ['query']),
   'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
   'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCart' : IDL.Func([], [IDL.Vec(CartItem)], ['query']),
+  'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getFeatureSpecification' : IDL.Func([], [IDL.Vec(PageFeatures)], ['query']),
   'getGuildOrder' : IDL.Func([IDL.Nat], [GuildOrder], ['query']),
   'getMyOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
@@ -99,10 +130,13 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
   'removeFromCart' : IDL.Func([IDL.Nat], [], []),
   'removeSavedArtifact' : IDL.Func([IDL.Nat], [], []),
+  'reviewFeedback' : IDL.Func([IDL.Nat, IDL.Principal, IDL.Text], [], []),
   'saveArtifact' : IDL.Func([IDL.Nat], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateGuildOrderStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),
@@ -116,6 +150,23 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const Status = IDL.Variant({
+    'open' : IDL.Null,
+    'completed' : IDL.Record({
+      'admin' : IDL.Principal,
+      'response' : IDL.Text,
+    }),
+    'reviewed' : IDL.Record({
+      'admin' : IDL.Principal,
+      'response' : IDL.Opt(IDL.Text),
+    }),
+  });
+  const Feedback = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : Status,
+    'userId' : IDL.Principal,
+    'message' : IDL.Text,
   });
   const GuildOrder = IDL.Record({
     'id' : IDL.Nat,
@@ -140,6 +191,13 @@ export const idlFactory = ({ IDL }) => {
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
   const CartItem = IDL.Record({ 'productId' : IDL.Nat, 'quantity' : IDL.Nat });
+  const Event = IDL.Record({
+    'id' : IDL.Nat,
+    'principal' : IDL.Principal,
+    'level' : IDL.Text,
+    'message' : IDL.Text,
+    'timestamp' : IDL.Nat,
+  });
   const Feature = IDL.Record({
     'description' : IDL.Text,
     'phase' : IDL.Variant({ 'later' : IDL.Null, 'phase1' : IDL.Null }),
@@ -157,6 +215,12 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'email' : IDL.Text,
   });
+  const HealthStatus = IDL.Record({
+    'status' : IDL.Text,
+    'environment' : IDL.Text,
+    'build' : IDL.Text,
+    'deployedVersion' : IDL.Text,
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -165,6 +229,8 @@ export const idlFactory = ({ IDL }) => {
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'assignGuildOrder' : IDL.Func([IDL.Nat, IDL.Principal], [], []),
     'checkoutCart' : IDL.Func([], [IDL.Nat], []),
+    'completeFeedback' : IDL.Func([IDL.Nat, IDL.Principal, IDL.Text], [], []),
+    'createFeedback' : IDL.Func([IDL.Principal, IDL.Text], [IDL.Nat], []),
     'createGuildOrder' : IDL.Func([IDL.Text, IDL.Text, IDL.Nat], [IDL.Nat], []),
     'createOrder' : IDL.Func([IDL.Vec(IDL.Nat), IDL.Nat], [IDL.Nat], []),
     'createProduct' : IDL.Func(
@@ -174,12 +240,14 @@ export const idlFactory = ({ IDL }) => {
       ),
     'createUser' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
     'editProduct' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text, IDL.Nat], [], []),
+    'getAllFeedback' : IDL.Func([], [IDL.Vec(Feedback)], ['query']),
     'getAllGuildOrders' : IDL.Func([], [IDL.Vec(GuildOrder)], ['query']),
     'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
     'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCart' : IDL.Func([], [IDL.Vec(CartItem)], ['query']),
+    'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getFeatureSpecification' : IDL.Func(
         [],
         [IDL.Vec(PageFeatures)],
@@ -201,10 +269,13 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
     'removeFromCart' : IDL.Func([IDL.Nat], [], []),
     'removeSavedArtifact' : IDL.Func([IDL.Nat], [], []),
+    'reviewFeedback' : IDL.Func([IDL.Nat, IDL.Principal, IDL.Text], [], []),
     'saveArtifact' : IDL.Func([IDL.Nat], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateGuildOrderStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),

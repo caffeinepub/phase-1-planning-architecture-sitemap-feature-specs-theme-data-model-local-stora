@@ -9,6 +9,7 @@ import {
 } from '../lib/offlineMutationQueue';
 import { useQueryClient } from '@tanstack/react-query';
 import { Principal } from '@dfinity/principal';
+import { toast } from 'sonner';
 
 const MAX_RETRIES = 3;
 
@@ -98,6 +99,15 @@ export function useOfflineMutationReplay() {
         case 'removeAdminRole':
           await actor.removeAdminRole(Principal.fromText(mutation.params.userPrincipal));
           queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
+          break;
+        
+        case 'createFeedback':
+          await actor.createFeedback(
+            Principal.fromText(mutation.params.userId),
+            mutation.params.message
+          );
+          queryClient.invalidateQueries({ queryKey: ['feedback'] });
+          toast.success('Your feedback has been submitted successfully!');
           break;
         
         default:

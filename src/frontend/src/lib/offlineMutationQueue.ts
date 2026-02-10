@@ -11,7 +11,8 @@ export type MutationType =
   | 'editProduct'
   | 'updateProductStock'
   | 'assignAdminRole'
-  | 'removeAdminRole';
+  | 'removeAdminRole'
+  | 'createFeedback';
 
 export interface QueuedMutation {
   id: string;

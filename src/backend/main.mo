@@ -1,7 +1,7 @@
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
-import Array "mo:core/Array";
 import Text "mo:core/Text";
+import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
@@ -9,12 +9,73 @@ import Runtime "mo:core/Runtime";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-
-// Apply migration function on upgrades
-
+// Persistent health monitoring and event logging
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  /////////////////
+  // Health Checks
+  /////////////////
+
+  public type HealthStatus = {
+    status : Text;
+    deployedVersion : Text;
+    environment : Text;
+    build : Text;
+  };
+
+  let deploymentInfo : HealthStatus = {
+    status = "ok";
+    deployedVersion = "1.0.0";
+    environment = "production";
+    build = "stable";
+  };
+
+  public query ({ caller }) func healthCheck() : async HealthStatus {
+    deploymentInfo;
+  };
+
+  /////////////////
+  // Event Logging
+  /////////////////
+
+  public type Event = {
+    id : Nat;
+    message : Text;
+    level : Text; // "info", "error" etc.
+    timestamp : Nat;
+    principal : Principal;
+  };
+
+  var nextEventId = 1;
+  var events = Map.empty<Nat, Event>();
+
+  public shared ({ caller }) func logEvent(message : Text, level : Text) : async () {
+    if (level == "admin" and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Authorization Failed: Only admins can log admin-level events.");
+    };
+
+    let validLevels = ["info", "warning", "error"];
+    if (not validLevels.any(func(lvl) { lvl == level })) {
+      Runtime.trap("Invalid event level: " # level);
+    };
+
+    let event : Event = {
+      id = nextEventId;
+      message;
+      level;
+      timestamp = 0; // Use 0 as timestamp until time_import is supported for Internet Computer
+      principal = caller;
+    };
+
+    events.add(nextEventId, event);
+    nextEventId += 1;
+  };
+
+  public query ({ caller }) func getEvents() : async [Event] {
+    events.values().toArray();
+  };
 
   ////////////////////////////////////////////////////
   // PHASE 1: Feature Specification
@@ -126,6 +187,25 @@ actor {
     quantity : Nat;
   };
 
+  public type Feedback = {
+    id : Nat;
+    userId : Principal;
+    message : Text;
+    status : Status;
+  };
+
+  public type Status = {
+    #open;
+    #reviewed : {
+      admin : Principal;
+      response : ?Text;
+    };
+    #completed : {
+      admin : Principal;
+      response : Text;
+    };
+  };
+
   // Persistent Storage Structures
   var users = Map.empty<Nat, User>();
   var products = Map.empty<Nat, Product>();
@@ -134,12 +214,14 @@ actor {
   var savedArtifacts = Map.empty<Principal, [SavedArtifact]>();
   var userProfiles = Map.empty<Principal, UserProfile>();
   var userCarts = Map.empty<Principal, [CartItem]>();
+  var feedbackStore = Map.empty<Nat, Feedback>();
 
   // IDs counters
   var nextUserId = 1;
   var nextProductId = 1;
   var nextOrderId = 1;
   var nextGuildOrderId = 1;
+  var nextFeedbackId = 1;
 
   ////////////////////////////////////////////////////
   // User Role Management (Moved from frontend)
@@ -559,5 +641,76 @@ actor {
     userCarts.add(caller, []);
 
     orderId;
+  };
+
+  ////////////////////////////////////////////////////
+  // Feedback Management (New)
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func createFeedback(userId : Principal, message : Text) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only authorized users can create feedback");
+    };
+    let feedbackId = nextFeedbackId;
+    nextFeedbackId += 1;
+    let feedback : Feedback = {
+      id = feedbackId;
+      userId;
+      message;
+      status = #open;
+    };
+    feedbackStore.add(feedbackId, feedback);
+    feedbackId;
+  };
+
+  public shared ({ caller }) func reviewFeedback(feedbackId : Nat, admin : Principal, response : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can review feedback");
+    };
+    switch (feedbackStore.get(feedbackId)) {
+      case (?feedback) {
+        if (feedback.status != #open) {
+          Runtime.trap("Cannot review feedback that is not open");
+        };
+        let updatedFeedback : Feedback = {
+          feedback with
+          status = #reviewed({
+            admin;
+            response = ?response;
+          });
+        };
+        feedbackStore.add(feedbackId, updatedFeedback);
+      };
+      case (null) { Runtime.trap("Feedback not found") };
+    };
+  };
+
+  public shared ({ caller }) func completeFeedback(feedbackId : Nat, admin : Principal, response : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can complete feedback");
+    };
+    switch (feedbackStore.get(feedbackId)) {
+      case (?feedback) {
+        if (feedback.status != #reviewed({
+          admin;
+          response = ?response;
+        })) {
+          Runtime.trap("Cannot complete feedback that is not reviewed");
+        };
+        let updatedFeedback : Feedback = {
+          feedback with
+          status = #completed({
+            admin;
+            response;
+          });
+        };
+        feedbackStore.add(feedbackId, updatedFeedback);
+      };
+      case (null) { Runtime.trap("Feedback not found") };
+    };
+  };
+
+  public query ({ caller }) func getAllFeedback() : async [Feedback] {
+    feedbackStore.values().toArray();
   };
 };
