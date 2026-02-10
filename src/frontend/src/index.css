@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.625rem;
+        --background: 0.97 0.01 60;
+        --foreground: 0.25 0.01 30;
+        --card: 0.95 0.01 55;
+        --card-foreground: 0.25 0.01 30;
+        --popover: 0.95 0.01 55;
+        --popover-foreground: 0.25 0.01 30;
+        --primary: 0.35 0.02 35;
+        --primary-foreground: 0.97 0.01 60;
+        --secondary: 0.85 0.02 60;
+        --secondary-foreground: 0.25 0.01 30;
+        --muted: 0.88 0.01 50;
+        --muted-foreground: 0.55 0.02 30;
+        --accent: 0.90 0.02 55;
+        --accent-foreground: 0.25 0.01 30;
+        --destructive: 0.55 0.22 25;
+        --destructive-foreground: 0.97 0.01 60;
+        --border: 0.80 0.01 45;
+        --input: 0.85 0.01 50;
+        --ring: 0.75 0.12 85;
+        --chart-1: 0.65 0.18 45;
+        --chart-2: 0.55 0.15 300;
+        --chart-3: 0.75 0.12 85;
+        --chart-4: 0.45 0.10 200;
+        --chart-5: 0.70 0.18 75;
+        --sidebar: 0.95 0.01 55;
+        --sidebar-foreground: 0.25 0.01 30;
+        --sidebar-primary: 0.35 0.02 35;
+        --sidebar-primary-foreground: 0.97 0.01 60;
+        --sidebar-accent: 0.90 0.02 55;
+        --sidebar-accent-foreground: 0.25 0.01 30;
+        --sidebar-border: 0.80 0.01 45;
+        --sidebar-ring: 0.75 0.12 85;
+        
+        /* Custom dark fantasy colors */
+        --arcane-gold: 0.75 0.12 85;
+        --ember-orange: 0.65 0.18 45;
+        --shadow-purple: 0.45 0.15 300;
+    }
+
+    .dark {
+        --background: 0.145 0 0;
+        --foreground: 0.92 0.01 60;
+        --card: 0.20 0.01 30;
+        --card-foreground: 0.92 0.01 60;
+        --popover: 0.18 0.01 30;
+        --popover-foreground: 0.92 0.01 60;
+        --primary: 0.75 0.12 85;
+        --primary-foreground: 0.20 0.01 30;
+        --secondary: 0.30 0.02 35;
+        --secondary-foreground: 0.92 0.01 60;
+        --muted: 0.30 0.02 35;
+        --muted-foreground: 0.65 0.02 40;
+        --accent: 0.35 0.03 40;
+        --accent-foreground: 0.92 0.01 60;
+        --destructive: 0.55 0.22 25;
+        --destructive-foreground: 0.92 0.01 60;
+        --border: 0.30 0.01 35;
+        --input: 0.25 0.01 32;
+        --ring: 0.75 0.12 85;
+        --chart-1: 0.65 0.18 45;
+        --chart-2: 0.55 0.15 300;
+        --chart-3: 0.75 0.12 85;
+        --chart-4: 0.45 0.10 200;
+        --chart-5: 0.70 0.18 75;
+        --sidebar: 0.20 0.01 30;
+        --sidebar-foreground: 0.92 0.01 60;
+        --sidebar-primary: 0.75 0.12 85;
+        --sidebar-primary-foreground: 0.20 0.01 30;
+        --sidebar-accent: 0.30 0.02 35;
+        --sidebar-accent-foreground: 0.92 0.01 60;
+        --sidebar-border: 0.30 0.01 35;
+        --sidebar-ring: 0.75 0.12 85;
+        
+        /* Custom dark fantasy colors */
+        --arcane-gold: 0.75 0.12 85;
+        --ember-orange: 0.65 0.18 45;
+        --shadow-purple: 0.45 0.15 300;
+    }
+
+    * {
+        @apply border-border;
+    }
+    
+    body {
+        @apply bg-background text-foreground;
+        font-family: 'Crimson Text', Georgia, serif;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Cinzel', Georgia, serif;
+    }
+}
+
+@layer utilities {
+    .text-arcane-gold {
+        color: oklch(var(--arcane-gold));
+    }
+    
+    .bg-arcane-gold {
+        background-color: oklch(var(--arcane-gold));
+    }
+    
+    .border-arcane-gold {
+        border-color: oklch(var(--arcane-gold));
+    }
+    
+    .font-display {
+        font-family: 'Cinzel', Georgia, serif;
+    }
+}

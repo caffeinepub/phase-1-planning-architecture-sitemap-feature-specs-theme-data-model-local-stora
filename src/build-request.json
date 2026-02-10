@@ -1,0 +1,164 @@
+{
+  "kind": "build_request",
+  "title": "Phase 1: Planning & Architecture (Sitemap, Feature Specs, Theme, Data Model, Local Storage)",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Create a Phase 1 planning document that defines the full site map/page list and navigation structure for: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal pages (Terms + Privacy). Include a concise description of the purpose of each page and any key sub-sections (e.g., Shop: list, filters, product detail; Legal: Terms, Privacy).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "1. **Site Map & Page List:** Draw all pages: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Legal pages."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A repository doc exists (e.g., /docs/phase1-planning.md) containing a clearly labeled sitemap/page list covering all pages the user listed",
+        "The document includes intended navigation (top nav/footer links) and notes which pages are public vs. authenticated vs. admin-only (if applicable)"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement a frontend route/page skeleton for each planned page (Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, Privacy) with basic layouts and placeholder sections that match the Phase 1 sitemap. Each page must render a clear page title and a short placeholder description in English.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "1. **Site Map & Page List:** Draw all pages: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Legal pages."
+        ]
+      },
+      "acceptanceCriteria": [
+        "All listed pages are reachable in the UI via navigation links",
+        "Each page renders without runtime errors and shows at minimum: page title + placeholder copy in English",
+        "Legal pages are split into Terms and Privacy and are reachable from the footer (or equivalent global navigation)"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Create a Phase 1 feature specification that details every feature per page (including UI interactions like hover effects, flip cards, filters, inventory syncing) and clearly marks each item as Phase 1 (skeleton/spec only) vs. later implementation. The spec must be written in English and organized by page.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "2. **Feature List:** Detail every feature per page (hover effects, flip cards, filters, inventory syncing, etc.)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A repository doc exists (e.g., /docs/phase1-features-by-page.md) with a per-page feature list for every page in the sitemap",
+        "Features explicitly mention the examples provided (hover effects, flip cards, filters, inventory syncing) in the relevant sections",
+        "Each feature item is tagged with a phase/status (e.g., Phase 1: placeholder/spec, Phase 2+: build) so scope is unambiguous"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Establish and apply a consistent design direction across the frontend based on a dark fantasy theme with parchment tones and subtle glowing accents. Define a small design system (color tokens, typography choices, spacing, button/hover states, card styling) and apply it to global layout components and all page skeletons.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "3. **Design Direction:** Decide colors, fonts, theme (dark fantasy, parchment tones, glowing accents)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A short design spec exists (can be in the Phase 1 planning doc or a dedicated /docs/design-direction.md) describing colors, fonts, and interaction styling",
+        "All page skeletons use a consistent theme (background, typography, card styles, hover states) aligned with the dark fantasy/parchment/glow direction",
+        "No default/unstyled pages remain (i.e., theme is visibly applied across the app)"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Produce a Phase 1 data architecture plan that maps the requested “Supabase tables” concept (Users, Inventory, Products, Orders, Saved Artifacts, etc.) into Internet Computer canister-backed data models. Define the entities, key fields, identifiers, and relationships, and specify which fields must be stable/persisted. Implement corresponding Motoko type definitions and placeholder storage structures in the single main actor to reflect this plan (no external DB integration).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "4. **Data Architecture:** Plan Supabase tables: Users, Inventory, Products, Orders, Saved Artifacts, etc."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A repository doc exists (e.g., /docs/data-architecture.md) listing entities equivalent to the requested tables (Users, Inventory, Products, Orders, Saved Artifacts) with fields and relationships",
+        "backend/main.mo contains Motoko type definitions for each entity and a clear placeholder persistence approach compatible with canister storage (single-actor)",
+        "No Supabase integration is added; the plan explicitly describes the IC-native alternative"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Define and implement a local storage strategy for the frontend covering: recently viewed items, offline edits (drafts), and session state. Provide a small, centralized utility layer (and/or React hooks) to read/write these keys safely, version the stored data, and clear/expire data when appropriate. Document what is stored, retention/expiry rules, and how it will be used later.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "5. **Local Storage Strategy:** Identify what will be cached locally (recently viewed items, offline edits, session state)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A doc section exists describing what is stored locally (recently viewed, offline drafts, session state), including key names and retention rules",
+        "Frontend includes a reusable local-storage utility (or hooks) that can set/get/remove versioned entries and handles JSON parse failures gracefully",
+        "At least one page skeleton (e.g., Shop) demonstrates writing/reading a ‘recently viewed’ placeholder entry to validate the approach (without needing real backend data)"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Add generated static visual assets that match the chosen dark fantasy parchment + glowing accent theme and integrate them into the global UI (e.g., background texture and a simple emblem). Assets must be stored as static files and referenced directly by the frontend (not served through the backend).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "3. **Design Direction:** Decide colors, fonts, theme (dark fantasy, parchment tones, glowing accents)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Generated images exist under frontend/public/assets/generated and are referenced by the app theme (e.g., background image on main layout, emblem in header/footer)",
+        "The app still loads and renders correctly if images fail to load (graceful fallback colors)"
+      ]
+    }
+  ],
+  "constraints": [
+    "Use English for any user-facing text",
+    "Backend must remain a single Motoko actor (all Motoko logic in backend/main.mo)",
+    "Do not edit files in frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui",
+    "Do not add Supabase or any external database/service integration; data architecture must be IC canister-native"
+  ],
+  "nonGoals": [
+    "Building full e-commerce functionality (real checkout, payment processing) in Phase 1",
+    "Implementing real inventory syncing logic beyond documenting and scaffolding the intended approach",
+    "Implementing full Admin moderation tools beyond page skeleton and planned data models",
+    "Adding third-party authentication providers (only Internet Identity is supported)"
+  ],
+  "imageRequirements": {
+    "required": [
+      "Parchment texture background with subtle dark fantasy wear, warm sepia tones, faint vignette (parchment-bg.dim_1920x1080.png)",
+      "Arcane circular sigil emblem, minimal line-art with soft golden glow on transparent background (arcane-sigil.dim_512x512.png)"
+    ],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [
+      "Plan and scaffold a dark-fantasy themed multi-page site (Shop, Dashboard, Admin) on the Internet Computer with clear architecture and data model"
+    ],
+    "goalsToRemove": [],
+    "preferencesToAdd": [
+      "Dark fantasy visual style with parchment tones and subtle glowing accents"
+    ],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

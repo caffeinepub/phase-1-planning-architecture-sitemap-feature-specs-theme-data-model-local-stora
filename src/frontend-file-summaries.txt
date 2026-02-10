@@ -1,0 +1,5 @@
+{
+  "frontend/src/pages/Privacy.tsx": "Privacy policy page with placeholder legal text organized into sections covering information collection, usage, sharing, security, user rights, cookies, and policy changes.",
+  "frontend/src/index.css": "Global styles with OKLCH-based dark fantasy color system including custom arcane gold, ember orange, and shadow purple colors, plus font family definitions for Cinzel (display) and Crimson Text (body).",
+  "frontend/tailwind.config.js": "Tailwind configuration extending the theme with dark fantasy colors (arcane-gold, ember-orange, shadow-purple), custom font families (Cinzel, Crimson Text, Philosopher), and glow shadow effects."
+}

@@ -1,0 +1,148 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-create-a-phase-1-planning-document-that-defines-the-full-site-map-page-list-and-navigation-structure-for-homepage-about-services-shop-dashboard-contact-blog-lore-faq-admin-and-legal-pages-terms-privacy-include-a-concise-description-of-the-purpose-of-each-page-and-any-key-sub-sections-e-g-shop-list-filters-product-detail-legal-terms-privacy",
+      "featureTitle": "Create a Phase 1 planning document that defines the full site map/page list and navigation structure for: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal pages (Terms + Privacy). Include a concise description of the purpose of each page and any key sub-sections (e.g., Shop: list, filters, product detail; Legal: Terms, Privacy).",
+      "files": [
+        "frontend/docs/phase1-planning.md"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-frontend-route-page-skeleton-for-each-planned-page-homepage-about-services-shop-dashboard-contact-blog-lore-faq-admin-terms-privacy-with-basic-layouts-and-placeholder-sections-that-match-the-phase-1-sitemap-each-page-must-render-a-clear-page-title-and-a-short-placeholder-description-in-english",
+      "featureTitle": "Implement a frontend route/page skeleton for each planned page (Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, Privacy) with basic layouts and placeholder sections that match the Phase 1 sitemap. Each page must render a clear page title and a short placeholder description in English.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/auth/LoginButton.tsx",
+        "frontend/src/components/auth/RequireAdmin.tsx",
+        "frontend/src/components/auth/RequireAuth.tsx",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/layout/Footer.tsx",
+        "frontend/src/components/layout/HeaderNav.tsx",
+        "frontend/src/pages/About.tsx",
+        "frontend/src/pages/Admin.tsx",
+        "frontend/src/pages/BlogLore.tsx",
+        "frontend/src/pages/Contact.tsx",
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/pages/FAQ.tsx",
+        "frontend/src/pages/Homepage.tsx",
+        "frontend/src/pages/Privacy.tsx",
+        "frontend/src/pages/Services.tsx",
+        "frontend/src/pages/Shop.tsx",
+        "frontend/src/pages/Terms.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-phase-1-feature-specification-that-details-every-feature-per-page-including-ui-interactions-like-hover-effects-flip-cards-filters-inventory-syncing-and-clearly-marks-each-item-as-phase-1-skeleton-spec-only-vs-later-implementation-the-spec-must-be-written-in-english-and-organized-by-page",
+      "featureTitle": "Create a Phase 1 feature specification that details every feature per page (including UI interactions like hover effects, flip cards, filters, inventory syncing) and clearly marks each item as Phase 1 (skeleton/spec only) vs. later implementation. The spec must be written in English and organized by page.",
+      "files": [
+        "frontend/docs/phase1-features-by-page.md"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-establish-and-apply-a-consistent-design-direction-across-the-frontend-based-on-a-dark-fantasy-theme-with-parchment-tones-and-subtle-glowing-accents-define-a-small-design-system-color-tokens-typography-choices-spacing-button-hover-states-card-styling-and-apply-it-to-global-layout-components-and-all-page-skeletons",
+      "featureTitle": "Establish and apply a consistent design direction across the frontend based on a dark fantasy theme with parchment tones and subtle glowing accents. Define a small design system (color tokens, typography choices, spacing, button/hover states, card styling) and apply it to global layout components and all page skeletons.",
+      "files": [
+        "frontend/docs/design-direction.md",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/index.css",
+        "frontend/src/pages/Homepage.tsx",
+        "frontend/src/pages/Shop.tsx",
+        "frontend/tailwind.config.js"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-define-and-implement-a-local-storage-strategy-for-the-frontend-covering-recently-viewed-items-offline-edits-drafts-and-session-state-provide-a-small-centralized-utility-layer-and-or-react-hooks-to-read-write-these-keys-safely-version-the-stored-data-and-clear-expire-data-when-appropriate-document-what-is-stored-retention-expiry-rules-and-how-it-will-be-used-later",
+      "featureTitle": "Define and implement a local storage strategy for the frontend covering: recently viewed items, offline edits (drafts), and session state. Provide a small, centralized utility layer (and/or React hooks) to read/write these keys safely, version the stored data, and clear/expire data when appropriate. Document what is stored, retention/expiry rules, and how it will be used later.",
+      "files": [
+        "frontend/docs/local-storage-strategy.md",
+        "frontend/src/components/auth/LoginButton.tsx",
+        "frontend/src/hooks/useOfflineDrafts.ts",
+        "frontend/src/hooks/useRecentlyViewed.ts",
+        "frontend/src/hooks/useSessionState.ts",
+        "frontend/src/lib/localStorage.ts",
+        "frontend/src/pages/Shop.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-generated-static-visual-assets-that-match-the-chosen-dark-fantasy-parchment-glowing-accent-theme-and-integrate-them-into-the-global-ui-e-g-background-texture-and-a-simple-emblem-assets-must-be-stored-as-static-files-and-referenced-directly-by-the-frontend-not-served-through-the-backend",
+      "featureTitle": "Add generated static visual assets that match the chosen dark fantasy parchment + glowing accent theme and integrate them into the global UI (e.g., background texture and a simple emblem). Assets must be stored as static files and referenced directly by the frontend (not served through the backend).",
+      "files": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/layout/HeaderNav.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

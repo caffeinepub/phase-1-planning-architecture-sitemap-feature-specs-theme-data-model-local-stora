@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Phase 1 planning & architecture for a dark-fantasy themed web app/site: define sitemap/pages, per-page features, design direction, Supabase data architecture, and local storage/caching strategy.",
+  "architectural_notes": [
+    "Planned pages include: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal pages.",
+    "Design direction target: dark fantasy aesthetic with parchment tones and glowing accents.",
+    "Backend/data layer planned around Supabase with core tables such as Users, Inventory, Products, Orders, Saved Artifacts.",
+    "Local storage to cache items like recently viewed content, offline edits, and session state."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Parchment texture background with subtle dark fantasy wear, warm sepia tones, faint vignette (parchment-bg.dim_1920x1080.png)\n- Arcane circular sigil emblem, minimal line-art with soft golden glow on transparent background (arcane-sigil.dim_512x512.png)",
+  "existing_features": [
+    {
+      "id": "feature-create-a-phase-1-planning-document-that-defines-the-full-site-map-page-list-and-navigation-structure-for-homepage-about-services-shop-dashboard-contact-blog-lore-faq-admin-and-legal-pages-terms-privacy-include-a-concise-description-of-the-purpose-of-each-page-and-any-key-sub-sections-e-g-shop-list-filters-product-detail-legal-terms-privacy",
+      "title": "Create a Phase 1 planning document that defines the full site map/page list and navigation structure for: Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal pages (Terms + Privacy). Include a concise description of the purpose of each page and any key sub-sections (e.g., Shop: list, filters, product detail; Legal: Terms, Privacy).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-frontend-route-page-skeleton-for-each-planned-page-homepage-about-services-shop-dashboard-contact-blog-lore-faq-admin-terms-privacy-with-basic-layouts-and-placeholder-sections-that-match-the-phase-1-sitemap-each-page-must-render-a-clear-page-title-and-a-short-placeholder-description-in-english",
+      "title": "Implement a frontend route/page skeleton for each planned page (Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Terms, Privacy) with basic layouts and placeholder sections that match the Phase 1 sitemap. Each page must render a clear page title and a short placeholder description in English.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-phase-1-feature-specification-that-details-every-feature-per-page-including-ui-interactions-like-hover-effects-flip-cards-filters-inventory-syncing-and-clearly-marks-each-item-as-phase-1-skeleton-spec-only-vs-later-implementation-the-spec-must-be-written-in-english-and-organized-by-page",
+      "title": "Create a Phase 1 feature specification that details every feature per page (including UI interactions like hover effects, flip cards, filters, inventory syncing) and clearly marks each item as Phase 1 (skeleton/spec only) vs. later implementation. The spec must be written in English and organized by page.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-establish-and-apply-a-consistent-design-direction-across-the-frontend-based-on-a-dark-fantasy-theme-with-parchment-tones-and-subtle-glowing-accents-define-a-small-design-system-color-tokens-typography-choices-spacing-button-hover-states-card-styling-and-apply-it-to-global-layout-components-and-all-page-skeletons",
+      "title": "Establish and apply a consistent design direction across the frontend based on a dark fantasy theme with parchment tones and subtle glowing accents. Define a small design system (color tokens, typography choices, spacing, button/hover states, card styling) and apply it to global layout components and all page skeletons.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-define-and-implement-a-local-storage-strategy-for-the-frontend-covering-recently-viewed-items-offline-edits-drafts-and-session-state-provide-a-small-centralized-utility-layer-and-or-react-hooks-to-read-write-these-keys-safely-version-the-stored-data-and-clear-expire-data-when-appropriate-document-what-is-stored-retention-expiry-rules-and-how-it-will-be-used-later",
+      "title": "Define and implement a local storage strategy for the frontend covering: recently viewed items, offline edits (drafts), and session state. Provide a small, centralized utility layer (and/or React hooks) to read/write these keys safely, version the stored data, and clear/expire data when appropriate. Document what is stored, retention/expiry rules, and how it will be used later.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-generated-static-visual-assets-that-match-the-chosen-dark-fantasy-parchment-glowing-accent-theme-and-integrate-them-into-the-global-ui-e-g-background-texture-and-a-simple-emblem-assets-must-be-stored-as-static-files-and-referenced-directly-by-the-frontend-not-served-through-the-backend",
+      "title": "Add generated static visual assets that match the chosen dark fantasy parchment + glowing accent theme and integrate them into the global UI (e.g., background texture and a simple emblem). Assets must be stored as static files and referenced directly by the frontend (not served through the backend).",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Create full site map & page list (Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, Legal)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Define detailed feature list per page (e.g., hover effects, flip cards, filters, inventory syncing)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Decide design direction (colors, fonts, dark fantasy theme with parchment tones and glowing accents)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Plan Supabase data architecture/tables (Users, Inventory, Products, Orders, Saved Artifacts, etc.)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Define local storage/caching strategy (recently viewed, offline edits, session state)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Produce a Phase 1 data architecture plan that maps the requested “Supabase tables” concept (Users, Inventory, Products, Orders, Saved Artifacts, etc.) into Internet Computer canister-backed data models. Define the entities, key fields, identifiers, and relationships, and specify which fields must be stable/persisted. Implement corresponding Motoko type definitions and placeholder storage structures in the single main actor to reflect this plan (no external DB integration).",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Phase 1: Planning & Architecture (Sitemap, Feature Specs, Theme, Data Model, Local Storage)",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

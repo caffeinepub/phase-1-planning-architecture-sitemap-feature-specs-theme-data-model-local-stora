@@ -1,2 +1,3 @@
-# phase-1-planning-architecture-sitemap-feature-specs-theme-data-model-local-stora
-Exported from Caffeine project: Phase 1: Planning &amp; Architecture (Sitemap, Feature Specs, Theme, Data Model, Local Storage)
+## Phase 1: Planning &amp; Architecture (Sitemap, Feature Specs, Theme, Data Model, Local Storage)
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

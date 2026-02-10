@@ -1,0 +1,261 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Phase 1 Frontend Scaffold: Sitemap Docs, Routes, Theme, Local Storage, Static Assets",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Create a Phase 1 planning document describing the sitemap/page list, navigation structure, and access levels (public vs authenticated vs admin-only).",
+      "acceptanceCriteria": [
+        "A repository doc exists (e.g., /docs/phase1-planning.md) containing a clearly labeled sitemap/page list covering all pages the user listed",
+        "The document includes intended navigation (top nav/footer links) and notes which pages are public vs. authenticated vs. admin-only (if applicable)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/docs/phase1-planning.md",
+          "operation": "create",
+          "description": "Add Phase 1 planning doc with a clearly labeled sitemap/page list for Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin, and Legal (Terms + Privacy); include intended top-nav/footer navigation and identify access levels (public/authenticated/admin-only)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Implement route/page skeletons for all planned pages with consistent layout, titles, placeholder copy, and global navigation (including footer links to Terms/Privacy).",
+      "acceptanceCriteria": [
+        "All listed pages are reachable in the UI via navigation links",
+        "Each page renders without runtime errors and shows at minimum: page title + placeholder copy in English",
+        "Legal pages are split into Terms and Privacy and are reachable from the footer (or equivalent global navigation)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/package.json",
+          "operation": "modify",
+          "description": "Ensure the frontend has a routing library available (e.g., react-router) to support multi-page navigation for all required pages."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "create",
+          "description": "Create the root App component that wires the router and renders the global layout shell (header/nav + main content + footer). Use shadcn-ui components (e.g., Button, Card, Separator, NavigationMenu where appropriate) for consistent skeleton UI; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "create",
+          "description": "Add a shared layout component that applies the global themed container, renders the header/nav and footer, and provides a consistent content area for all page skeletons."
+        },
+        {
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "operation": "create",
+          "description": "Implement top navigation links for Homepage, About, Services, Shop, Dashboard, Contact, Blog/Lore, FAQ, Admin (Admin/Dashboard can be shown conditionally if authenticated/admin). Use shadcn-ui navigation primitives/buttons for a consistent skeleton; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/layout/Footer.tsx",
+          "operation": "create",
+          "description": "Implement footer navigation that includes Legal links for Terms and Privacy, plus any secondary navigation consistent with the sitemap."
+        },
+        {
+          "path": "frontend/src/components/auth/RequireAuth.tsx",
+          "operation": "create",
+          "description": "Add a simple authenticated guard wrapper for pages like Dashboard (and any other authenticated-only pages). Use the selected authorization component guidance (Internet Identity state via existing hooks) and show a friendly access-denied/please-login message when unauthenticated; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/RequireAdmin.tsx",
+          "operation": "create",
+          "description": "Add an admin-only guard wrapper for the Admin page using the selected authorization component guidance (role-based access). Render an access denied screen/message when not authorized; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/LoginButton.tsx",
+          "operation": "create",
+          "description": "Add a login/logout button for the header using the selected authorization component guidance (Internet Identity). On logout, clear cached app data (React Query cache) and coordinate with the local-storage strategy to clear session-state keys; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Homepage.tsx",
+          "operation": "create",
+          "description": "Create Homepage skeleton with clear page title and short placeholder description in English; include placeholder sub-sections aligned to the planning doc."
+        },
+        {
+          "path": "frontend/src/pages/About.tsx",
+          "operation": "create",
+          "description": "Create About page skeleton with clear page title and short placeholder description in English."
+        },
+        {
+          "path": "frontend/src/pages/Services.tsx",
+          "operation": "create",
+          "description": "Create Services page skeleton with clear page title and short placeholder description in English."
+        },
+        {
+          "path": "frontend/src/pages/Shop.tsx",
+          "operation": "create",
+          "description": "Create Shop page skeleton with clear page title and short placeholder description in English; include placeholder sections for list, filters, and product detail preview region (skeleton only)."
+        },
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "create",
+          "description": "Create Dashboard page skeleton with clear page title and short placeholder description in English; wrap in RequireAuth to reflect authenticated-only access intent."
+        },
+        {
+          "path": "frontend/src/pages/Contact.tsx",
+          "operation": "create",
+          "description": "Create Contact page skeleton with clear page title and short placeholder description in English; include placeholder contact form section (non-functional)."
+        },
+        {
+          "path": "frontend/src/pages/BlogLore.tsx",
+          "operation": "create",
+          "description": "Create Blog/Lore page skeleton with clear page title and short placeholder description in English; include placeholder sections for posts/lore entries."
+        },
+        {
+          "path": "frontend/src/pages/FAQ.tsx",
+          "operation": "create",
+          "description": "Create FAQ page skeleton with clear page title and short placeholder description in English; include placeholder accordion/list sections."
+        },
+        {
+          "path": "frontend/src/pages/Admin.tsx",
+          "operation": "create",
+          "description": "Create Admin page skeleton with clear page title and short placeholder description in English; wrap in RequireAdmin to reflect admin-only access intent."
+        },
+        {
+          "path": "frontend/src/pages/Terms.tsx",
+          "operation": "create",
+          "description": "Create Terms page skeleton with clear page title and short placeholder description in English."
+        },
+        {
+          "path": "frontend/src/pages/Privacy.tsx",
+          "operation": "create",
+          "description": "Create Privacy page skeleton with clear page title and short placeholder description in English."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Create a Phase 1 feature specification document organized by page, tagging items as Phase 1 vs later and explicitly including the provided examples.",
+      "acceptanceCriteria": [
+        "A repository doc exists (e.g., /docs/phase1-features-by-page.md) with a per-page feature list for every page in the sitemap",
+        "Features explicitly mention the examples provided (hover effects, flip cards, filters, inventory syncing) in the relevant sections",
+        "Each feature item is tagged with a phase/status (e.g., Phase 1: placeholder/spec, Phase 2+: build) so scope is unambiguous"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/docs/phase1-features-by-page.md",
+          "operation": "create",
+          "description": "Add an English feature spec organized by page covering all sitemap pages; explicitly include hover effects, flip cards, filters, and inventory syncing in relevant sections; tag each feature as Phase 1 (skeleton/spec only) vs later implementation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Define and apply a dark fantasy design system (parchment tones + subtle glow accents) across the global layout and all page skeletons.",
+      "acceptanceCriteria": [
+        "A short design spec exists (can be in the Phase 1 planning doc or a dedicated /docs/design-direction.md) describing colors, fonts, and interaction styling",
+        "All page skeletons use a consistent theme (background, typography, card styles, hover states) aligned with the dark fantasy/parchment/glow direction",
+        "No default/unstyled pages remain (i.e., theme is visibly applied across the app)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/docs/design-direction.md",
+          "operation": "create",
+          "description": "Create a short design-direction spec documenting the dark fantasy theme: parchment-toned surfaces, dark background, glowing accents, typography choices, spacing scale, button/hover states, and card styling."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "create",
+          "description": "Define global CSS variables/tokens and base styles to implement the dark fantasy/parchment/glow design system (backgrounds, text, links, focus/hover states) and ensure consistent styling across all pages."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Extend Tailwind theme tokens (colors/shadows/typography as needed) to support the parchment + glow design direction in a consistent, reusable way."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Apply the design system in the shared layout (background, container, typography defaults, card styling, hover/focus states) so no page remains unstyled."
+        },
+        {
+          "path": "frontend/src/pages/Homepage.tsx",
+          "operation": "modify",
+          "description": "Ensure the Homepage skeleton uses the shared design system styling (themed sections/cards/hover states) consistent with the rest of the app."
+        },
+        {
+          "path": "frontend/src/pages/Shop.tsx",
+          "operation": "modify",
+          "description": "Ensure the Shop skeleton uses themed cards and placeholder interactive states (e.g., hover affordances for items/filters) to match the design direction."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Implement a centralized, versioned local storage strategy (recently viewed, offline drafts, session state) with docs and a small demo on a page skeleton.",
+      "acceptanceCriteria": [
+        "A doc section exists describing what is stored locally (recently viewed, offline drafts, session state), including key names and retention rules",
+        "Frontend includes a reusable local-storage utility (or hooks) that can set/get/remove versioned entries and handles JSON parse failures gracefully",
+        "At least one page skeleton (e.g., Shop) demonstrates writing/reading a ‘recently viewed’ placeholder entry to validate the approach (without needing real backend data)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/docs/local-storage-strategy.md",
+          "operation": "create",
+          "description": "Document local storage strategy in English: key names for recently viewed items, offline drafts, and session state; schema/versioning approach; retention/expiry rules; and when data is cleared (e.g., on logout)."
+        },
+        {
+          "path": "frontend/src/lib/localStorage.ts",
+          "operation": "create",
+          "description": "Add a centralized utility for versioned local storage reads/writes/removals with safe JSON parsing (graceful fallback on parse failures), optional expiry handling, and a helper to clear session-scoped keys."
+        },
+        {
+          "path": "frontend/src/hooks/useRecentlyViewed.ts",
+          "operation": "create",
+          "description": "Create a small hook that uses the localStorage utility to manage a 'recently viewed' list (placeholder IDs/objects), including max length and expiry/retention behavior."
+        },
+        {
+          "path": "frontend/src/hooks/useOfflineDrafts.ts",
+          "operation": "create",
+          "description": "Create a hook to store/retrieve 'offline edits (drafts)' in local storage using the versioned utility (skeleton only, no real editor required)."
+        },
+        {
+          "path": "frontend/src/hooks/useSessionState.ts",
+          "operation": "create",
+          "description": "Create a hook to store/retrieve lightweight session state (e.g., last visited page, UI preferences) using the versioned utility, with explicit clear-on-logout integration points."
+        },
+        {
+          "path": "frontend/src/components/auth/LoginButton.tsx",
+          "operation": "modify",
+          "description": "On logout, clear frontend cached data and call the local-storage utility clear routine for session-state keys. Use the selected authorization component guidance for logout flow; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Shop.tsx",
+          "operation": "modify",
+          "description": "Demonstrate the local storage approach by writing/reading a 'recently viewed' placeholder entry from the Shop skeleton (e.g., simulate selecting a product card and render a small 'Recently viewed' placeholder list)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Add generated static theme assets (parchment background + arcane sigil emblem) and integrate them into the global UI with graceful fallbacks.",
+      "acceptanceCriteria": [
+        "Generated images exist under frontend/public/assets/generated and are referenced by the app theme (e.g., background image on main layout, emblem in header/footer)",
+        "The app still loads and renders correctly if images fail to load (graceful fallback colors)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/parchment-bg.dim_1920x1080.png",
+          "operation": "create",
+          "description": "Add the generated parchment background asset as a static file at frontend/public/assets/generated/parchment-bg.dim_1920x1080.png."
+        },
+        {
+          "path": "frontend/public/assets/generated/arcane-sigil.dim_512x512.png",
+          "operation": "create",
+          "description": "Add the generated arcane sigil emblem asset as a static file at frontend/public/assets/generated/arcane-sigil.dim_512x512.png."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Reference frontend/public/assets/generated/parchment-bg.dim_1920x1080.png as the app background in the global layout while providing fallback solid colors if the image fails to load."
+        },
+        {
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "operation": "modify",
+          "description": "Integrate the emblem frontend/public/assets/generated/arcane-sigil.dim_512x512.png into the header (and/or footer) with accessible alt text and a graceful fallback if the image fails to load."
+        }
+      ]
+    }
+  ]
+}
