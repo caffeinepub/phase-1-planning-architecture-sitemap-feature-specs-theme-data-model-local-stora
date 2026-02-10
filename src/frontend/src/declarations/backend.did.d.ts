@@ -10,13 +10,18 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface CartItem { 'productId' : bigint, 'quantity' : bigint }
-export interface Coupon {
-  'id' : bigint,
-  'valid' : boolean,
-  'code' : string,
-  'discount' : bigint,
+export interface AdminCredentials {
+  'principal' : Principal,
+  'passwordHash' : string,
 }
+export interface AdminRole { 'principal' : Principal, 'isOwner' : boolean }
+export interface AnalyticsSnapshot {
+  'totalOrders' : bigint,
+  'totalUsers' : bigint,
+  'totalRevenue' : bigint,
+  'activeProducts' : bigint,
+}
+export interface CartItem { 'productId' : bigint, 'quantity' : bigint }
 export interface CouponValidationResult {
   'valid' : boolean,
   'message' : string,
@@ -41,20 +46,6 @@ export interface Feature {
   'phase' : { 'later' : null } |
     { 'phase1' : null },
 }
-export interface Feedback {
-  'id' : bigint,
-  'status' : Status,
-  'userId' : Principal,
-  'message' : string,
-}
-export interface GuildOrder {
-  'id' : bigint,
-  'status' : string,
-  'reward' : bigint,
-  'title' : string,
-  'assignedTo' : [] | [Principal],
-  'description' : string,
-}
 export interface HealthStatus {
   'status' : string,
   'environment' : string,
@@ -70,25 +61,12 @@ export interface Order {
   'appliedCouponCode' : [] | [string],
 }
 export interface PageFeatures { 'features' : Array<Feature>, 'page' : string }
-export interface Portfolio {
-  'id' : bigint,
-  'title' : string,
-  'description' : string,
-  'artworks' : Array<bigint>,
-  'category' : PortfolioCategory,
-}
-export type PortfolioCategory = { 'illustration' : null } |
-  { 'other' : string } |
-  { 'digitalArt' : null } |
-  { 'painting' : null } |
-  { 'sculpture' : null } |
-  { 'typography' : null } |
-  { 'photography' : null };
 export interface Product {
   'id' : bigint,
   'isInStock' : boolean,
   'name' : string,
   'description' : string,
+  'priceOverride' : [] | [bigint],
   'availability' : { 'dropOff' : null } |
     { 'pickup' : null } |
     { 'delivery' : null },
@@ -96,21 +74,12 @@ export interface Product {
   'shortDescription' : string,
   'image' : ExternalBlob,
   'price' : bigint,
+  'visibility' : ProductVisibility,
 }
-export interface SavedArtifact { 'userId' : Principal, 'productId' : bigint }
-export type Status = { 'open' : null } |
-  { 'completed' : { 'admin' : Principal, 'response' : string } } |
-  { 'reviewed' : { 'admin' : Principal, 'response' : [] | [string] } };
-export interface Testimony {
-  'id' : bigint,
-  'content' : string,
-  'video' : [] | [ExternalBlob],
-  'author' : string,
-  'approved' : boolean,
-  'rating' : [] | [bigint],
-  'photo' : [] | [ExternalBlob],
-}
-export interface User { 'id' : bigint, 'name' : string, 'email' : string }
+export type ProductVisibility = { 'hidden' : null } |
+  { 'outOfStock' : null } |
+  { 'visible' : null };
+export interface StoreConfig { 'isActive' : boolean, 'enableCoupons' : boolean }
 export interface UserProfile { 'name' : string, 'email' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -146,116 +115,53 @@ export interface _SERVICE {
   'addToCart' : ActorMethod<[bigint, bigint], undefined>,
   'assignAdminRole' : ActorMethod<[Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'assignGuildOrder' : ActorMethod<[bigint, Principal], undefined>,
-  'checkoutCart' : ActorMethod<[[] | [string]], bigint>,
-  'completeFeedback' : ActorMethod<[bigint, Principal, string], undefined>,
-  'createCoupon' : ActorMethod<[string, bigint, boolean], bigint>,
-  'createFeedback' : ActorMethod<[Principal, string], bigint>,
-  'createGuildOrder' : ActorMethod<[string, string, bigint], bigint>,
-  'createOrder' : ActorMethod<[Array<bigint>, bigint, [] | [string]], bigint>,
-  'createPortfolio' : ActorMethod<
-    [string, string, Array<bigint>, PortfolioCategory],
-    bigint
-  >,
-  'createProduct' : ActorMethod<
-    [
-      string,
-      string,
-      bigint,
-      bigint,
-      ExternalBlob,
-      boolean,
-      { 'dropOff' : null } |
-        { 'pickup' : null } |
-        { 'delivery' : null },
-      string,
-    ],
-    bigint
-  >,
-  'createTestimony' : ActorMethod<
-    [string, string, [] | [bigint], [] | [ExternalBlob], [] | [ExternalBlob]],
-    bigint
-  >,
-  'createUser' : ActorMethod<[string, string], bigint>,
-  'editProduct' : ActorMethod<
-    [
-      bigint,
-      string,
-      string,
-      bigint,
-      ExternalBlob,
-      boolean,
-      { 'dropOff' : null } |
-        { 'pickup' : null } |
-        { 'delivery' : null },
-      string,
-    ],
-    undefined
-  >,
-  'getAllApprovedTestimonies' : ActorMethod<[], Array<Testimony>>,
-  'getAllCoupons' : ActorMethod<[], Array<Coupon>>,
-  'getAllFeedback' : ActorMethod<[], Array<Feedback>>,
-  'getAllGuildOrders' : ActorMethod<[], Array<GuildOrder>>,
-  'getAllOrders' : ActorMethod<[], Array<Order>>,
-  'getAllPortfolios' : ActorMethod<[], Array<Portfolio>>,
-  'getAllProducts' : ActorMethod<[], Array<Product>>,
-  'getAllTestimonies' : ActorMethod<[], Array<Testimony>>,
+  'clearCallerCart' : ActorMethod<[], undefined>,
+  'clearProductPriceOverride' : ActorMethod<[bigint], undefined>,
+  'createCoupon' : ActorMethod<[string, bigint], bigint>,
+  'createOrder' : ActorMethod<[Array<bigint>, [] | [string]], bigint>,
+  'createProduct' : ActorMethod<[Product], bigint>,
+  'demoteAdmin' : ActorMethod<[Principal], undefined>,
+  'getAdminCredentials' : ActorMethod<[Principal], [] | [AdminCredentials]>,
+  'getAnalyticsSnapshot' : ActorMethod<[], AnalyticsSnapshot>,
+  'getCallerCart' : ActorMethod<[], Array<CartItem>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getCart' : ActorMethod<[], Array<CartItem>>,
-  'getCategoryName' : ActorMethod<[PortfolioCategory], string>,
+  'getCart' : ActorMethod<[Principal], Array<CartItem>>,
+  'getCouponsActiveState' : ActorMethod<[], boolean>,
+  'getEffectiveProductPrice' : ActorMethod<[bigint], bigint>,
   'getEvents' : ActorMethod<[], Array<Event>>,
+  'getExpandedProductById' : ActorMethod<[bigint], ExpandedProduct>,
   'getFeatureSpecification' : ActorMethod<[], Array<PageFeatures>>,
-  'getFilteredShopProducts' : ActorMethod<
-    [Array<[string, string]>],
-    Array<ExpandedProduct>
-  >,
-  'getGuildOrder' : ActorMethod<[bigint], GuildOrder>,
-  'getMyOrders' : ActorMethod<[], Array<Order>>,
-  'getMySavedArtifacts' : ActorMethod<[], Array<SavedArtifact>>,
   'getOrder' : ActorMethod<[bigint], Order>,
-  'getPortfolioById' : ActorMethod<[bigint], [] | [Portfolio]>,
-  'getPortfolioCategories' : ActorMethod<[], Array<PortfolioCategory>>,
-  'getPortfoliosByCategory' : ActorMethod<
-    [PortfolioCategory],
-    Array<Portfolio>
-  >,
-  'getProduct' : ActorMethod<[bigint], Product>,
-  'getProductsByType' : ActorMethod<[string], Array<ExpandedProduct>>,
-  'getSavedArtifacts' : ActorMethod<[Principal], Array<SavedArtifact>>,
-  'getTestimoniesByRating' : ActorMethod<[bigint], Array<Testimony>>,
-  'getUser' : ActorMethod<[bigint], User>,
+  'getProductById' : ActorMethod<[bigint], Product>,
+  'getShopActiveState' : ActorMethod<[], boolean>,
+  'getStoreConfig' : ActorMethod<[], StoreConfig>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'healthCheck' : ActorMethod<[], HealthStatus>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isCallerOwner' : ActorMethod<[], boolean>,
+  'listAdmins' : ActorMethod<[], Array<AdminRole>>,
+  'listAllOrders' : ActorMethod<[], Array<Order>>,
+  'listAllProducts' : ActorMethod<[], Array<Product>>,
+  'listCallerOrders' : ActorMethod<[], Array<Order>>,
+  'listExpandedProducts' : ActorMethod<[], Array<ExpandedProduct>>,
+  'listExpiredProducts' : ActorMethod<[Principal], Array<ExpandedProduct>>,
+  'listProducts' : ActorMethod<[], Array<Product>>,
   'logEvent' : ActorMethod<[string, string], undefined>,
+  'overrideProductPrice' : ActorMethod<[bigint, bigint], undefined>,
+  'promoteAdmin' : ActorMethod<[Principal], undefined>,
   'removeAdminRole' : ActorMethod<[Principal], undefined>,
   'removeFromCart' : ActorMethod<[bigint], undefined>,
-  'removeSavedArtifact' : ActorMethod<[bigint], undefined>,
-  'removeTestimony' : ActorMethod<[bigint], undefined>,
-  'reviewFeedback' : ActorMethod<[bigint, Principal, string], undefined>,
-  'saveArtifact' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'updateCoupon' : ActorMethod<[bigint, string, bigint, boolean], undefined>,
-  'updateGuildOrderStatus' : ActorMethod<[bigint, string], undefined>,
-  'updatePortfolio' : ActorMethod<
-    [bigint, string, string, Array<bigint>, PortfolioCategory],
-    undefined
-  >,
-  'updateProductStock' : ActorMethod<[bigint, bigint], undefined>,
-  'updateTestimony' : ActorMethod<
-    [
-      bigint,
-      string,
-      string,
-      boolean,
-      [] | [bigint],
-      [] | [ExternalBlob],
-      [] | [ExternalBlob],
-    ],
-    undefined
-  >,
+  'setAdminPassword' : ActorMethod<[Principal, string], undefined>,
+  'setCouponsActiveState' : ActorMethod<[boolean], undefined>,
+  'setOwner' : ActorMethod<[Principal], undefined>,
+  'setProductVisibility' : ActorMethod<[bigint, ProductVisibility], undefined>,
+  'setShopActiveState' : ActorMethod<[boolean], undefined>,
+  'transferOwnership' : ActorMethod<[Principal], undefined>,
+  'updateCoupon' : ActorMethod<[bigint, boolean], undefined>,
+  'updateExpandedProduct' : ActorMethod<[bigint, ExpandedProduct], undefined>,
+  'updateProduct' : ActorMethod<[bigint, Product], undefined>,
   'validateCoupon' : ActorMethod<[string], CouponValidationResult>,
 }
 export declare const idlService: IDL.ServiceClass;

@@ -5,17 +5,53 @@ import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-import Migration "migration";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
 (with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
   include MixinStorage();
+
+  // Persistent stores using var Maps for dynamic allocation
+  var users = Map.empty<Nat, User>();
+  var products = Map.empty<Nat, Product>();
+  var orders = Map.empty<Nat, Order>();
+  var guildOrders = Map.empty<Nat, GuildOrder>();
+  var savedArtifacts = Map.empty<Principal, [SavedArtifact]>();
+  var userProfiles = Map.empty<Principal, UserProfile>();
+  var userCarts = Map.empty<Principal, [CartItem]>();
+  var feedbackStore = Map.empty<Nat, Feedback>();
+  var portfolios = Map.empty<Nat, Portfolio>();
+  var testimonies = Map.empty<Nat, Testimony>();
+  var coupons = Map.empty<Nat, Coupon>();
+  var quoteRequests = Map.empty<Nat, QuoteRequest>();
+  var expandedProducts = Map.empty<Nat, ExpandedProduct>();
+  var adminRegistry = Map.empty<Principal, AdminRole>();
+  var adminCredentials = Map.empty<Principal, AdminCredentials>();
+
+  // Legacy persistent variables (should eventually migrate to persistent stores)
+  var nextUserId = 1;
+  var nextProductId = 1;
+  var nextOrderId = 1;
+  var nextGuildOrderId = 1;
+  var nextFeedbackId = 1;
+  var nextPortfolioId = 1;
+  var nextTestimonyId = 1;
+  var nextCouponId = 1;
+  var nextQuoteRequestId = 1;
+  var nextExpandedProductId = 1;
+
+  var ownerPrincipal : ?Principal = null;
+  var storeConfig : StoreConfig = {
+    isActive = true;
+    enableCoupons = true;
+  };
 
   // Health Checks
   public type HealthStatus = {
@@ -53,7 +89,7 @@ actor {
       Runtime.trap("Authorization Failed: Only admins can log admin-level events.");
     };
 
-    let validLevels = ["info", "warning", "error"];
+    let validLevels = ["info", "warning", "error", "admin"];
     if (not validLevels.any(func(lvl) { lvl == level })) {
       Runtime.trap("Invalid event level: " # level);
     };
@@ -71,6 +107,9 @@ actor {
   };
 
   public query ({ caller }) func getEvents() : async [Event] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view events");
+    };
     events.values().toArray();
   };
 
@@ -138,6 +177,12 @@ actor {
     email : Text;
   };
 
+  public type ProductVisibility = {
+    #visible;
+    #hidden;
+    #outOfStock;
+  };
+
   public type Product = {
     id : Nat;
     name : Text;
@@ -148,6 +193,8 @@ actor {
     isInStock : Bool;
     availability : { #delivery; #pickup; #dropOff };
     shortDescription : Text;
+    visibility : ProductVisibility;
+    priceOverride : ?Nat;
   };
 
   public type Order = {
@@ -257,55 +304,19 @@ actor {
     viewCount : Nat;
   };
 
-  ////////////////////////////
-  // Persistent Storage    //
-  ////////////////////////////
-
-  var users = Map.empty<Nat, User>();
-  var products = Map.empty<Nat, Product>();
-  var orders = Map.empty<Nat, Order>();
-  var guildOrders = Map.empty<Nat, GuildOrder>();
-  var savedArtifacts = Map.empty<Principal, [SavedArtifact]>();
-  var userProfiles = Map.empty<Principal, UserProfile>();
-  var userCarts = Map.empty<Principal, [CartItem]>();
-  var feedbackStore = Map.empty<Nat, Feedback>();
-  var portfolios = Map.empty<Nat, Portfolio>();
-  var testimonies = Map.empty<Nat, Testimony>();
-  var coupons = Map.empty<Nat, Coupon>();
-  var quoteRequests = Map.empty<Nat, QuoteRequest>();
-  var expandedProducts = Map.empty<Nat, ExpandedProduct>();
-
-  var nextUserId = 1;
-  var nextProductId = 1;
-  var nextOrderId = 1;
-  var nextGuildOrderId = 1;
-  var nextFeedbackId = 1;
-  var nextPortfolioId = 1;
-  var nextTestimonyId = 1;
-  var nextCouponId = 1;
-  var nextQuoteRequestId = 1;
-  var nextExpandedProductId = 1;
-
-  ////////////////////////////////////////////////////
-  // Role Management
-  ////////////////////////////////////////////////////
-
-  public shared ({ caller }) func assignAdminRole(user : Principal) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can assign admin role");
-    };
-    AccessControl.assignRole(accessControlState, caller, user, #admin);
+  public type AdminRole = {
+    principal : Principal;
+    isOwner : Bool;
   };
 
-  public shared ({ caller }) func removeAdminRole(user : Principal) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can remove admin role");
-    };
-    AccessControl.assignRole(accessControlState, caller, user, #user);
+  public type StoreConfig = {
+    isActive : Bool;
+    enableCoupons : Bool;
   };
 
-  public query ({ caller }) func isCallerOwner() : async Bool {
-    AccessControl.getUserRole(accessControlState, caller) == #admin;
+  public type AdminCredentials = {
+    principal : Principal;
+    passwordHash : Text;
   };
 
   ////////////////////////////////////////////////////
@@ -334,478 +345,311 @@ actor {
   };
 
   ////////////////////////////////////////////////////
-  // User Management (Admin Only)
+  // Deprecated Role Management (Retained for compatibility)
   ////////////////////////////////////////////////////
-
-  public query ({ caller }) func getUser(id : Nat) : async User {
+  public shared ({ caller }) func assignAdminRole(user : Principal) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can access user records");
+      Runtime.trap("Unauthorized: Only admins can assign admin role");
     };
-    switch (users.get(id)) {
-      case (?user) { user };
-      case (null) { Runtime.trap("User not found") };
-    };
+    AccessControl.assignRole(accessControlState, caller, user, #admin);
   };
 
-  public shared ({ caller }) func createUser(name : Text, email : Text) : async Nat {
+  public shared ({ caller }) func removeAdminRole(user : Principal) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create users");
+      Runtime.trap("Unauthorized: Only admins can remove admin role");
     };
-    let userId = nextUserId;
-    nextUserId += 1;
-    let user : User = {
-      id = userId;
-      name = name;
-      email = email;
-    };
-    users.add(userId, user);
-    userId;
+    AccessControl.assignRole(accessControlState, caller, user, #user);
+  };
+
+  public query ({ caller }) func isCallerOwner() : async Bool {
+    isOwner(caller);
   };
 
   ////////////////////////////////////////////////////
-  // Product Management
+  // New Owner and Admin Management System
   ////////////////////////////////////////////////////
 
-  public query func getProduct(id : Nat) : async Product {
-    switch (products.get(id)) {
-      case (?product) { product };
+  public shared ({ caller }) func setOwner(newOwner : Principal) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can set new owner");
+    };
+    ownerPrincipal := ?newOwner;
+    adminRegistry.add(newOwner, { principal = newOwner; isOwner = true });
+  };
+
+  func isOwner(principal : Principal) : Bool {
+    switch (ownerPrincipal) {
+      case (?owner) { owner == principal };
+      case (null) { false };
+    };
+  };
+
+  func isAdminOrOwner(principal : Principal) : Bool {
+    if (isOwner(principal)) {
+      return true;
+    };
+    switch (adminRegistry.get(principal)) {
+      case (?_) { true };
+      case (null) { false };
+    };
+  };
+
+  public shared ({ caller }) func promoteAdmin(newAdmin : Principal) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can promote admin");
+    };
+    adminRegistry.add(newAdmin, { principal = newAdmin; isOwner = false });
+  };
+
+  public shared ({ caller }) func demoteAdmin(admin : Principal) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can demote admin");
+    };
+    if (isOwner(admin)) {
+      Runtime.trap("Cannot demote owner");
+    };
+    adminRegistry.remove(admin);
+  };
+
+  public shared ({ caller }) func transferOwnership(newOwner : Principal) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can transfer ownership");
+    };
+    ownerPrincipal := ?newOwner;
+    adminRegistry.add(newOwner, { principal = newOwner; isOwner = true });
+  };
+
+  public query ({ caller }) func listAdmins() : async [AdminRole] {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can list admins");
+    };
+    adminRegistry.values().toArray();
+  };
+
+  ////////////////////////////////////////////////////
+  // Admin Password Management (Owner-Only)
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func setAdminPassword(admin : Principal, passwordHash : Text) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can set admin passwords");
+    };
+    if (not isAdminOrOwner(admin)) {
+      Runtime.trap("Target principal is not an admin");
+    };
+    adminCredentials.add(admin, { principal = admin; passwordHash });
+  };
+
+  public query ({ caller }) func getAdminCredentials(admin : Principal) : async ?AdminCredentials {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can view admin credentials");
+    };
+    adminCredentials.get(admin);
+  };
+
+  ////////////////////////////////////////////////////
+  // Publicly Accessible Product Queries (Filtered)
+  ////////////////////////////////////////////////////
+
+  func isProductVisible(product : Product) : Bool {
+    switch (product.visibility) {
+      case (#visible) { true };
+      case (#hidden) { false };
+      case (#outOfStock) { false };
+    };
+  };
+
+  func getEffectivePrice(product : Product) : Nat {
+    switch (product.priceOverride) {
+      case (?override) { override };
+      case (null) { product.price };
+    };
+  };
+
+  public query func listProducts() : async [Product] {
+    let visibleProducts = products.values().filter(isProductVisible);
+    visibleProducts.toArray();
+  };
+
+  public query ({ caller }) func getProductById(productId : Nat) : async Product {
+    switch (products.get(productId)) {
+      case (?product) {
+        if (not isProductVisible(product) and not isAdminOrOwner(caller)) {
+          Runtime.trap("Product not found");
+        };
+        product;
+      };
       case (null) { Runtime.trap("Product not found") };
     };
   };
 
-  public query func getAllProducts() : async [Product] {
+  public query ({ caller }) func getExpandedProductById(productId : Nat) : async ExpandedProduct {
+    switch (expandedProducts.get(productId)) {
+      case (?product) { product };
+      case (null) { Runtime.trap("Expanded Product not found") };
+    };
+  };
+
+  public query ({ caller }) func listExpandedProducts() : async [ExpandedProduct] {
+    expandedProducts.values().toArray();
+  };
+
+  public query ({ caller }) func listAllProducts() : async [Product] {
+    if (not isAdminOrOwner(caller)) {
+      Runtime.trap("Unauthorized: Only admins can view all products");
+    };
     products.values().toArray();
   };
 
-  public query ({ caller }) func getProductsByType(productType : Text) : async [ExpandedProduct] {
-    let typeIter = expandedProducts.values().filter(
-      func(product) { product.productType == productType }
-    );
-    typeIter.toArray();
+  ////////////////////////////////////////////////////
+  // Store-Only Pricing Management (Owner-Only)
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func overrideProductPrice(productId : Nat, newPrice : Nat) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can override pricing");
+    };
+    switch (products.get(productId)) {
+      case (?product) {
+        let updatedProduct : Product = {
+          product with priceOverride = ?newPrice;
+        };
+        products.add(productId, updatedProduct);
+      };
+      case (null) { Runtime.trap("Product not found") };
+    };
   };
 
-  public shared ({ caller }) func createProduct(
-    name : Text,
-    description : Text,
-    price : Nat,
-    stock : Nat,
-    image : Storage.ExternalBlob,
-    isInStock : Bool,
-    availability : { #delivery; #pickup; #dropOff },
-    shortDescription : Text,
-  ) : async Nat {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create products");
+  public shared ({ caller }) func clearProductPriceOverride(productId : Nat) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can clear price overrides");
+    };
+    switch (products.get(productId)) {
+      case (?product) {
+        let updatedProduct : Product = {
+          product with priceOverride = null;
+        };
+        products.add(productId, updatedProduct);
+      };
+      case (null) { Runtime.trap("Product not found") };
+    };
+  };
+
+  public shared ({ caller }) func setProductVisibility(productId : Nat, visibility : ProductVisibility) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can set product visibility");
+    };
+    switch (products.get(productId)) {
+      case (?product) {
+        let updatedProduct : Product = {
+          product with visibility;
+        };
+        products.add(productId, updatedProduct);
+      };
+      case (null) { Runtime.trap("Product not found") };
+    };
+  };
+
+  ////////////////////////////////////////////////////
+  // Emergency Shop Disable Switch (Owner-Only)
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func setShopActiveState(isActive : Bool) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can change store state");
+    };
+    storeConfig := {
+      storeConfig with isActive;
+    };
+  };
+
+  public query ({ caller }) func getShopActiveState() : async Bool {
+    storeConfig.isActive;
+  };
+
+  public shared ({ caller }) func setCouponsActiveState(enableCoupons : Bool) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can change coupon state");
+    };
+    storeConfig := {
+      storeConfig with enableCoupons;
+    };
+  };
+
+  public query ({ caller }) func getCouponsActiveState() : async Bool {
+    storeConfig.enableCoupons;
+  };
+
+  public query ({ caller }) func getStoreConfig() : async StoreConfig {
+    storeConfig;
+  };
+
+  ////////////////////////////////////////////////////
+  // Shop-Only Product Handling (Owner-Only)
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func updateExpandedProduct(productId : Nat, updates : ExpandedProduct) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can update expanded products");
+    };
+
+    switch (expandedProducts.get(productId)) {
+      case (?currentProduct) {
+        let updatedProduct = updates;
+        expandedProducts.add(productId, updatedProduct);
+      };
+      case (null) { Runtime.trap("Expanded Product not found") };
+    };
+  };
+
+  public shared ({ caller }) func updateProduct(productId : Nat, updates : Product) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can update products");
+    };
+
+    switch (products.get(productId)) {
+      case (?_) {
+        let updatedProduct = updates;
+        products.add(productId, updatedProduct);
+      };
+      case (null) { Runtime.trap("Product not found") };
+    };
+  };
+
+  public shared ({ caller }) func createProduct(product : Product) : async Nat {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can create products");
     };
     let productId = nextProductId;
-    nextProductId += 1;
-    let product : Product = {
-      id = productId;
-      name;
-      description;
-      price;
-      stock;
-      image;
-      isInStock;
-      availability;
-      shortDescription;
+    let newProduct : Product = {
+      product with id = productId;
     };
-    products.add(productId, product);
+    products.add(productId, newProduct);
+    nextProductId += 1;
     productId;
   };
 
-  public shared ({ caller }) func updateProductStock(productId : Nat, newStock : Nat) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update product stock");
+  public query ({ caller }) func listExpiredProducts(caller : Principal) : async [ExpandedProduct] {
+    if (not isAdminOrOwner(caller)) {
+      Runtime.trap("Unauthorized: Only admins can view expired products");
     };
-    switch (products.get(productId)) {
-      case (?product) {
-        let updatedProduct : Product = {
-          id = product.id;
-          name = product.name;
-          description = product.description;
-          price = product.price;
-          stock = newStock;
-          image = product.image;
-          isInStock = product.isInStock;
-          availability = product.availability;
-          shortDescription = product.shortDescription;
-        };
-        products.add(productId, updatedProduct);
+    let expiredProductsIter = expandedProducts.values().filter(func(product) { false });
+    expiredProductsIter.toArray();
+  };
+
+  ////////////////////////////////////////////////////
+  // Coupon Validation (Public with Store Config Check)
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func validateCoupon(code : Text) : async CouponValidationResult {
+    if (not storeConfig.enableCoupons) {
+      return {
+        valid = false;
+        discount = 0;
+        message = "Coupons are currently disabled store-wide";
       };
-      case (null) { Runtime.trap("Product not found") };
-    };
-  };
-
-  public shared ({ caller }) func editProduct(
-    productId : Nat,
-    name : Text,
-    description : Text,
-    price : Nat,
-    image : Storage.ExternalBlob,
-    isInStock : Bool,
-    availability : { #delivery; #pickup; #dropOff },
-    shortDescription : Text,
-  ) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can edit products");
-    };
-    switch (products.get(productId)) {
-      case (?product) {
-        let updatedProduct : Product = {
-          id = product.id;
-          name;
-          description;
-          price;
-          stock = product.stock;
-          image;
-          isInStock;
-          availability;
-          shortDescription;
-        };
-        products.add(productId, updatedProduct);
-      };
-      case (null) { Runtime.trap("Product not found") };
-    };
-  };
-
-  public query ({ caller }) func getFilteredShopProducts(filters : [(Text, Text)]) : async [ExpandedProduct] {
-    let filteredValues = expandedProducts.values().filter(
-      func(product) {
-        filters.all(
-          func(filterPair) {
-            let (key, val) = filterPair;
-            switch (key, val) {
-              case ("productType", val) { product.productType == val };
-              case ("sharable", "true") { product.sharable };
-              case ("sharable", "false") { not product.sharable };
-              case ("viewCount", _) { true };
-              case (_, _) { true };
-            };
-          }
-        );
-      }
-    );
-    filteredValues.toArray();
-  };
-
-  ////////////////////////////////////////////////////
-  // Order Management
-  ////////////////////////////////////////////////////
-
-  public query ({ caller }) func getOrder(id : Nat) : async Order {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access orders");
-    };
-    switch (orders.get(id)) {
-      case (?order) {
-        if (order.userId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
-          Runtime.trap("Unauthorized: Can only view your own orders");
-        };
-        order;
-      };
-      case (null) { Runtime.trap("Order not found") };
-    };
-  };
-
-  public query ({ caller }) func getMyOrders() : async [Order] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access orders");
-    };
-    let myOrdersIter = orders.values().filter(func(order : Order) : Bool { order.userId == caller });
-    myOrdersIter.toArray();
-  };
-
-  public query ({ caller }) func getAllOrders() : async [Order] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view all orders");
-    };
-    orders.values().toArray();
-  };
-
-  public shared ({ caller }) func createOrder(productIds : [Nat], totalAmount : Nat, couponCode : ?Text) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create orders");
     };
 
-    var finalAmount = totalAmount;
-    var discountAmount = 0;
-    var appliedCode : ?Text = null;
-
-    switch (couponCode) {
-      case (?code) {
-        let validation = validateCouponInternal(code);
-        if (validation.valid) {
-          discountAmount := validation.discount;
-          if (finalAmount > discountAmount) {
-            finalAmount -= discountAmount;
-          } else {
-            finalAmount := 0;
-          };
-          appliedCode := ?code;
-        };
-      };
-      case (null) { /* No coupon applied */ };
-    };
-
-    let orderId = nextOrderId;
-    nextOrderId += 1;
-    let order : Order = {
-      id = orderId;
-      userId = caller;
-      productIds;
-      totalAmount = finalAmount;
-      appliedCouponCode = appliedCode;
-      discountAmount;
-    };
-    orders.add(orderId, order);
-    orderId;
-  };
-
-  ////////////////////////////////////////////////////
-  // Expanded Products Public APIs (Category Mapping)
-  ////////////////////////////////////////////////////
-  public query ({ caller }) func getPortfolioCategories() : async [PortfolioCategory] {
-    [
-      #painting,
-      #digitalArt,
-      #sculpture,
-      #photography,
-      #illustration,
-      #typography,
-    ];
-  };
-
-  public query ({ caller }) func getCategoryName(category : PortfolioCategory) : async Text {
-    switch (category) {
-      case (#painting) { "Painting" };
-      case (#digitalArt) { "Digital Art" };
-      case (#sculpture) { "Sculpture" };
-      case (#photography) { "Photography" };
-      case (#illustration) { "Illustration" };
-      case (#typography) { "Typography" };
-      case (#other(description)) { description };
-    };
-  };
-
-  ////////////////////////////////////////////////////
-  // Public Portfolio Methods (Portfolio Page)
-  ////////////////////////////////////////////////////
-  public query ({ caller }) func getAllPortfolios() : async [Portfolio] {
-    portfolios.values().toArray();
-  };
-
-  public query ({ caller }) func getPortfolioById(id : Nat) : async ?Portfolio {
-    portfolios.get(id);
-  };
-
-  public query ({ caller }) func getPortfoliosByCategory(category : PortfolioCategory) : async [Portfolio] {
-    let filteredIter = portfolios.values().filter(
-      func(portfolio) { portfolio.category == category }
-    );
-    filteredIter.toArray();
-  };
-
-  ////////////////////////////////////////////////////
-  // Public Testimonies Methods (Testimonies Page)
-  ////////////////////////////////////////////////////
-  public query ({ caller }) func getAllApprovedTestimonies() : async [Testimony] {
-    let filteredIter = testimonies.values().filter(
-      func(testimony) { testimony.approved }
-    );
-    filteredIter.toArray();
-  };
-
-  public query ({ caller }) func getTestimoniesByRating(rating : Nat) : async [Testimony] {
-    let filteredIter = testimonies.values().filter(
-      func(testimony) {
-        switch (testimony.rating) {
-          case (?r) { r == rating };
-          case (null) { false };
-        };
-      }
-    );
-    filteredIter.toArray();
-  };
-
-  ////////////////////////////////////////////////////
-  // Saved Artifacts Management
-  ////////////////////////////////////////////////////
-
-  public query ({ caller }) func getSavedArtifacts(userId : Principal) : async [SavedArtifact] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access saved artifacts");
-    };
-    if (userId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own saved artifacts");
-    };
-    switch (savedArtifacts.get(userId)) {
-      case (?artifacts) { artifacts };
-      case (null) { [] };
-    };
-  };
-
-  public query ({ caller }) func getMySavedArtifacts() : async [SavedArtifact] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access saved artifacts");
-    };
-    switch (savedArtifacts.get(caller)) {
-      case (?artifacts) { artifacts };
-      case (null) { [] };
-    };
-  };
-
-  public shared ({ caller }) func saveArtifact(productId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save artifacts");
-    };
-    let artifact : SavedArtifact = {
-      userId = caller;
-      productId;
-    };
-    let currentArtifacts = switch (savedArtifacts.get(caller)) {
-      case (?artifacts) { artifacts };
-      case (null) { [] };
-    };
-    let updatedArtifacts = currentArtifacts.concat([artifact]);
-    savedArtifacts.add(caller, updatedArtifacts);
-  };
-
-  public shared ({ caller }) func removeSavedArtifact(productId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can remove saved artifacts");
-    };
-    switch (savedArtifacts.get(caller)) {
-      case (?artifacts) {
-        let updatedArtifacts = artifacts.filter(func(artifact : SavedArtifact) : Bool {
-          artifact.productId != productId;
-        });
-        savedArtifacts.add(caller, updatedArtifacts);
-      };
-      case (null) { /* No artifacts to remove */ };
-    };
-  };
-
-  ////////////////////////////////////////////////////
-  // Guild Orders / Quests Management
-  ////////////////////////////////////////////////////
-
-  public query func getGuildOrder(id : Nat) : async GuildOrder {
-    switch (guildOrders.get(id)) {
-      case (?guildOrder) { guildOrder };
-      case (null) { Runtime.trap("Guild order not found") };
-    };
-  };
-
-  public query func getAllGuildOrders() : async [GuildOrder] {
-    guildOrders.values().toArray();
-  };
-
-  public shared ({ caller }) func createGuildOrder(title : Text, description : Text, reward : Nat) : async Nat {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create guild orders");
-    };
-    let guildOrderId = nextGuildOrderId;
-    nextGuildOrderId += 1;
-    let guildOrder : GuildOrder = {
-      id = guildOrderId;
-      title;
-      description;
-      reward;
-      status = "open";
-      assignedTo = null;
-    };
-    guildOrders.add(guildOrderId, guildOrder);
-    guildOrderId;
-  };
-
-  public shared ({ caller }) func updateGuildOrderStatus(guildOrderId : Nat, status : Text) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update guild order status");
-    };
-    switch (guildOrders.get(guildOrderId)) {
-      case (?guildOrder) {
-        let updatedGuildOrder : GuildOrder = {
-          id = guildOrder.id;
-          title = guildOrder.title;
-          description = guildOrder.description;
-          reward = guildOrder.reward;
-          status;
-          assignedTo = guildOrder.assignedTo;
-        };
-        guildOrders.add(guildOrderId, updatedGuildOrder);
-      };
-      case (null) { Runtime.trap("Guild order not found") };
-    };
-  };
-
-  public shared ({ caller }) func assignGuildOrder(guildOrderId : Nat, userId : Principal) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can assign guild orders");
-    };
-    switch (guildOrders.get(guildOrderId)) {
-      case (?guildOrder) {
-        let updatedGuildOrder : GuildOrder = {
-          id = guildOrder.id;
-          title = guildOrder.title;
-          description = guildOrder.description;
-          reward = guildOrder.reward;
-          status = guildOrder.status;
-          assignedTo = ?userId;
-        };
-        guildOrders.add(guildOrderId, updatedGuildOrder);
-      };
-      case (null) { Runtime.trap("Guild order not found") };
-    };
-  };
-
-  ////////////////////////////////////////////////////
-  // Coupon Management
-  ////////////////////////////////////////////////////
-
-  public shared ({ caller }) func createCoupon(code : Text, discount : Nat, valid : Bool) : async Nat {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create coupons");
-    };
-    let couponId = nextCouponId;
-    nextCouponId += 1;
-    let coupon : Coupon = {
-      id = couponId;
-      code;
-      discount;
-      valid;
-    };
-    coupons.add(couponId, coupon);
-    couponId;
-  };
-
-  public shared ({ caller }) func updateCoupon(id : Nat, code : Text, discount : Nat, valid : Bool) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update coupons");
-    };
-    switch (coupons.get(id)) {
-      case (?oldCoupon) {
-        let updated : Coupon = {
-          id;
-          code;
-          discount;
-          valid;
-        };
-        coupons.add(id, updated);
-      };
-      case (null) { Runtime.trap("Coupon not found") };
-    };
-  };
-
-  public query ({ caller }) func getAllCoupons() : async [Coupon] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view all coupons");
-    };
-    coupons.values().toArray();
-  };
-
-  // Internal helper function for coupon validation
-  private func validateCouponInternal(code : Text) : CouponValidationResult {
     let couponIter = coupons.values().filter(
       func(coupon) { coupon.code == code and coupon.valid }
     );
@@ -827,352 +671,241 @@ actor {
     };
   };
 
-  // Public coupon validation endpoint (requires user authentication)
-  public query ({ caller }) func validateCoupon(code : Text) : async CouponValidationResult {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can validate coupons");
+  public shared ({ caller }) func createCoupon(code : Text, discount : Nat) : async Nat {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can create coupons");
     };
-    validateCouponInternal(code);
+    let couponId = nextCouponId;
+    let newCoupon : Coupon = {
+      id = couponId;
+      code;
+      discount;
+      valid = true;
+    };
+    coupons.add(couponId, newCoupon);
+    nextCouponId += 1;
+    couponId;
+  };
+
+  public shared ({ caller }) func updateCoupon(couponId : Nat, valid : Bool) : async () {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only owner can update coupons");
+    };
+    switch (coupons.get(couponId)) {
+      case (?coupon) {
+        let updatedCoupon : Coupon = {
+          coupon with valid;
+        };
+        coupons.add(couponId, updatedCoupon);
+      };
+      case (null) { Runtime.trap("Coupon not found") };
+    };
   };
 
   ////////////////////////////////////////////////////
-  // Cart and Checkout Management
+  // Price Lookup (Public - Returns Effective Price)
   ////////////////////////////////////////////////////
 
-  public query ({ caller }) func getCart() : async [CartItem] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access cart");
-    };
-    switch (userCarts.get(caller)) {
-      case (?cartItems) { cartItems };
-      case (null) { [] };
+  public query ({ caller }) func getEffectiveProductPrice(productId : Nat) : async Nat {
+    switch (products.get(productId)) {
+      case (?product) {
+        if (not isProductVisible(product) and not isAdminOrOwner(caller)) {
+          Runtime.trap("Product not found");
+        };
+        getEffectivePrice(product);
+      };
+      case (null) { Runtime.trap("Product not found") };
     };
   };
+
+  ////////////////////////////////////////////////////
+  // Order Management (Shop-Active Enforcement)
+  ////////////////////////////////////////////////////
+
+  public shared ({ caller }) func createOrder(productIds : [Nat], couponCode : ?Text) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create orders");
+    };
+
+    if (not storeConfig.isActive) {
+      Runtime.trap("Store is currently closed for orders");
+    };
+
+    var totalAmount : Nat = 0;
+    for (productId in productIds.vals()) {
+      switch (products.get(productId)) {
+        case (?product) {
+          if (not isProductVisible(product)) {
+            Runtime.trap("Product not available: " # productId.toText());
+          };
+          totalAmount += getEffectivePrice(product);
+        };
+        case (null) { Runtime.trap("Product not found: " # productId.toText()) };
+      };
+    };
+
+    var discountAmount : Nat = 0;
+    var appliedCode : ?Text = null;
+
+    switch (couponCode) {
+      case (?code) {
+        if (storeConfig.enableCoupons) {
+          let validation = await validateCoupon(code);
+          if (validation.valid) {
+            discountAmount := validation.discount;
+            appliedCode := ?code;
+            if (totalAmount >= discountAmount) {
+              totalAmount -= discountAmount;
+            } else {
+              totalAmount := 0;
+            };
+          };
+        };
+      };
+      case (null) {};
+    };
+
+    let orderId = nextOrderId;
+    let newOrder : Order = {
+      id = orderId;
+      userId = caller;
+      productIds;
+      totalAmount;
+      appliedCouponCode = appliedCode;
+      discountAmount;
+    };
+    orders.add(orderId, newOrder);
+    nextOrderId += 1;
+    orderId;
+  };
+
+  public query ({ caller }) func getOrder(orderId : Nat) : async Order {
+    switch (orders.get(orderId)) {
+      case (?order) {
+        if (order.userId != caller and not isAdminOrOwner(caller)) {
+          Runtime.trap("Unauthorized: Can only view your own orders");
+        };
+        order;
+      };
+      case (null) { Runtime.trap("Order not found") };
+    };
+  };
+
+  public query ({ caller }) func listCallerOrders() : async [Order] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view orders");
+    };
+    let userOrders = orders.values().filter(func(order) { order.userId == caller });
+    userOrders.toArray();
+  };
+
+  public query ({ caller }) func listAllOrders() : async [Order] {
+    if (not isAdminOrOwner(caller)) {
+      Runtime.trap("Unauthorized: Only admins can view all orders");
+    };
+    orders.values().toArray();
+  };
+
+  ////////////////////////////////////////////////////
+  // Cart Management (User-Owned)
+  ////////////////////////////////////////////////////
 
   public shared ({ caller }) func addToCart(productId : Nat, quantity : Nat) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can add to cart");
+      Runtime.trap("Unauthorized: Only users can manage carts");
     };
-    let cartItem : CartItem = {
-      productId;
-      quantity;
+
+    switch (products.get(productId)) {
+      case (?product) {
+        if (not isProductVisible(product)) {
+          Runtime.trap("Product not available");
+        };
+      };
+      case (null) { Runtime.trap("Product not found") };
     };
+
     let currentCart = switch (userCarts.get(caller)) {
-      case (?cartItems) { cartItems };
+      case (?cart) { cart };
       case (null) { [] };
     };
-    let updatedCart = currentCart.concat([cartItem]);
+
+    let newItem : CartItem = { productId; quantity };
+    let updatedCart = currentCart.concat([newItem]);
     userCarts.add(caller, updatedCart);
   };
 
   public shared ({ caller }) func removeFromCart(productId : Nat) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can remove from cart");
+      Runtime.trap("Unauthorized: Only users can manage carts");
     };
-    switch (userCarts.get(caller)) {
-      case (?cartItems) {
-        let updatedCart = cartItems.filter(func(item : CartItem) : Bool {
-          item.productId != productId;
-        });
-        userCarts.add(caller, updatedCart);
-      };
-      case (null) { /* No items to remove */ };
-    };
-  };
 
-  public shared ({ caller }) func checkoutCart(couponCode : ?Text) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can checkout");
-    };
-    let cartItems = switch (userCarts.get(caller)) {
-      case (?items) { items };
+    let currentCart = switch (userCarts.get(caller)) {
+      case (?cart) { cart };
       case (null) { [] };
     };
-    if (cartItems.size() == 0) {
-      Runtime.trap("Cart is empty");
+
+    let updatedCart = currentCart.filter(func(item) { item.productId != productId });
+    userCarts.add(caller, updatedCart);
+  };
+
+  public query ({ caller }) func getCallerCart() : async [CartItem] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view carts");
     };
-
-    let productIds = cartItems.map(func(item) { item.productId });
-    var totalAmount = 0;
-    for (item in cartItems.values()) {
-      switch (products.get(item.productId)) {
-        case (?product) {
-          totalAmount += product.price * item.quantity;
-        };
-        case (null) { Runtime.trap("Product not found") };
-      };
+    switch (userCarts.get(caller)) {
+      case (?cartItems) { cartItems };
+      case (null) { [] };
     };
+  };
 
-    var finalAmount = totalAmount;
-    var discountAmount = 0;
-    var appliedCode : ?Text = null;
-
-    switch (couponCode) {
-      case (?code) {
-        let validation = validateCouponInternal(code);
-        if (validation.valid) {
-          discountAmount := validation.discount;
-          if (finalAmount > discountAmount) {
-            finalAmount -= discountAmount;
-          } else {
-            finalAmount := 0;
-          };
-          appliedCode := ?code;
-        };
-      };
-      case (null) { /* No coupon applied */ };
+  public shared ({ caller }) func clearCallerCart() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can manage carts");
     };
-
-    let orderId = nextOrderId;
-    nextOrderId += 1;
-    let order : Order = {
-      id = orderId;
-      userId = caller;
-      productIds;
-      totalAmount = finalAmount;
-      appliedCouponCode = appliedCode;
-      discountAmount;
-    };
-    orders.add(orderId, order);
-
     userCarts.add(caller, []);
-
-    orderId;
   };
 
-  ////////////////////////////////////////////////////
-  // Feedback Management (New)
-  ////////////////////////////////////////////////////
-
-  public shared ({ caller }) func createFeedback(userId : Principal, message : Text) : async Nat {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only authorized users can create feedback");
+  public query ({ caller }) func getCart(owner : Principal) : async [CartItem] {
+    if (caller != owner and not isAdminOrOwner(caller)) {
+      Runtime.trap("Unauthorized: Can only view your own cart");
     };
-    let feedbackId = nextFeedbackId;
-    nextFeedbackId += 1;
-    let feedback : Feedback = {
-      id = feedbackId;
-      userId;
-      message;
-      status = #open;
-    };
-    feedbackStore.add(feedbackId, feedback);
-    feedbackId;
-  };
-
-  public shared ({ caller }) func reviewFeedback(feedbackId : Nat, admin : Principal, response : Text) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can review feedback");
-    };
-    switch (feedbackStore.get(feedbackId)) {
-      case (?feedback) {
-        if (feedback.status != #open) {
-          Runtime.trap("Cannot review feedback that is not open");
-        };
-        let updatedFeedback : Feedback = {
-          feedback with
-          status = #reviewed({
-            admin;
-            response = ?response;
-          });
-        };
-        feedbackStore.add(feedbackId, updatedFeedback);
-      };
-      case (null) { Runtime.trap("Feedback not found") };
-    };
-  };
-
-  public shared ({ caller }) func completeFeedback(feedbackId : Nat, admin : Principal, response : Text) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can complete feedback");
-    };
-    switch (feedbackStore.get(feedbackId)) {
-      case (?feedback) {
-        if (feedback.status != #reviewed({
-          admin;
-          response = ?response;
-        })) {
-          Runtime.trap("Cannot complete feedback that is not reviewed");
-        };
-        let updatedFeedback : Feedback = {
-          feedback with
-          status = #completed({
-            admin;
-            response;
-          });
-        };
-        feedbackStore.add(feedbackId, updatedFeedback);
-      };
-      case (null) { Runtime.trap("Feedback not found") };
-    };
-  };
-
-  public query ({ caller }) func getAllFeedback() : async [Feedback] {
-    feedbackStore.values().toArray();
-  };
-
-  ////////////////////////////////////////////////////
-  // PORTFOLIO CRUT (No Deletion)
-  ////////////////////////////////////////////////////
-
-  public shared ({ caller }) func createPortfolio(
-    title : Text,
-    description : Text,
-    artworks : [Nat],
-    category : PortfolioCategory,
-  ) : async Nat {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can create portfolios");
-    };
-    let portfolioId = nextPortfolioId;
-    nextPortfolioId += 1;
-    let portfolio : Portfolio = {
-      id = portfolioId;
-      title;
-      description;
-      artworks;
-      category;
-    };
-    portfolios.add(portfolioId, portfolio);
-    portfolioId;
-  };
-
-  public shared ({ caller }) func updatePortfolio(
-    id : Nat,
-    title : Text,
-    description : Text,
-    artworks : [Nat],
-    category : PortfolioCategory,
-  ) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update portfolios");
-    };
-    switch (portfolios.get(id)) {
-      case (?oldPortfolio) {
-        let updated : Portfolio = {
-          id;
-          title;
-          description;
-          artworks;
-          category;
-        };
-        portfolios.add(id, updated);
-      };
-      case (null) { Runtime.trap("Portfolio not found") };
+    switch (userCarts.get(owner)) {
+      case (?cartItems) { cartItems };
+      case (null) { [] };
     };
   };
 
   ////////////////////////////////////////////////////
-  // TESTIMONY CRUT (No Deletion)
+  // Analytics (Owner/Admin Only)
   ////////////////////////////////////////////////////
 
-  // Public testimony creation - allows any user including guests to submit testimonies
-  // Testimonies are created as unapproved by default and require admin moderation
-  public shared ({ caller }) func createTestimony(
-    author : Text,
-    content : Text,
-    rating : ?Nat,
-    photo : ?Storage.ExternalBlob,
-    video : ?Storage.ExternalBlob,
-  ) : async Nat {
-    // Validate content length (max 800 characters)
-    if (content.size() > 800) {
-      Runtime.trap("Review text must be 800 characters or less");
-    };
-    
-    // Validate rating if provided (must be 1-5)
-    switch (rating) {
-      case (?r) {
-        if (r < 1 or r > 5) {
-          Runtime.trap("Rating must be between 1 and 5 stars");
-        };
-      };
-      case (null) { /* No rating provided is acceptable */ };
-    };
-
-    let testimonyId = nextTestimonyId;
-    nextTestimonyId += 1;
-    let testimony : Testimony = {
-      id = testimonyId;
-      author;
-      content;
-      approved = false; // All customer testimonies start as unapproved
-      rating;
-      photo;
-      video;
-    };
-    testimonies.add(testimonyId, testimony);
-    testimonyId;
+  public type AnalyticsSnapshot = {
+    totalOrders : Nat;
+    totalRevenue : Nat;
+    activeProducts : Nat;
+    totalUsers : Nat;
   };
 
-  // Admin-only testimony moderation - update testimony approval status and content
-  public shared ({ caller }) func updateTestimony(
-    id : Nat,
-    author : Text,
-    content : Text,
-    approved : Bool,
-    rating : ?Nat,
-    photo : ?Storage.ExternalBlob,
-    video : ?Storage.ExternalBlob,
-  ) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can update testimonies");
-    };
-    
-    // Validate content length
-    if (content.size() > 800) {
-      Runtime.trap("Review text must be 800 characters or less");
-    };
-    
-    // Validate rating if provided
-    switch (rating) {
-      case (?r) {
-        if (r < 1 or r > 5) {
-          Runtime.trap("Rating must be between 1 and 5 stars");
-        };
-      };
-      case (null) { /* No rating provided is acceptable */ };
+  public query ({ caller }) func getAnalyticsSnapshot() : async AnalyticsSnapshot {
+    if (not isAdminOrOwner(caller)) {
+      Runtime.trap("Unauthorized: Only admins can view analytics");
     };
 
-    switch (testimonies.get(id)) {
-      case (?oldTestimony) {
-        let updated : Testimony = {
-          id;
-          author;
-          content;
-          approved;
-          rating;
-          photo;
-          video;
-        };
-        testimonies.add(id, updated);
-      };
-      case (null) { Runtime.trap("Testimony not found") };
+    let totalOrders = orders.size();
+    var totalRevenue : Nat = 0;
+    for (order in orders.values()) {
+      totalRevenue += order.totalAmount;
     };
-  };
 
-  // Admin-only testimony removal - sets approved to false to hide from public view
-  public shared ({ caller }) func removeTestimony(id : Nat) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can remove testimonies");
-    };
-    switch (testimonies.get(id)) {
-      case (?testimony) {
-        let updated : Testimony = {
-          testimony with
-          approved = false;
-        };
-        testimonies.add(id, updated);
-      };
-      case (null) { Runtime.trap("Testimony not found") };
-    };
-  };
+    let activeProducts = products.values().filter(isProductVisible).size();
+    let totalUsers = userProfiles.size();
 
-  // Admin-only: Get all testimonies including unapproved ones for moderation
-  public query ({ caller }) func getAllTestimonies() : async [Testimony] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can view all testimonies");
+    {
+      totalOrders;
+      totalRevenue;
+      activeProducts;
+      totalUsers;
     };
-    testimonies.values().toArray();
   };
 };
+

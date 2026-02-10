@@ -1,8 +1,6 @@
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
 import ServiceDetailsAccordion from '../components/services/ServiceDetailsAccordion';
-import PortfolioWidgetSection from '../components/portfolio/PortfolioWidgetSection';
-import TestimoniesWidgetSection from '../components/testimonies/TestimoniesWidgetSection';
 
 export default function Services() {
   return (
@@ -15,12 +13,6 @@ export default function Services() {
           <ServiceDetailsAccordion />
         </section>
       </FadeInSection>
-
-      {/* Portfolio Widget */}
-      <PortfolioWidgetSection />
-
-      {/* Testimonies Widget */}
-      <TestimoniesWidgetSection />
 
       <FadeInSection delay={100}>
         <section className="section-spacing">

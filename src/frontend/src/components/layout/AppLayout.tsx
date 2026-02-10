@@ -1,7 +1,6 @@
 import { Outlet } from '@tanstack/react-router';
 import HeaderNav from './HeaderNav';
 import Footer from './Footer';
-import OfflineSyncStatus from '../system/OfflineSyncStatus';
 import AnalyticsProvider from '../system/AnalyticsProvider';
 import RandomQuotes from '../quotes/RandomQuotes';
 
@@ -26,9 +25,6 @@ export default function AppLayout() {
         </main>
         <Footer />
       </div>
-
-      {/* Offline sync status indicator */}
-      <OfflineSyncStatus />
       
       {/* Analytics tracking */}
       <AnalyticsProvider />

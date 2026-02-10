@@ -1,185 +1,209 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T19:32:50.741Z",
+  "generatedAt": "2026-02-10T20:20:20.444Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 11,
-    "implemented": 7,
+    "total": 10,
+    "implemented": 8,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Add a Portfolio widget section to the Homepage and Services pages that previews Portfolio content and includes a clear link/button to the full Portfolio page.",
+        "id": "REQ-12",
+        "summary": "Implement owner identification via a dedicated owner record stored in backend configuration (manually set during initial deployment), and use this stored owner identity as the sole authority for accessing the Admin+ tab and owner-only backend methods.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-13",
+        "summary": "Implement a dedicated admin registry in the backend that stores each user Principal with role flags (Admin / Owner), independent of normal user profile records, and use it for promotions/demotions and role checks.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-14",
+        "summary": "Extend the Admin+ page to include an owner-only Admin+ tab set with controls for: Change Admin Passwords, Promote/Demote Admins, Override Product Pricing, Force Stock States (in-stock/out-of-stock/hidden), Enable/Disable Coupons Globally, Emergency Shop Disable Switch, and Site Analytics Snapshot.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
-          "frontend/src/pages/Homepage.tsx",
-          "frontend/src/pages/Services.tsx"
+          "frontend/src/pages/AdminPlus.tsx",
+          "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+          "frontend/src/components/adminplus/CouponManagerSection.tsx",
+          "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+          "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+          "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
-          "frontend/src/pages/Homepage.tsx",
-          "frontend/src/pages/Services.tsx"
+          "frontend/src/pages/AdminPlus.tsx",
+          "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+          "frontend/src/components/adminplus/CouponManagerSection.tsx",
+          "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+          "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+          "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx"
         ]
       },
       {
-        "id": "REQ-10",
-        "summary": "Add a “Testimony Management” section in the Admin Dashboard (Admin page) that allows admins to review submitted testimonies and remove items.",
+        "id": "REQ-15",
+        "summary": "Implement the Emergency Shop Disable Switch as a backend-enforced feature flag that (1) hides the entire storefront and checkout UI from customers and (2) blocks backend order-creation calls so purchases cannot be made even via direct API calls.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-          "frontend/src/pages/Admin.tsx",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/hooks/useQueuedMutations.ts"
+          "frontend/src/pages/Shop.tsx",
+          "frontend/src/components/shop/ShopCartDrawer.tsx",
+          "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-          "frontend/src/pages/Admin.tsx",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/hooks/useQueuedMutations.ts"
-        ]
-      },
-      {
-        "id": "REQ-11",
-        "summary": "If existing canister state must be upgraded due to changes in Product/Testimony schemas, add/adjust a conditional backend migration so previously stored products/testimonies/portfolios remain readable and the canister upgrade does not trap.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Add a Testimonies widget section to the Homepage and Services pages that previews Testimonies content and includes a clear link/button to the full Testimonies page.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
-          "frontend/src/pages/Homepage.tsx",
-          "frontend/src/pages/Services.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
-          "frontend/src/pages/Homepage.tsx",
-          "frontend/src/pages/Services.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Ensure the main navigation includes links to Shop, Portfolio, and Testimonies, visible in the top-right desktop navigation and within the mobile hamburger menu.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/components/layout/HeaderNav.tsx"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Extend the Product data model and APIs to support: a product image, custom price, stock status (in stock / out of stock), availability (delivery / pickup / drop-off), and a short description; update product creation so these fields are persisted and returned by shop queries.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Update Admin Dashboard “Create Product” UI to include product image upload, price, stock status toggle/select (in stock / out of stock), availability select (delivery / pickup / drop-off), and short description; submitting should publish the product so it appears on the public Shop page immediately after creation.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/admin/AdminProductsTab.tsx",
-          "frontend/src/components/admin/AdminProductsTab.tsx",
-          "frontend/src/hooks/useQueuedMutations.ts",
-          "frontend/src/hooks/useQueries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/admin/AdminProductsTab.tsx",
-          "frontend/src/components/admin/AdminProductsTab.tsx",
-          "frontend/src/hooks/useQueuedMutations.ts",
-          "frontend/src/hooks/useQueries.ts"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Render products on the public Shop page as flippable product cards, using the existing FlipCard component, and include the product image and the new product fields in the card front/back content.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/shop/ProductFlipCard.tsx",
           "frontend/src/pages/Shop.tsx",
-          "frontend/src/components/shop/ProductDetailsModal.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/shop/ProductFlipCard.tsx",
-          "frontend/src/pages/Shop.tsx",
-          "frontend/src/components/shop/ProductDetailsModal.tsx"
+          "frontend/src/components/shop/ShopCartDrawer.tsx",
+          "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx"
         ]
       },
       {
-        "id": "REQ-7",
-        "summary": "Add a public “Create Testimony” flow on the Testimonies page that lets customers submit: (a) review text up to 800 characters, (b) 1–5 star rating, and (c) photo and video uploads; submitted testimonies must become publicly visible.",
+        "id": "REQ-16",
+        "summary": "Add owner controls to override product pricing without editing the main product listing, and ensure public product queries return the effective price (base price plus any active override).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+          "frontend/src/pages/Shop.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+          "frontend/src/pages/Shop.tsx"
         ]
       },
       {
-        "id": "REQ-8",
-        "summary": "Style testimony star ratings so filled stars appear golden moss-green with a glow effect; apply this styling consistently anywhere a testimony rating is displayed.",
+        "id": "REQ-17",
+        "summary": "Add owner controls to force stock states (in-stock, out-of-stock, hidden) independently of normal inventory fields, and ensure hidden products are not displayed to customers.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/testimonies/StarRating.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+          "frontend/src/pages/Shop.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/testimonies/StarRating.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+          "frontend/src/pages/Shop.tsx"
         ]
       },
       {
-        "id": "REQ-9",
-        "summary": "Add backend support for customer testimony creation and admin moderation so admins can remove inappropriate/vulgar submissions while leaving respectful criticism; removed items must no longer be publicly visible.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-18",
+        "summary": "Implement a global coupons enable/disable master switch controlled by the owner; when disabled, coupon validation and coupon application are blocked across the store.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/CouponManagerSection.tsx",
+          "frontend/src/components/shop/ShopCartDrawer.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/CouponManagerSection.tsx",
+          "frontend/src/components/shop/ShopCartDrawer.tsx"
+        ]
+      },
+      {
+        "id": "REQ-19",
+        "summary": "Implement Promote/Demote Admins as owner-only actions using the backend admin registry, including UI controls within Admin+ to manage admin principals.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+          "frontend/src/pages/AdminPlus.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+          "frontend/src/pages/AdminPlus.tsx"
+        ]
+      },
+      {
+        "id": "REQ-20",
+        "summary": "Implement Change Admin Passwords as an owner-only capability in Admin+ with backend storage and an admin-facing flow that uses the updated password to access admin-only functionality.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+          "frontend/src/pages/AdminPlus.tsx",
+          "frontend/src/pages/Admin.tsx",
+          "frontend/src/components/admin/AdminPasswordGate.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+          "frontend/src/pages/AdminPlus.tsx",
+          "frontend/src/pages/Admin.tsx"
+        ]
+      },
+      {
+        "id": "REQ-21",
+        "summary": "Add a Site Analytics Snapshot section to Admin+ that shows a quick overview of total orders, recent activity, and sales summaries based on backend order data.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+          "frontend/src/pages/AdminPlus.tsx",
+          "frontend/src/components/shop/ShopCartDrawer.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+          "frontend/src/pages/AdminPlus.tsx",
+          "frontend/src/components/shop/ShopCartDrawer.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
-    "backend/blob-storage/Mixin.mo",
-    "backend/blob-storage/Storage.mo",
     "backend/main.mo",
     "backend/migration.mo",
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/admin/AdminFeedbackTab.tsx",
     "frontend/src/components/admin/AdminProductsTab.tsx",
     "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+    "frontend/src/components/admin/AdminUsersTab.tsx",
+    "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+    "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+    "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+    "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+    "frontend/src/components/adminplus/CouponManagerSection.tsx",
+    "frontend/src/components/adminplus/PortfolioManagerSection.tsx",
     "frontend/src/components/adminplus/TestimonyManagerSection.tsx",
+    "frontend/src/components/dashboard/GuildOrdersPanel.tsx",
+    "frontend/src/components/dashboard/InventoryPanel.tsx",
+    "frontend/src/components/feedback/FeedbackDialog.tsx",
+    "frontend/src/components/feedback/FeedbackLauncher.tsx",
+    "frontend/src/components/layout/AppLayout.tsx",
+    "frontend/src/components/layout/HeaderNav.tsx",
+    "frontend/src/components/portfolio/PortfolioDetailsModal.tsx",
     "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
     "frontend/src/components/shop/ProductDetailsModal.tsx",
-    "frontend/src/components/shop/ProductFlipCard.tsx",
+    "frontend/src/components/shop/ShopCartDrawer.tsx",
+    "frontend/src/components/system/OfflineSyncQueueDialog.tsx",
+    "frontend/src/components/system/OfflineSyncStatus.tsx",
     "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-    "frontend/src/components/testimonies/StarRating.tsx",
     "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useOfflineMutationReplay.ts",
     "frontend/src/hooks/useQueries.ts",
     "frontend/src/hooks/useQueuedMutations.ts",
-    "frontend/src/index.css",
     "frontend/src/pages/Admin.tsx",
+    "frontend/src/pages/AdminPlus.tsx",
+    "frontend/src/pages/Dashboard.tsx",
     "frontend/src/pages/Homepage.tsx",
+    "frontend/src/pages/Portfolio.tsx",
     "frontend/src/pages/Services.tsx",
     "frontend/src/pages/Shop.tsx",
     "frontend/src/pages/Testimonies.tsx",

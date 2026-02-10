@@ -1,19 +1,18 @@
 # Specification
 
 ## Summary
-**Goal:** Add Portfolio and Testimonies preview widgets with navigation access, enhance Shop product creation and display with richer product fields, and enable public testimony submissions with admin moderation.
+**Goal:** Add owner-only Admin+ controls backed by persistent owner/admin role configuration, including shop-wide safety switches, product overrides, coupon master switch, admin management, and an analytics snapshot.
 
 **Planned changes:**
-- Add responsive Portfolio widget sections to the Homepage and Services pages with a preview/teaser and a link to the full Portfolio page (/portfolio).
-- Add responsive Testimonies widget sections to the Homepage and Services pages with a preview/teaser and a link to the full Testimonies page (/testimonies).
-- Update main navigation to include Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) links on desktop (top-right) and in the mobile hamburger menu.
-- Extend backend Product model and APIs to store/return: product image, custom price, stock status (in/out), availability (delivery/pickup/drop-off), and short description; ensure admin-only creation persists these fields and shop listings return them.
-- Update Admin Dashboard “Create Product” UI to collect the new fields (including image upload) and publish products so they appear on the public Shop page immediately, with React Query refetch/invalidation and user-friendly validation/errors.
-- Render public Shop products as flippable cards using the existing FlipCard component, showing image/name/price/stock on the front and description/availability plus a CTA on the back, preserving existing flows and accessibility behavior.
-- Add a public “Create Testimony” flow on the Testimonies page to submit review text (max 800 chars), 1–5 star rating, and photo/video uploads, and refresh the public list after submission.
-- Apply consistent star rating styling across the app: filled stars use a golden moss-green tone with a glow; unfilled stars remain subdued and accessible.
-- Add backend testimony creation for customers and admin-only removal/moderation; ensure public testimonies queries exclude removed items.
-- Add an Admin Dashboard “Testimony Management” section for admins to review and remove testimonies, with immediate UI updates (or queued/offline messaging if applicable) while keeping existing owner-only Admin+ behavior unchanged.
-- Add conditional backend migration logic if needed so existing stored products/testimonies/portfolios remain readable after schema changes and upgrades do not trap, with sensible defaults for new fields.
+- Add persistent backend owner configuration (single stored owner Principal) with strict owner-only authorization helpers and owner-only get/set owner methods.
+- Introduce a backend admin registry keyed by Principal with role flags (Admin/Owner) used for promotions/demotions and role checks, independent of user profile records (including upgrade-safe migration if needed).
+- Expand the Admin+ page (owner-only) to include sections for: change admin passwords, promote/demote admins, product pricing overrides, forced stock state overrides (in-stock/out-of-stock/hidden), global coupons enable/disable, emergency shop disable switch, and site analytics snapshot.
+- Implement an emergency shop disable feature flag: owner-only toggle in backend; frontend storefront/checkout UI hidden when disabled; backend order creation blocked with a clear English error.
+- Implement per-product price override storage and owner-only set/clear/read methods; ensure public product queries return effective price (override or base).
+- Implement per-product forced stock state overrides (including hidden) with owner-only controls; ensure public product queries exclude hidden items and reflect effective availability.
+- Implement a global coupons enabled/disabled flag with owner-only get/set; ensure coupon validation/application is blocked when disabled (including in `createOrder`).
+- Add owner-only admin management endpoints and UI for listing/promoting/demoting admin principals with clear English feedback and query invalidation.
+- Add owner-only admin password reset/set capability in backend and Admin+ UI; ensure password verification is enforced by the backend for admin-only capabilities (or a defined subset).
+- Add an owner-only analytics snapshot endpoint derived from orders and display it in Admin+ with loading/error states.
 
-**User-visible outcome:** Visitors can preview and navigate to Portfolio and Testimonies from key pages and the main nav; admins can create richer Shop products that instantly appear as flippable cards on the Shop page; customers can submit testimonies with ratings and media, and admins can moderate/remove inappropriate submissions so removed items no longer appear publicly.
+**User-visible outcome:** The configured site owner can access an expanded Admin+ area to manage admins and admin passwords, toggle emergency shop shutdown, globally enable/disable coupons, override product pricing and stock visibility, and view a basic analytics snapshot; customers see the shop hidden and cannot place orders when the shop is disabled, and product pricing/availability/coupon behavior reflects the owner’s overrides.

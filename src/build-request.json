@@ -1,223 +1,219 @@
 {
   "kind": "build_request",
-  "title": "Phase 3: Portfolio/Testimonies widgets + enhanced Shop product creation + public testimony submissions with moderation",
+  "title": "Phase 4: Owner-only Admin+ controls (owner config, admin registry, shop disable UI+backend blocking, pricing/stock overrides, coupon master switch, analytics)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Add a Portfolio widget section to the Homepage and Services pages that previews Portfolio content and includes a clear link/button to the full Portfolio page.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Add a **Portfolio widget** ... to the Homepage and Services pages, each linking to their own full **Portfolio page**"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Homepage shows a Portfolio widget section with at least a short preview/teaser and a working link to /portfolio.",
-        "Services page shows a Portfolio widget section with at least a short preview/teaser and a working link to /portfolio.",
-        "Widget layout is responsive and consistent with the existing site styling (cards, section-spacing, FadeInSection usage)."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Add a Testimonies widget section to the Homepage and Services pages that previews Testimonies content and includes a clear link/button to the full Testimonies page.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Add a ... **Testimonies widget** to the Homepage and Services pages, each linking to their own full ... **Testimonies page**."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Homepage shows a Testimonies widget section with at least a short preview/teaser and a working link to /testimonies.",
-        "Services page shows a Testimonies widget section with at least a short preview/teaser and a working link to /testimonies.",
-        "Widgets do not break existing Homepage sections (hero, featured carousel, quick links, announcements)."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Ensure the main navigation includes links to Shop, Portfolio, and Testimonies, visible in the top-right desktop navigation and within the mobile hamburger menu.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "The **Shop page, Portfolio page, and Testimonies page** must all be accessible from the main navigation menu, appearing in the **top-right navigation on desktop** and inside the **hamburger menu on mobile devices**."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Desktop header navigation shows working links for Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) in the top-right link cluster.",
-        "Mobile hamburger menu shows the same three links and they navigate correctly.",
-        "Navigation behavior remains unchanged for existing links (Home, About, Services, Dashboard, Contact)."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Extend the Product data model and APIs to support: a product image, custom price, stock status (in stock / out of stock), availability (delivery / pickup / drop-off), and a short description; update product creation so these fields are persisted and returned by shop queries.",
+      "id": "REQ-12",
+      "text": "Implement owner identification via a dedicated owner record stored in backend configuration (manually set during initial deployment), and use this stored owner identity as the sole authority for accessing the Admin+ tab and owner-only backend methods.",
       "target": "backend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "In the **Admin Dashboard → Create Product**, allow admins to upload a product image, set a custom price, choose stock status (in stock / out of stock), select availability (delivery, pickup, or drop-off), and write a short description."
+          "Use a dedicated owner record stored in the backend configuration. The owner account should be manually set (or defined during initial deployment) rather than automatically assigning the first registered user. Only this stored owner identity can access the Admin+ tab."
         ]
       },
       "acceptanceCriteria": [
-        "Backend Product representation supports storing and returning: image (at least one image), price, stock status, availability option, and short description.",
-        "Admin-only create product call persists all provided fields.",
-        "Existing getAllProducts (or equivalent shop listing) returns the new fields to the frontend so the Shop page can render them.",
-        "Access control remains enforced: only admins can create products."
+        "Backend stores a single owner Principal in persistent state (no auto-assignment of first user).",
+        "`isCallerOwner()` returns true only when `caller` equals the stored owner Principal (not when caller is merely an admin).",
+        "Owner-only backend methods trap for non-owner callers with a clear English error message.",
+        "There is a backend method to read the configured owner Principal (owner-only) and a backend method to set/update the owner Principal (owner-only or explicitly restricted to an initial unconfigured bootstrap state)."
       ]
     },
     {
-      "id": "REQ-5",
-      "text": "Update Admin Dashboard “Create Product” UI to include product image upload, price, stock status toggle/select (in stock / out of stock), availability select (delivery / pickup / drop-off), and short description; submitting should publish the product so it appears on the public Shop page immediately after creation.",
+      "id": "REQ-13",
+      "text": "Implement a dedicated admin registry in the backend that stores each user Principal with role flags (Admin / Owner), independent of normal user profile records, and use it for promotions/demotions and role checks.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Store admin accounts in a dedicated admin registry in the backend that contains each user identity along with role flags (Admin / Owner). This allows promotion and demotion without affecting normal user records."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend maintains an admin registry keyed by Principal with at least: `isAdmin` and `isOwner` (or an equivalent role enum that can represent owner vs admin).",
+        "Promoting/demoting admins updates the admin registry without changing user profile records.",
+        "Existing admin role assignment/removal endpoints are updated or replaced so that only the owner can promote/demote admins (owner may also demote admins).",
+        "Frontend role checks for Admin+ use the owner check (not generic admin).",
+        "If backend state schema changes are required, add a conditional migration so upgrades do not trap and existing data remains readable."
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "text": "Extend the Admin+ page to include an owner-only Admin+ tab set with controls for: Change Admin Passwords, Promote/Demote Admins, Override Product Pricing, Force Stock States (in-stock/out-of-stock/hidden), Enable/Disable Coupons Globally, Emergency Shop Disable Switch, and Site Analytics Snapshot.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "Create a new Admin+ tab visible only to the site owner that provides master-level control over the entire platform.",
+          "Create an Admin+ tab visible only to the owner that includes the following controls:",
+          "Build it!"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`frontend/src/pages/AdminPlus.tsx` includes tabs/sections for all Phase 4 owner controls listed in the user request (not only portfolios/testimonies).",
+        "Admin+ remains gated by the existing `RequireOwner` component and uses `useIsCallerOwner` for visibility/authorization decisions.",
+        "All user-facing labels/messages in the new Admin+ UI are in English.",
+        "The previously-empty Admin+ placeholder section components are implemented and rendered where appropriate (e.g., `frontend/src/components/adminplus/AdvancedShopControlsSection.tsx`, `frontend/src/components/adminplus/CouponManagerSection.tsx`)."
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Implement the Emergency Shop Disable Switch as a backend-enforced feature flag that (1) hides the entire storefront and checkout UI from customers and (2) blocks backend order-creation calls so purchases cannot be made even via direct API calls.",
       "target": "both",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "In the **Admin Dashboard → Create Product**, allow admins to upload a product image, set a custom price, choose stock status (in stock / out of stock), select availability (delivery, pickup, or drop-off), and write a short description. When **Create Product** is pressed, the product instantly appears on the public Shop page"
+          "The Shop Disable Switch must do both:\n\n1. Hide the entire storefront and checkout UI from customers.\n2. Block backend order-creation calls so purchases cannot be made even through direct API or external requests."
         ]
       },
       "acceptanceCriteria": [
-        "Admin “Create New Product” form includes: image upload control, price input, stock status control, availability control, and short description input.",
-        "Form validates required fields and shows user-friendly English errors via existing toast/error patterns.",
-        "On successful creation, the Shop page product list reflects the new product without manual page reload (via React Query invalidation/refetch).",
-        "If offline-queue behavior applies to product creation, the UI clearly indicates queued vs created states and does not crash."
+        "Backend stores a persistent `shopDisabled` (or equivalent) flag and exposes owner-only methods to get/set it.",
+        "Backend `createOrder(...)` traps with a clear English message when the shop is disabled, regardless of caller or frontend behavior.",
+        "Frontend Shop page (`frontend/src/pages/Shop.tsx`) does not render product listing, product details, cart drawer, or checkout entry points when the shop is disabled; instead it shows a clear maintenance/disabled message in English.",
+        "Any frontend code path that initiates order creation is prevented when shop is disabled (in addition to the backend enforcement).",
+        "Owner can toggle the shop disable switch from Admin+ and the Shop page reflects the change after refresh or query invalidation."
       ]
     },
     {
-      "id": "REQ-6",
-      "text": "Render products on the public Shop page as flippable product cards, using the existing FlipCard component, and include the product image and the new product fields in the card front/back content.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "...appears on the public Shop page as a **flippable product card**."
-        ]
-      },
-      "acceptanceCriteria": [
-        "In Shop grid view, each product is displayed as a FlipCard interaction (click/keyboard flips).",
-        "The card front shows at minimum: product image, name, price, and stock status.",
-        "The card back shows at minimum: short description and availability (delivery/pickup/drop-off) and a clear call-to-action (e.g., View Details) that preserves existing modal/cart flows.",
-        "Reduced-motion users keep accessible behavior (FlipCard respects prefers-reduced-motion as implemented)."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Add a public “Create Testimony” flow on the Testimonies page that lets customers submit: (a) review text up to 800 characters, (b) 1–5 star rating, and (c) photo and video uploads; submitted testimonies must become publicly visible.",
+      "id": "REQ-16",
+      "text": "Add owner controls to override product pricing without editing the main product listing, and ensure public product queries return the effective price (base price plus any active override).",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1",
+          "msg-4"
         ],
         "quotes": [
-          "On the **Testimonies page**, include a **Create Testimony** button where customers can submit a review up to **800 characters**, upload photos and videos, and select a **1–5 star rating**. ... Submitted testimonies become publicly visible"
+          "Override Product Pricing: Allows the owner to temporarily or permanently adjust product prices without editing the main product listing."
         ]
       },
       "acceptanceCriteria": [
-        "Testimonies page includes a prominent “Create Testimony” button that opens a form (dialog or inline section).",
-        "The form enforces a maximum of 800 characters for the review text and prevents submission when exceeded.",
-        "The form supports selecting a rating from 1 to 5 and submits it with the testimony.",
-        "The form supports uploading at least one image/video file and includes basic client-side validation (e.g., file type must be image/* or video/*).",
-        "After submission succeeds, the new testimony appears in the public testimonies list without a manual page refresh (React Query invalidation/refetch)."
+        "Backend persists price overrides separately from the core Product record (so base product listing remains unchanged).",
+        "Backend provides owner-only methods to set, clear, and read price overrides per product.",
+        "Public product query endpoints used by the Shop UI return the effective price (override if present; otherwise base price).",
+        "Admin+ UI includes a per-product control to set/clear an override price and clearly indicates whether an override is active."
       ]
     },
     {
-      "id": "REQ-8",
-      "text": "Style testimony star ratings so filled stars appear golden moss-green with a glow effect; apply this styling consistently anywhere a testimony rating is displayed.",
-      "target": "frontend",
+      "id": "REQ-17",
+      "text": "Add owner controls to force stock states (in-stock, out-of-stock, hidden) independently of normal inventory fields, and ensure hidden products are not displayed to customers.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1",
+          "msg-4"
         ],
         "quotes": [
-          "Stars should appear **golden moss-green with a glow effect**."
+          "Force Stock States: Lets the owner manually set products to in-stock, out-of-stock, or hidden regardless of automated inventory settings."
         ]
       },
       "acceptanceCriteria": [
-        "Filled stars use a golden moss-green tone (not the current arcane-gold) and include a visible glow (e.g., drop-shadow) on dark background.",
-        "Unfilled stars remain visually subdued and accessible.",
-        "Star styling is consistent on the testimonies listing and on the testimony submission control."
+        "Backend persists a per-product forced stock state override distinct from the existing stock/isInStock fields.",
+        "Public product queries used by customers reflect the effective availability: forced hidden products are excluded, and forced in/out-of-stock is reflected in the returned product data.",
+        "Admin+ UI includes a per-product forced stock state selector with options: In stock, Out of stock, Hidden, and a way to clear the override (return to normal behavior).",
+        "If a migration is required to support new fields/structures, add a conditional migration so upgrades do not trap."
       ]
     },
     {
-      "id": "REQ-9",
-      "text": "Add backend support for customer testimony creation and admin moderation so admins can remove inappropriate/vulgar submissions while leaving respectful criticism; removed items must no longer be publicly visible.",
-      "target": "backend",
+      "id": "REQ-18",
+      "text": "Implement a global coupons enable/disable master switch controlled by the owner; when disabled, coupon validation and coupon application are blocked across the store.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1",
+          "msg-4"
         ],
         "quotes": [
-          "...Admin Dashboard includes a **Testimony Management** section where admins can remove inappropriate or vulgar submissions while allowing respectful criticism."
+          "Enable / Disable Coupons Globally: Provides a master switch to turn all coupon usage on or off across the entire store."
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes a method to create a testimony (including rating and any uploaded media references/data) that is callable by non-admin users (customers).",
-        "Backend exposes an admin-only method to remove (or mark removed) a testimony.",
-        "Public query used by the Testimonies page returns only testimonies that are not removed.",
-        "Attempting to remove a testimony as a non-admin traps/returns an authorization error."
+        "Backend stores a persistent `couponsEnabled` (or equivalent) flag and exposes owner-only methods to get/set it.",
+        "When coupons are globally disabled, backend coupon validation returns an invalid result with an English message and `createOrder(...)` does not apply discounts even if a coupon code is supplied.",
+        "Admin+ UI includes a clear toggle for enabling/disabling coupons globally and shows the current state.",
+        "Shop/cart coupon UI (wherever coupon codes are entered/validated) reflects the disabled state (e.g., disables coupon input or shows an English message) while still relying on backend enforcement."
       ]
     },
     {
-      "id": "REQ-10",
-      "text": "Add a “Testimony Management” section in the Admin Dashboard (Admin page) that allows admins to review submitted testimonies and remove items.",
-      "target": "frontend",
+      "id": "REQ-19",
+      "text": "Implement Promote/Demote Admins as owner-only actions using the backend admin registry, including UI controls within Admin+ to manage admin principals.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1",
+          "msg-4"
         ],
         "quotes": [
-          "...the Admin Dashboard includes a **Testimony Management** section where admins can remove inappropriate or vulgar submissions..."
+          "Promote / Demote Admins: Enables the owner to grant admin access to users or remove admin permissions instantly."
         ]
       },
       "acceptanceCriteria": [
-        "Admin page shows a “Testimonies” tab/section for admins (not owner-only) that lists testimonies and provides a remove action.",
-        "Remove action updates the UI immediately after success (or shows queued/offline messaging if applicable).",
-        "Owner-only Admin+ remains functional and unchanged, but admin users no longer need owner role to access basic testimony moderation in Admin Dashboard."
+        "Backend exposes owner-only methods to list admin registry entries, add/promote an admin principal, and demote/remove an admin principal.",
+        "Admin+ UI provides a form to enter a Principal (text) to promote/demote, validates formatting client-side, and shows success/error feedback in English.",
+        "After changes, relevant cached queries are invalidated so admin-only areas reflect updated permissions on next access.",
+        "Non-owner callers cannot promote/demote admins (backend traps with clear English authorization errors)."
       ]
     },
     {
-      "id": "REQ-11",
-      "text": "If existing canister state must be upgraded due to changes in Product/Testimony schemas, add/adjust a conditional backend migration so previously stored products/testimonies/portfolios remain readable and the canister upgrade does not trap.",
-      "target": "backend",
+      "id": "REQ-20",
+      "text": "Implement Change Admin Passwords as an owner-only capability in Admin+ with backend storage and an admin-facing flow that uses the updated password to access admin-only functionality.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1",
+          "msg-4"
         ],
         "quotes": [
-          "Build this."
+          "Change Admin Passwords: Allows the owner to securely reset or update any admin login password at any time."
         ]
       },
       "acceptanceCriteria": [
-        "On upgrade, existing stable data (products/testimonies/portfolios) remains accessible via their public queries.",
-        "Migration is conditional and only runs when needed based on stored versioning/shape checks (no destructive resets).",
-        "New fields introduced in upgraded records have sensible defaults when migrating legacy records."
+        "Backend provides owner-only methods to set/reset an admin password for a given admin principal and to clear it (if supported).",
+        "Passwords are not returned in plaintext by any backend method.",
+        "Admin+ UI allows the owner to select/enter an admin principal and set/reset that admin’s password with English success/error feedback.",
+        "There is an admin-facing UI step that requires the admin password for accessing admin-only capabilities (or a clearly defined subset), and the password check is enforced by the backend (not only frontend)."
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "text": "Add a Site Analytics Snapshot section to Admin+ that shows a quick overview of total orders, recent activity, and sales summaries based on backend order data.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-4"
+        ],
+        "quotes": [
+          "Site Analytics Snapshot: Displays a quick overview of total orders, recent activity, sales summaries, and basic performance metrics for fast monitoring."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes an owner-only query that returns an analytics snapshot derived from stored orders (e.g., total order count, total sales sum, last N orders summary).",
+        "Admin+ UI displays the analytics snapshot in a readable summary card/table with English labels and handles loading/error states.",
+        "Snapshot values update after new orders are created (after query invalidation or refresh)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional canisters/services).",
-    "Do not edit any files under frontend/src/components/ui or any other immutable paths listed in SYSTEM_CONTEXT.",
-    "Use English for all user-facing strings added/changed in this phase."
+    "Backend must remain a single-actor Motoko canister (all logic in `backend/main.mo`); only add `backend/migration.mo` changes if required for state upgrades.",
+    "Do not edit frontend files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT.",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Implementing payments/checkout beyond the existing shop/cart flow.",
-    "Adding third-party authentication (only Internet Identity is supported).",
-    "Real-time updates via WebSockets/push notifications (use React Query refetch/invalidation instead).",
-    "Automated profanity detection/ML moderation; moderation is admin remove-only."
+    "Implementing third-party authentication providers (only Internet Identity is supported).",
+    "Adding external databases or off-chain analytics services.",
+    "Real-time updates via WebSockets/push notifications."
   ],
   "imageRequirements": {
     "required": [],

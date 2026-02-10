@@ -1,85 +1,146 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T19:32:50.737Z",
-  "summary": "Diff implements Portfolio/Testimonies widget components and adds them to Homepage/Services, introduces flippable Shop product cards and extends Product fields through frontend/backed types plus a migration module, and adds a public Create Testimony dialog plus an Admin testimonies tab. However, main-nav link updates are not evidenced, the testimonies flow appears to add an approval/pending-review workflow (not requested) and does not clearly make new submissions publicly visible, and backend moderation/remove-only behavior is not verifiable from the provided backend diff excerpt.",
+  "generatedAt": "2026-02-10T20:20:20.440Z",
+  "summary": "Diff adds several Admin+ owner UI sections (admin registry management, admin password reset, coupon master switch, advanced shop controls incl. shop disable/price override/visibility, analytics snapshot UI) and introduces backend state fields for owner principal, store config, admin registry/credentials, plus a migration that adds `visibility` and `priceOverride` fields onto Product. However, multiple backend enforcement/authorization requirements are not evidenced in the provided diff summary, and some implementation choices appear to diverge from the spec (notably storing overrides on Product and adding app-wide analytics initialization).",
   "missing_requirements": [
     {
-      "id": "REQ-3",
-      "requirement": "Ensure the main navigation includes links to Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) in both desktop top-right navigation and the mobile hamburger menu.",
-      "reason": "No diff evidence shows changes to a header/nav component or mobile menu; only pages/components were added/modified.",
+      "id": "REQ-12",
+      "requirement": "Owner identification must be stored as a single persistent owner Principal, with `isCallerOwner()` checking equality against that stored Principal; and owner-only read/set owner Principal methods with clear English traps for non-owners.",
+      "reason": "While `backend/main.mo` shows `var ownerPrincipal : ?Principal = null;`, the diff summary does not show any `isCallerOwner()` implementation, nor any owner-only backend methods to read/update the configured owner Principal, nor the required authorization traps/messages for non-owner callers.",
       "evidence": [
-        "File diff summary: no navigation/header component changes shown"
+        "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-7",
-      "requirement": "Public “Create Testimony” submissions must become publicly visible after submission succeeds (with React Query invalidation/refetch).",
-      "reason": "Frontend queries/widgets/pages consistently fetch only \"approved\" testimonies, and the submission success message states the testimony is submitted for review, implying it will NOT be publicly visible immediately.",
+      "id": "REQ-13",
+      "requirement": "Dedicated backend admin registry keyed by Principal with role flags, and only-owner promote/demote admin endpoints; role checks updated to use owner check for Admin+; add conditional migration if schema changes.",
+      "reason": "`backend/main.mo` declares `adminRegistry` and `adminCredentials`, and the frontend adds an Admin Registry UI, but the diff summary does not show the backend methods to list/promote/demote admins, nor evidence those methods are owner-only and trap non-owners with clear English errors. Migration shown addresses product fields, not admin registry/owner config.",
       "evidence": [
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx (toast: 'submitted for review')",
-        "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx (uses useGetAllApprovedTestimonies)",
-        "frontend/src/pages/Testimonies.tsx (uses useGetAllApprovedTestimonies)"
+        "backend/main.mo",
+        "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+        "backend/migration.mo"
       ]
     },
     {
-      "id": "REQ-8",
-      "requirement": "Filled testimony stars should have a golden moss-green tone AND a visible glow effect, consistently everywhere ratings are displayed.",
-      "reason": "StarRating applies a 'testimony-star-glow' class, but the diff excerpt does not show any CSS rules implementing the glow (e.g., drop-shadow/box-shadow) for that class; only the CSS variable color is evidenced.",
+      "id": "REQ-15",
+      "requirement": "Emergency Shop Disable Switch must be backend-enforced: persistent flag with owner-only get/set, and `createOrder(...)` must trap with a clear English message when disabled; frontend Shop page must hide storefront/checkout when disabled.",
+      "reason": "Frontend includes a shop toggle and checkout path checks `shopActive`, but the diff summary does not show backend persistence/get/set methods for the flag, nor the required `createOrder(...)` trap enforcement, nor Shop page-level hiding behavior (Shop page changes are not included in the shown excerpts).",
       "evidence": [
-        "frontend/src/components/testimonies/StarRating.tsx (uses 'testimony-star-glow')",
-        "frontend/src/index.css (defines --testimony-star, but no glow class shown in excerpt)"
+        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+        "frontend/src/components/shop/ShopCartDrawer.tsx",
+        "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-9",
-      "requirement": "Backend support for customer testimony creation (non-admin callable) and admin-only removal such that removed items are not publicly visible.",
-      "reason": "The provided backend diff excerpt does not show the actual testimony create/remove methods, their access control, or that public testimony queries filter out removed items; only schema/migration types are evidenced.",
+      "id": "REQ-16",
+      "requirement": "Price overrides must be persisted separately from the core Product record, and public product queries must return effective price; owner-only set/clear/read methods; Admin+ per-product controls indicating override active.",
+      "reason": "The migration and frontend indicate `priceOverride` is stored on the Product record itself (`products` upgraded to include `priceOverride : ?Nat`), which conflicts with the requirement to persist overrides separately from the core Product record. Backend owner-only override APIs are not evidenced in the diff summary (only frontend hooks usage is shown).",
       "evidence": [
-        "backend/main.mo (truncated; no testimony API methods visible)",
-        "backend/migration.mo (adds NewTestimony type but no API behavior)"
+        "backend/migration.mo",
+        "backend/main.mo",
+        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+        "frontend/src/components/shop/ProductDetailsModal.tsx",
+        "frontend/src/components/shop/ShopCartDrawer.tsx"
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "requirement": "Forced stock state overrides must be persisted separately from existing inventory fields; hidden products excluded from public queries; Admin+ selector with In stock / Out of stock / Hidden and clear override; conditional migration if needed.",
+      "reason": "Migration adds `visibility` onto the Product record (`visibility : { #visible; #hidden; #outOfStock }`), which is not evidenced as being a separate override structure distinct from existing fields as required. Also, the diff summary does not show public query filtering to exclude hidden products (backend query code not shown), nor a clear UI control for all required stock-state options and clearing behavior (only a `useSetProductVisibility` call is evidenced).",
+      "evidence": [
+        "backend/migration.mo",
+        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "requirement": "Global coupons enable/disable master switch: backend persistent flag with owner-only get/set; backend coupon validation returns invalid with English message when disabled and `createOrder(...)` does not apply discounts; shop/cart coupon UI reflects disabled state.",
+      "reason": "Frontend adds a CouponManagerSection and cart UI checks `couponsEnabled`, but the diff summary does not show backend enforcement in coupon validation and order creation (no evidence of validation behavior/messages or discount blocking when disabled).",
+      "evidence": [
+        "frontend/src/components/adminplus/CouponManagerSection.tsx",
+        "frontend/src/components/shop/ShopCartDrawer.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "requirement": "Promote/Demote admins as owner-only actions using backend admin registry; backend list/add/demote methods; Admin+ form validates principal and gives feedback; invalidate relevant queries; non-owner traps with clear English authorization errors.",
+      "reason": "Frontend UI validates principal and calls `useListAdmins/usePromoteAdmin/useDemoteAdmin`, but the diff summary does not show the backend registry list/promote/demote methods, query invalidation behavior after changes, or the required backend authorization traps/messages for non-owners.",
+      "evidence": [
+        "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "requirement": "Owner can change admin passwords with backend storage; passwords never returned plaintext; admin-facing flow requires password for admin-only capabilities and backend enforces password check (not frontend-only).",
+      "reason": "AdminPasswordResetSection exists and submits a `passwordHash` (base64) via `useSetAdminPassword`, but the diff summary does not show backend password storage/checking, any admin-facing password prompt flow, or backend-enforced password verification gating admin capabilities. Also, the UI comment indicates hashing is only a demo, which does not evidence secure enforcement.",
+      "evidence": [
+        "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "requirement": "Backend owner-only analytics snapshot query derived from orders (totals, recent activity, sales summaries) and Admin+ UI displays it and updates after new orders (via invalidation/refresh).",
+      "reason": "AnalyticsSnapshotSection UI calls `useGetAnalyticsSnapshot` and invalidates `['analyticsSnapshot']`, but the diff summary does not show the required backend owner-only analytics snapshot query derived from stored orders.",
+      "evidence": [
+        "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+        "backend/main.mo"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Introduced an approval/pending-review moderation workflow for testimonies (approved vs pending) rather than the requested 'admin remove-only' moderation with immediate public visibility.",
-      "reason": "Admin UI explicitly separates 'Pending Review' vs 'Approved' testimonies, and public queries/pages use 'approved' testimonies only; this adds an approval gate not requested and conflicts with REQ-7/REQ-9 stated behavior.",
+      "description": "App-wide analytics initialization and provider (`initAnalytics()` and `AnalyticsProvider`) not explicitly requested in Phase 4 owner-only Admin+ controls.",
+      "reason": "BuildRequest explicitly lists a specific 'Site Analytics Snapshot' feature based on backend order data; it does not request general app analytics tracking initialization/providers. This may also risk violating the non-goal of adding off-chain analytics services, depending on what `lib/analytics` does (not shown).",
       "evidence": [
-        "frontend/src/components/admin/AdminTestimoniesTab.tsx (filters approved vs pending and labels 'Pending Review')",
-        "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx (useGetAllApprovedTestimonies)",
-        "frontend/src/pages/Testimonies.tsx (useGetAllApprovedTestimonies)",
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx (toast: 'submitted for review')"
-      ]
-    },
-    {
-      "description": "Owner/Admin+ testimony manager supports creating/editing/updating testimonies (including setting approved) from an adminplus section.",
-      "reason": "BuildRequest only asked for admin removal moderation in Admin Dashboard (REQ-10) and backend remove-only moderation; create/edit/update testimony management is beyond scope.",
-      "evidence": [
-        "frontend/src/components/adminplus/TestimonyManagerSection.tsx (uses useCreateTestimony/useUpdateTestimony; edit/create flows; includes 'approved' checkbox)"
+        "frontend/src/App.tsx",
+        "frontend/src/components/layout/AppLayout.tsx"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.63,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/admin/AdminFeedbackTab.tsx",
     "frontend/src/components/admin/AdminProductsTab.tsx",
     "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+    "frontend/src/components/admin/AdminUsersTab.tsx",
+    "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+    "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+    "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+    "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+    "frontend/src/components/adminplus/CouponManagerSection.tsx",
+    "frontend/src/components/adminplus/PortfolioManagerSection.tsx",
     "frontend/src/components/adminplus/TestimonyManagerSection.tsx",
+    "frontend/src/components/dashboard/GuildOrdersPanel.tsx",
+    "frontend/src/components/dashboard/InventoryPanel.tsx",
+    "frontend/src/components/feedback/FeedbackDialog.tsx",
+    "frontend/src/components/feedback/FeedbackLauncher.tsx",
+    "frontend/src/components/layout/AppLayout.tsx",
+    "frontend/src/components/layout/HeaderNav.tsx",
+    "frontend/src/components/portfolio/PortfolioDetailsModal.tsx",
     "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
     "frontend/src/components/shop/ProductDetailsModal.tsx",
-    "frontend/src/components/shop/ProductFlipCard.tsx",
+    "frontend/src/components/shop/ShopCartDrawer.tsx",
+    "frontend/src/components/system/OfflineSyncQueueDialog.tsx",
+    "frontend/src/components/system/OfflineSyncStatus.tsx",
     "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-    "frontend/src/components/testimonies/StarRating.tsx",
     "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
     "frontend/src/hooks/useOfflineMutationReplay.ts",
     "frontend/src/hooks/useQueries.ts",
     "frontend/src/hooks/useQueuedMutations.ts",
-    "frontend/src/index.css",
     "frontend/src/pages/Admin.tsx",
+    "frontend/src/pages/AdminPlus.tsx",
+    "frontend/src/pages/Dashboard.tsx",
     "frontend/src/pages/Homepage.tsx",
+    "frontend/src/pages/Portfolio.tsx",
     "frontend/src/pages/Services.tsx",
     "frontend/src/pages/Shop.tsx",
     "frontend/src/pages/Testimonies.tsx",

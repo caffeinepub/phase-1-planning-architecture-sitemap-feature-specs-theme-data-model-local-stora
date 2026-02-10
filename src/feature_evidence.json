@@ -2,12 +2,15 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-portfolio-widget-section-to-the-homepage-and-services-pages-that-previews-portfolio-content-and-includes-a-clear-link-button-to-the-full-portfolio-page",
-      "featureTitle": "Add a Portfolio widget section to the Homepage and Services pages that previews Portfolio content and includes a clear link/button to the full Portfolio page.",
+      "featureId": "feature-extend-the-admin-page-to-include-an-owner-only-admin-tab-set-with-controls-for-change-admin-passwords-promote-demote-admins-override-product-pricing-force-stock-states-in-stock-out-of-stock-hidden-enable-disable-coupons-globally-emergency-shop-disable-switch-and-site-analytics-snapshot",
+      "featureTitle": "Extend the Admin+ page to include an owner-only Admin+ tab set with controls for: Change Admin Passwords, Promote/Demote Admins, Override Product Pricing, Force Stock States (in-stock/out-of-stock/hidden), Enable/Disable Coupons Globally, Emergency Shop Disable Switch, and Site Analytics Snapshot.",
       "files": [
-        "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
-        "frontend/src/pages/Homepage.tsx",
-        "frontend/src/pages/Services.tsx"
+        "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+        "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+        "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+        "frontend/src/components/adminplus/CouponManagerSection.tsx",
+        "frontend/src/pages/AdminPlus.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,60 +22,17 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-14"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-testimonies-widget-section-to-the-homepage-and-services-pages-that-previews-testimonies-content-and-includes-a-clear-link-button-to-the-full-testimonies-page",
-      "featureTitle": "Add a Testimonies widget section to the Homepage and Services pages that previews Testimonies content and includes a clear link/button to the full Testimonies page.",
+      "featureId": "feature-implement-the-emergency-shop-disable-switch-as-a-backend-enforced-feature-flag-that-1-hides-the-entire-storefront-and-checkout-ui-from-customers-and-2-blocks-backend-order-creation-calls-so-purchases-cannot-be-made-even-via-direct-api-calls",
+      "featureTitle": "Implement the Emergency Shop Disable Switch as a backend-enforced feature flag that (1) hides the entire storefront and checkout UI from customers and (2) blocks backend order-creation calls so purchases cannot be made even via direct API calls.",
       "files": [
-        "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
-        "frontend/src/pages/Homepage.tsx",
-        "frontend/src/pages/Services.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-admin-dashboard-create-product-ui-to-include-product-image-upload-price-stock-status-toggle-select-in-stock-out-of-stock-availability-select-delivery-pickup-drop-off-and-short-description-submitting-should-publish-the-product-so-it-appears-on-the-public-shop-page-immediately-after-creation",
-      "featureTitle": "Update Admin Dashboard “Create Product” UI to include product image upload, price, stock status toggle/select (in stock / out of stock), availability select (delivery / pickup / drop-off), and short description; submitting should publish the product so it appears on the public Shop page immediately after creation.",
-      "files": [
-        "frontend/src/components/admin/AdminProductsTab.tsx",
+        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+        "frontend/src/components/shop/ShopCartDrawer.tsx",
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/hooks/useQueuedMutations.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-render-products-on-the-public-shop-page-as-flippable-product-cards-using-the-existing-flipcard-component-and-include-the-product-image-and-the-new-product-fields-in-the-card-front-back-content",
-      "featureTitle": "Render products on the public Shop page as flippable product cards, using the existing FlipCard component, and include the product image and the new product fields in the card front/back content.",
-      "files": [
-        "frontend/src/components/shop/ProductDetailsModal.tsx",
-        "frontend/src/components/shop/ProductFlipCard.tsx",
         "frontend/src/pages/Shop.tsx"
       ],
       "components": [
@@ -85,17 +45,17 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-6"
+        "REQ-15"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-public-create-testimony-flow-on-the-testimonies-page-that-lets-customers-submit-a-review-text-up-to-800-characters-b-1-5-star-rating-and-c-photo-and-video-uploads-submitted-testimonies-must-become-publicly-visible",
-      "featureTitle": "Add a public “Create Testimony” flow on the Testimonies page that lets customers submit: (a) review text up to 800 characters, (b) 1–5 star rating, and (c) photo and video uploads; submitted testimonies must become publicly visible.",
+      "featureId": "feature-add-owner-controls-to-override-product-pricing-without-editing-the-main-product-listing-and-ensure-public-product-queries-return-the-effective-price-base-price-plus-any-active-override",
+      "featureTitle": "Add owner controls to override product pricing without editing the main product listing, and ensure public product queries return the effective price (base price plus any active override).",
       "files": [
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/Testimonies.tsx"
+        "frontend/src/pages/Shop.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -107,40 +67,17 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-7"
+        "REQ-16"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-style-testimony-star-ratings-so-filled-stars-appear-golden-moss-green-with-a-glow-effect-apply-this-styling-consistently-anywhere-a-testimony-rating-is-displayed",
-      "featureTitle": "Style testimony star ratings so filled stars appear golden moss-green with a glow effect; apply this styling consistently anywhere a testimony rating is displayed.",
+      "featureId": "feature-add-owner-controls-to-force-stock-states-in-stock-out-of-stock-hidden-independently-of-normal-inventory-fields-and-ensure-hidden-products-are-not-displayed-to-customers",
+      "featureTitle": "Add owner controls to force stock states (in-stock, out-of-stock, hidden) independently of normal inventory fields, and ensure hidden products are not displayed to customers.",
       "files": [
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-        "frontend/src/components/testimonies/StarRating.tsx",
-        "frontend/src/index.css"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-8"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-testimony-management-section-in-the-admin-dashboard-admin-page-that-allows-admins-to-review-submitted-testimonies-and-remove-items",
-      "featureTitle": "Add a “Testimony Management” section in the Admin Dashboard (Admin page) that allows admins to review submitted testimonies and remove items.",
-      "files": [
-        "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/hooks/useQueuedMutations.ts",
-        "frontend/src/pages/Admin.tsx"
+        "frontend/src/pages/Shop.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -152,7 +89,97 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-10"
+        "REQ-17"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-global-coupons-enable-disable-master-switch-controlled-by-the-owner-when-disabled-coupon-validation-and-coupon-application-are-blocked-across-the-store",
+      "featureTitle": "Implement a global coupons enable/disable master switch controlled by the owner; when disabled, coupon validation and coupon application are blocked across the store.",
+      "files": [
+        "frontend/src/components/adminplus/CouponManagerSection.tsx",
+        "frontend/src/components/shop/ShopCartDrawer.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-18"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-promote-demote-admins-as-owner-only-actions-using-the-backend-admin-registry-including-ui-controls-within-admin-to-manage-admin-principals",
+      "featureTitle": "Implement Promote/Demote Admins as owner-only actions using the backend admin registry, including UI controls within Admin+ to manage admin principals.",
+      "files": [
+        "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminPlus.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-19"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-change-admin-passwords-as-an-owner-only-capability-in-admin-with-backend-storage-and-an-admin-facing-flow-that-uses-the-updated-password-to-access-admin-only-functionality",
+      "featureTitle": "Implement Change Admin Passwords as an owner-only capability in Admin+ with backend storage and an admin-facing flow that uses the updated password to access admin-only functionality.",
+      "files": [
+        "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/Admin.tsx",
+        "frontend/src/pages/AdminPlus.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-20"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-site-analytics-snapshot-section-to-admin-that-shows-a-quick-overview-of-total-orders-recent-activity-and-sales-summaries-based-on-backend-order-data",
+      "featureTitle": "Add a Site Analytics Snapshot section to Admin+ that shows a quick overview of total orders, recent activity, and sales summaries based on backend order data.",
+      "files": [
+        "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+        "frontend/src/components/shop/ShopCartDrawer.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminPlus.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-21"
       ],
       "confidence": "high"
     }

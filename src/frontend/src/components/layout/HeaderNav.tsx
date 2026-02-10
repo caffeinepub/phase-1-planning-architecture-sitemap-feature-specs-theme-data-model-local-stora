@@ -1,134 +1,143 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from '@tanstack/react-router';
-import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { Menu, X, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import LoginButton from '../auth/LoginButton';
-import FeedbackLauncher from '../feedback/FeedbackLauncher';
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useIsCallerOwner } from '../../hooks/useQueries';
-
-const navLinks = [
-  { to: '/', label: 'Home' },
-  { to: '/about', label: 'About' },
-  { to: '/services', label: 'Services' },
-  { to: '/shop', label: 'Shop' },
-  { to: '/portfolio', label: 'Portfolio' },
-  { to: '/testimonies', label: 'Testimonies' },
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/contact', label: 'Contact' },
-];
+import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 
 export default function HeaderNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation();
   const { identity } = useInternetIdentity();
-  const { data: isOwner = false } = useIsCallerOwner();
+  const { data: isOwner } = useIsCallerOwner();
 
-  const showAdminPlus = !!identity && isOwner;
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
-
-  // Lock body scroll when mobile menu is open
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      const scrollY = window.scrollY;
-      document.body.classList.add('body-scroll-lock');
-      document.body.style.top = `-${scrollY}px`;
-    } else {
-      const scrollY = document.body.style.top;
-      document.body.classList.remove('body-scroll-lock');
-      document.body.style.top = '';
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-      }
-    }
-
-    return () => {
-      document.body.classList.remove('body-scroll-lock');
-      document.body.style.top = '';
-    };
-  }, [mobileMenuOpen]);
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/about', label: 'About' },
+    { to: '/services', label: 'Services' },
+    { to: '/shop', label: 'Shop' },
+    { to: '/contact', label: 'Contact' },
+    { to: '/blog', label: 'Blog' },
+    { to: '/faq', label: 'FAQ' },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="container mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 text-xl font-bold text-primary hover:text-primary/80 transition-colors">
-            <img src="/assets/generated/arcane-sigil.dim_512x512.png" alt="" className="h-8 w-8" aria-hidden="true" />
-            <span>The Creator of Side Quests</span>
-          </Link>
+      <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold hover:text-arcane-gold transition-colors">
+          <img src="/assets/generated/arcane-sigil.dim_512x512.png" alt="" className="h-8 w-8" />
+          <span className="hidden sm:inline">Arcane Artifacts</span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-                activeProps={{ className: 'text-primary font-semibold' }}
-              >
-                {link.label}
-              </Link>
-            ))}
-            {showAdminPlus && (
-              <Link
-                to="/admin-plus"
-                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-                activeProps={{ className: 'text-primary font-semibold' }}
-              >
-                Admin+
-              </Link>
-            )}
-            <FeedbackLauncher />
-            <LoginButton />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-foreground hover:bg-accent transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-expanded={mobileMenuOpen}
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-6">
+          {navLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className="text-sm font-medium hover:text-arcane-gold transition-colors"
+              activeProps={{ className: 'text-arcane-gold' }}
+            >
+              {link.label}
+            </Link>
+          ))}
+          {identity && (
+            <Link
+              to="/dashboard"
+              className="text-sm font-medium hover:text-arcane-gold transition-colors"
+              activeProps={{ className: 'text-arcane-gold' }}
+            >
+              Dashboard
+            </Link>
+          )}
+          {identity && (
+            <Link
+              to="/admin"
+              className="text-sm font-medium hover:text-arcane-gold transition-colors"
+              activeProps={{ className: 'text-arcane-gold' }}
+            >
+              Admin
+            </Link>
+          )}
+          {isOwner && (
+            <Link
+              to="/admin-plus"
+              className="text-sm font-medium hover:text-arcane-gold transition-colors flex items-center gap-1"
+              activeProps={{ className: 'text-arcane-gold' }}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              Admin+
+            </Link>
+          )}
         </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-2 border-t border-border/40">
+        {/* Auth & Mobile Menu */}
+        <div className="flex items-center gap-4">
+          <LoginButton />
+          
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur">
+          <div className="container mx-auto px-4 py-4 flex flex-col gap-2">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="block px-3 py-2 text-base font-medium text-foreground/80 hover:text-foreground hover:bg-accent rounded-md transition-colors"
-                activeProps={{ className: 'text-primary font-semibold bg-accent/50' }}
+                className="px-4 py-2 text-sm font-medium hover:text-arcane-gold hover:bg-accent rounded-md transition-colors"
+                activeProps={{ className: 'text-arcane-gold bg-accent' }}
+                onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
-            {showAdminPlus && (
+            {identity && (
+              <Link
+                to="/dashboard"
+                className="px-4 py-2 text-sm font-medium hover:text-arcane-gold hover:bg-accent rounded-md transition-colors"
+                activeProps={{ className: 'text-arcane-gold bg-accent' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
+            {identity && (
+              <Link
+                to="/admin"
+                className="px-4 py-2 text-sm font-medium hover:text-arcane-gold hover:bg-accent rounded-md transition-colors"
+                activeProps={{ className: 'text-arcane-gold bg-accent' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Admin
+              </Link>
+            )}
+            {isOwner && (
               <Link
                 to="/admin-plus"
-                className="block px-3 py-2 text-base font-medium text-foreground/80 hover:text-foreground hover:bg-accent rounded-md transition-colors"
-                activeProps={{ className: 'text-primary font-semibold bg-accent/50' }}
+                className="px-4 py-2 text-sm font-medium hover:text-arcane-gold hover:bg-accent rounded-md transition-colors flex items-center gap-1"
+                activeProps={{ className: 'text-arcane-gold bg-accent' }}
+                onClick={() => setMobileMenuOpen(false)}
               >
+                <ShieldCheck className="h-4 w-4" />
                 Admin+
               </Link>
             )}
-            <div className="px-3 py-2">
-              <FeedbackLauncher />
-            </div>
-            <div className="px-3 py-2">
-              <LoginButton />
-            </div>
           </div>
-        )}
-      </nav>
+        </div>
+      )}
     </header>
   );
 }

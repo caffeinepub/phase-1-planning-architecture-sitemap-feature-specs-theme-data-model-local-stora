@@ -1,66 +1,76 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Phase 3: Add Portfolio and Testimonies widgets/pages, add Shop navigation access, implement Admin product creation that publishes flippable product cards, and implement customer testimonies submission with admin moderation.",
+  "summary": "Platform build: Phase 4 Admin+ Owner Super Controls (owner-only Admin+ tab with master admin/store controls, including shop-wide emergency disable and analytics snapshot).",
   "architectural_notes": [
-    "Testimony submissions are publicly visible by default; admin moderation is removal-based (delete/hide inappropriate/vulgar content while allowing respectful criticism)."
+    "Owner identification via dedicated owner record stored in backend configuration; manually set/defined during initial deployment (not first-registered user).",
+    "Admin accounts stored in a dedicated backend admin registry with role flags (Admin/Owner), separate from normal user records.",
+    "Emergency Shop Disable must both hide storefront/checkout UI and block backend order-creation endpoints (including direct API/external requests)."
   ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-add-a-portfolio-widget-section-to-the-homepage-and-services-pages-that-previews-portfolio-content-and-includes-a-clear-link-button-to-the-full-portfolio-page",
-      "title": "Add a Portfolio widget section to the Homepage and Services pages that previews Portfolio content and includes a clear link/button to the full Portfolio page.",
+      "id": "feature-extend-the-admin-page-to-include-an-owner-only-admin-tab-set-with-controls-for-change-admin-passwords-promote-demote-admins-override-product-pricing-force-stock-states-in-stock-out-of-stock-hidden-enable-disable-coupons-globally-emergency-shop-disable-switch-and-site-analytics-snapshot",
+      "title": "Extend the Admin+ page to include an owner-only Admin+ tab set with controls for: Change Admin Passwords, Promote/Demote Admins, Override Product Pricing, Force Stock States (in-stock/out-of-stock/hidden), Enable/Disable Coupons Globally, Emergency Shop Disable Switch, and Site Analytics Snapshot.",
       "reqIds": [
-        "REQ-1"
+        "REQ-14"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-a-testimonies-widget-section-to-the-homepage-and-services-pages-that-previews-testimonies-content-and-includes-a-clear-link-button-to-the-full-testimonies-page",
-      "title": "Add a Testimonies widget section to the Homepage and Services pages that previews Testimonies content and includes a clear link/button to the full Testimonies page.",
+      "id": "feature-implement-the-emergency-shop-disable-switch-as-a-backend-enforced-feature-flag-that-1-hides-the-entire-storefront-and-checkout-ui-from-customers-and-2-blocks-backend-order-creation-calls-so-purchases-cannot-be-made-even-via-direct-api-calls",
+      "title": "Implement the Emergency Shop Disable Switch as a backend-enforced feature flag that (1) hides the entire storefront and checkout UI from customers and (2) blocks backend order-creation calls so purchases cannot be made even via direct API calls.",
       "reqIds": [
-        "REQ-2"
+        "REQ-15"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-admin-dashboard-create-product-ui-to-include-product-image-upload-price-stock-status-toggle-select-in-stock-out-of-stock-availability-select-delivery-pickup-drop-off-and-short-description-submitting-should-publish-the-product-so-it-appears-on-the-public-shop-page-immediately-after-creation",
-      "title": "Update Admin Dashboard “Create Product” UI to include product image upload, price, stock status toggle/select (in stock / out of stock), availability select (delivery / pickup / drop-off), and short description; submitting should publish the product so it appears on the public Shop page immediately after creation.",
+      "id": "feature-add-owner-controls-to-override-product-pricing-without-editing-the-main-product-listing-and-ensure-public-product-queries-return-the-effective-price-base-price-plus-any-active-override",
+      "title": "Add owner controls to override product pricing without editing the main product listing, and ensure public product queries return the effective price (base price plus any active override).",
       "reqIds": [
-        "REQ-5"
+        "REQ-16"
       ],
       "version": 1
     },
     {
-      "id": "feature-render-products-on-the-public-shop-page-as-flippable-product-cards-using-the-existing-flipcard-component-and-include-the-product-image-and-the-new-product-fields-in-the-card-front-back-content",
-      "title": "Render products on the public Shop page as flippable product cards, using the existing FlipCard component, and include the product image and the new product fields in the card front/back content.",
+      "id": "feature-add-owner-controls-to-force-stock-states-in-stock-out-of-stock-hidden-independently-of-normal-inventory-fields-and-ensure-hidden-products-are-not-displayed-to-customers",
+      "title": "Add owner controls to force stock states (in-stock, out-of-stock, hidden) independently of normal inventory fields, and ensure hidden products are not displayed to customers.",
       "reqIds": [
-        "REQ-6"
+        "REQ-17"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-a-public-create-testimony-flow-on-the-testimonies-page-that-lets-customers-submit-a-review-text-up-to-800-characters-b-1-5-star-rating-and-c-photo-and-video-uploads-submitted-testimonies-must-become-publicly-visible",
-      "title": "Add a public “Create Testimony” flow on the Testimonies page that lets customers submit: (a) review text up to 800 characters, (b) 1–5 star rating, and (c) photo and video uploads; submitted testimonies must become publicly visible.",
+      "id": "feature-implement-a-global-coupons-enable-disable-master-switch-controlled-by-the-owner-when-disabled-coupon-validation-and-coupon-application-are-blocked-across-the-store",
+      "title": "Implement a global coupons enable/disable master switch controlled by the owner; when disabled, coupon validation and coupon application are blocked across the store.",
       "reqIds": [
-        "REQ-7"
+        "REQ-18"
       ],
       "version": 1
     },
     {
-      "id": "feature-style-testimony-star-ratings-so-filled-stars-appear-golden-moss-green-with-a-glow-effect-apply-this-styling-consistently-anywhere-a-testimony-rating-is-displayed",
-      "title": "Style testimony star ratings so filled stars appear golden moss-green with a glow effect; apply this styling consistently anywhere a testimony rating is displayed.",
+      "id": "feature-implement-promote-demote-admins-as-owner-only-actions-using-the-backend-admin-registry-including-ui-controls-within-admin-to-manage-admin-principals",
+      "title": "Implement Promote/Demote Admins as owner-only actions using the backend admin registry, including UI controls within Admin+ to manage admin principals.",
       "reqIds": [
-        "REQ-8"
+        "REQ-19"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-a-testimony-management-section-in-the-admin-dashboard-admin-page-that-allows-admins-to-review-submitted-testimonies-and-remove-items",
-      "title": "Add a “Testimony Management” section in the Admin Dashboard (Admin page) that allows admins to review submitted testimonies and remove items.",
+      "id": "feature-implement-change-admin-passwords-as-an-owner-only-capability-in-admin-with-backend-storage-and-an-admin-facing-flow-that-uses-the-updated-password-to-access-admin-only-functionality",
+      "title": "Implement Change Admin Passwords as an owner-only capability in Admin+ with backend storage and an admin-facing flow that uses the updated password to access admin-only functionality.",
       "reqIds": [
-        "REQ-10"
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-site-analytics-snapshot-section-to-admin-that-shows-a-quick-overview-of-total-orders-recent-activity-and-sales-summaries-based-on-backend-order-data",
+      "title": "Add a Site Analytics Snapshot section to Admin+ that shows a quick overview of total orders, recent activity, and sales summaries based on backend order data.",
+      "reqIds": [
+        "REQ-21"
       ],
       "version": 1
     }
@@ -68,74 +78,28 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add Portfolio and Testimonies widgets to Homepage and Services pages linking to full Portfolio and Testimonies pages",
+      "summary": "Add owner-only Admin+ tab with master controls: reset admin passwords, promote/demote admins, override product pricing, force stock states, toggle coupons globally, emergency shop disable (UI + backend order blocking), and site analytics snapshot.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Add Shop, Portfolio, and Testimonies pages to main navigation (top-right on desktop, hamburger menu on mobile)",
-      "reqIds": [],
+      "summary": "Implement owner identification via a dedicated owner record stored in backend configuration (manually set during initial deployment), and use this stored owner identity as the sole authority for accessing the Admin+ tab and owner-only backend methods.",
+      "reqIds": [
+        "REQ-12"
+      ],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Admin Dashboard Create Product: upload image, set price, stock status, availability (delivery/pickup/drop-off), short description; publish instantly to public Shop page",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Public Shop page: display products as flippable product cards",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Testimonies page: Create Testimony submission (<=800 chars, photo/video upload, 1–5 star rating with golden moss-green glow) and publish submissions publicly",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Admin Dashboard: Testimony Management section to remove inappropriate/vulgar testimonies while allowing respectful criticism",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Ensure the main navigation includes links to Shop, Portfolio, and Testimonies, visible in the top-right desktop navigation and within the mobile hamburger menu.",
+      "summary": "Implement a dedicated admin registry in the backend that stores each user Principal with role flags (Admin / Owner), independent of normal user profile records, and use it for promotions/demotions and role checks.",
       "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "Extend the Product data model and APIs to support: a product image, custom price, stock status (in stock / out of stock), availability (delivery / pickup / drop-off), and a short description; update product creation so these fields are persisted and returned by shop queries.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-15",
-      "summary": "Add backend support for customer testimony creation and admin moderation so admins can remove inappropriate/vulgar submissions while leaving respectful criticism; removed items must no longer be publicly visible.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-17",
-      "summary": "If existing canister state must be upgraded due to changes in Product/Testimony schemas, add/adjust a conditional backend migration so previously stored products/testimonies/portfolios remain readable and the canister upgrade does not trap.",
-      "reqIds": [
-        "REQ-11"
+        "REQ-13"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Phase 3: Portfolio/Testimonies widgets + enhanced Shop product creation + public testimony submissions with moderation",
+  "projectName": "Phase 4: Owner-only Admin+ controls (owner config, admin registry, shop disable UI+backend blocking, pricing/stock overrides, coupon master switch, analytics)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

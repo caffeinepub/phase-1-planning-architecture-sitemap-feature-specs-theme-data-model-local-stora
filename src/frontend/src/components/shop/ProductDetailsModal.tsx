@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useQueuedSaveArtifact, useQueuedRemoveSavedArtifact } from '../../hooks/useQueuedMutations';
 import { useLocalCart } from '../../hooks/useLocalCart';
 import {
   Dialog,
@@ -11,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Heart, ShoppingCart, Loader2, Truck, Package, MapPin } from 'lucide-react';
+import { ShoppingCart, Truck, Package, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Product } from '../../backend';
 
@@ -27,11 +26,7 @@ export default function ProductDetailsModal({
   product,
   open,
   onOpenChange,
-  isSaved,
-  isAuthenticated,
 }: ProductDetailsModalProps) {
-  const saveArtifactMutation = useQueuedSaveArtifact();
-  const removeSavedArtifactMutation = useQueuedRemoveSavedArtifact();
   const { addToCart } = useLocalCart();
   const [quantity, setQuantity] = useState(1);
 
@@ -39,29 +34,7 @@ export default function ProductDetailsModal({
 
   const inStock = product.isInStock && Number(product.stock) > 0;
   const imageUrl = product.image.getDirectURL();
-
-  const handleSaveToggle = async () => {
-    if (!isAuthenticated) {
-      toast.error('Please log in to save artifacts');
-      return;
-    }
-
-    try {
-      if (isSaved) {
-        await removeSavedArtifactMutation.mutateAsync(product.id);
-        toast.success('Removed from saved artifacts');
-      } else {
-        await saveArtifactMutation.mutateAsync(product.id);
-        toast.success('Added to saved artifacts');
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message === 'Queued for offline sync') {
-        toast.info('Action queued for when you\'re back online');
-      } else {
-        toast.error(error instanceof Error ? error.message : 'Failed to update saved artifacts');
-      }
-    }
-  };
+  const effectivePrice = product.priceOverride || product.price;
 
   const handleAddToCart = () => {
     if (!inStock) {
@@ -111,7 +84,7 @@ export default function ProductDetailsModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-3xl font-bold text-arcane-gold">
-                  {(Number(product.price) / 100).toFixed(2)} ICP
+                  ${(Number(effectivePrice) / 100).toFixed(2)}
                 </p>
                 <Badge
                   variant={inStock ? 'secondary' : 'destructive'}
@@ -164,19 +137,6 @@ export default function ProductDetailsModal({
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Add to Cart
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleSaveToggle}
-                  disabled={saveArtifactMutation.isPending || removeSavedArtifactMutation.isPending}
-                  className="gap-2"
-                >
-                  {saveArtifactMutation.isPending || removeSavedArtifactMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Heart className={`h-4 w-4 ${isSaved ? 'fill-current text-destructive' : ''}`} />
-                  )}
-                  {isSaved ? 'Saved' : 'Save'}
                 </Button>
               </div>
             </div>

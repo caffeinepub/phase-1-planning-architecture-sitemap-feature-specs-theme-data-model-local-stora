@@ -1,217 +1,256 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Phase 3 frontend: homepage/service widgets, shop FlipCards + product creation fields, public testimony submission + admin moderation UI",
+  "title": "Phase 4 Owner-only Admin+ controls (frontend-only)",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Add a responsive Portfolio preview widget to Homepage and Services with a clear link to /portfolio.",
+      "id": "REQ-14",
+      "summary": "Expand Admin+ into an owner-only tabbed panel containing all Phase 4 owner controls and render implemented section components.",
       "acceptanceCriteria": [
-        "Homepage shows a Portfolio widget section with at least a short preview/teaser and a working link to /portfolio.",
-        "Services page shows a Portfolio widget section with at least a short preview/teaser and a working link to /portfolio.",
-        "Widget layout is responsive and consistent with the existing site styling (cards, section-spacing, FadeInSection usage)."
+        "`frontend/src/pages/AdminPlus.tsx` includes tabs/sections for all Phase 4 owner controls listed in the user request (not only portfolios/testimonies).",
+        "Admin+ remains gated by the existing `RequireOwner` component and uses `useIsCallerOwner` for visibility/authorization decisions.",
+        "All user-facing labels/messages in the new Admin+ UI are in English.",
+        "The previously-empty Admin+ placeholder section components are implemented and rendered where appropriate (e.g., `frontend/src/components/adminplus/AdvancedShopControlsSection.tsx`, `frontend/src/components/adminplus/CouponManagerSection.tsx`)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
+          "path": "frontend/src/pages/AdminPlus.tsx",
+          "operation": "modify",
+          "description": "Refactor Admin+ into a tab set that includes: Change Admin Passwords, Promote/Demote Admins, Override Product Pricing, Force Stock States/Hidden, Enable/Disable Coupons Globally, Emergency Shop Disable Switch, and Site Analytics Snapshot, while keeping existing Portfolios/Testimonies tabs. Ensure the page stays wrapped by RequireOwner and relies on useIsCallerOwner for owner-only gating. Use the authorization selected component patterns for owner gating and authorization-error handling; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+          "operation": "modify",
+          "description": "Implement the currently-empty placeholder as an owner-only Admin+ section UI that contains emergency shop disable toggle plus per-product controls for pricing overrides and forced visibility/availability states, using React Query hooks/mutations and English success/error messages. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/adminplus/CouponManagerSection.tsx",
+          "operation": "modify",
+          "description": "Implement the currently-empty placeholder as an owner-only Admin+ section UI for the global coupons master switch (enabled/disabled), showing current state, mutation feedback, and English labels. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/adminplus/AdminRegistrySection.tsx",
           "operation": "create",
-          "description": "Create a reusable Portfolio widget section that fetches portfolio items (via existing query hooks) and renders a small preview (e.g., a few cards) plus a prominent Link/Button to /portfolio. Use the existing FadeInSection component for consistent animation; verify the component's usage instructions before implementing."
+          "description": "Create a new Admin+ section for Promote/Demote Admins with a Principal text input, client-side Principal format validation, and success/error feedback; wire to listAdmins/promote/demote hooks and invalidate relevant cached queries after changes. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/Homepage.tsx",
-          "operation": "modify",
-          "description": "Insert the new PortfolioWidgetSection into the Homepage layout (without disrupting existing hero, carousel, quick links, and announcements), using section-spacing and existing card styling conventions."
-        },
-        {
-          "path": "frontend/src/pages/Services.tsx",
-          "operation": "modify",
-          "description": "Add the PortfolioWidgetSection to the Services page in a way that matches existing spacing and FadeInSection usage, and includes a working link to /portfolio."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Add a responsive Testimonies preview widget to Homepage and Services with a clear link to /testimonies.",
-      "acceptanceCriteria": [
-        "Homepage shows a Testimonies widget section with at least a short preview/teaser and a working link to /testimonies.",
-        "Services page shows a Testimonies widget section with at least a short preview/teaser and a working link to /testimonies.",
-        "Widgets do not break existing Homepage sections (hero, featured carousel, quick links, announcements)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
+          "path": "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
           "operation": "create",
-          "description": "Create a reusable Testimonies widget section that previews a few approved testimonies (including StarRating where available) and includes a prominent Link/Button to /testimonies. Use existing FadeInSection and card styles for consistency; verify the component's usage instructions before implementing."
+          "description": "Create a new Admin+ section for Change Admin Passwords with Principal input and password input, clear feedback, and safe handling so passwords are never displayed. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/Homepage.tsx",
-          "operation": "modify",
-          "description": "Place the TestimoniesWidgetSection onto the Homepage while preserving the existing section order/behavior and ensuring responsive layout."
-        },
-        {
-          "path": "frontend/src/pages/Services.tsx",
-          "operation": "modify",
-          "description": "Add the TestimoniesWidgetSection to the Services page with consistent spacing/styling and a working link to /testimonies."
+          "path": "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+          "operation": "create",
+          "description": "Create a new Admin+ section to fetch and display the site analytics snapshot (totals and summaries) with loading/error/empty states and English labels; ensure it can refresh/invalidate after order creation. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Ensure main navigation shows Shop, Portfolio, and Testimonies links on desktop and mobile menus.",
+      "id": "REQ-15",
+      "summary": "Hide storefront/checkout UI when shop is disabled and prevent order creation actions in the UI.",
       "acceptanceCriteria": [
-        "Desktop header navigation shows working links for Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) in the top-right link cluster.",
-        "Mobile hamburger menu shows the same three links and they navigate correctly.",
-        "Navigation behavior remains unchanged for existing links (Home, About, Services, Dashboard, Contact)."
+        "Backend stores a persistent `shopDisabled` (or equivalent) flag and exposes owner-only methods to get/set it.",
+        "Backend `createOrder(...)` traps with a clear English message when the shop is disabled, regardless of caller or frontend behavior.",
+        "Frontend Shop page (`frontend/src/pages/Shop.tsx`) does not render product listing, product details, cart drawer, or checkout entry points when the shop is disabled; instead it shows a clear maintenance/disabled message in English.",
+        "Any frontend code path that initiates order creation is prevented when shop is disabled (in addition to the backend enforcement).",
+        "Owner can toggle the shop disable switch from Admin+ and the Shop page reflects the change after refresh or query invalidation."
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
-          "operation": "modify",
-          "description": "Confirm Shop (/shop), Portfolio (/portfolio), and Testimonies (/testimonies) are present in the shared navLinks list so they render in both the desktop link cluster and the mobile hamburger menu; keep existing link behavior unchanged."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Enhance Admin Dashboard Create Product UI to collect image, custom price, stock status, availability, and short description; publish immediately and support React Query refetch/invalidation and offline queue messaging.",
-      "acceptanceCriteria": [
-        "Admin “Create New Product” form includes: image upload control, price input, stock status control, availability control, and short description input.",
-        "Form validates required fields and shows user-friendly English errors via existing toast/error patterns.",
-        "On successful creation, the Shop page product list reflects the new product without manual page reload (via React Query invalidation/refetch).",
-        "If offline-queue behavior applies to product creation, the UI clearly indicates queued vs created states and does not crash."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/admin/AdminProductsTab.tsx",
-          "operation": "modify",
-          "description": "Update the Create Product dialog UI to include: product image file input, custom price, stock status (in stock/out of stock), availability select (delivery/pickup/drop-off), and short description; keep English validation and existing toast patterns. Convert uploaded file bytes into a blob-storage ExternalBlob for submission; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminProductsTab.tsx",
-          "operation": "modify",
-          "description": "Update the Edit Product dialog and product list rendering to display and edit the new fields where applicable (price, stock status, availability, short description, image), while keeping stock update behavior intact."
-        },
-        {
-          "path": "frontend/src/hooks/useQueuedMutations.ts",
-          "operation": "modify",
-          "description": "Update queued product creation/edit mutation wrappers to accept and forward the new product fields (including blob-storage ExternalBlob for image) and to keep the existing queued/offline messaging semantics consistent; verify the component's usage instructions before implementing."
-        },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Align product-related mutations with the current backend interface for createProduct/editProduct so they include the new fields (image, isInStock, availability, shortDescription, and updated price/description). Ensure React Query invalidation for the products query remains in place."
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Render public Shop products as flippable cards using FlipCard, including product image and the new fields on front/back.",
-      "acceptanceCriteria": [
-        "In Shop grid view, each product is displayed as a FlipCard interaction (click/keyboard flips).",
-        "The card front shows at minimum: product image, name, price, and stock status.",
-        "The card back shows at minimum: short description and availability (delivery/pickup/drop-off) and a clear call-to-action (e.g., View Details) that preserves existing modal/cart flows.",
-        "Reduced-motion users keep accessible behavior (FlipCard respects prefers-reduced-motion as implemented)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/shop/ProductFlipCard.tsx",
-          "operation": "create",
-          "description": "Create a ProductFlipCard component that uses the existing FlipCard component to present front/back content, including the product image (via blob-storage ExternalBlob direct URL), name, price, and stock status on the front; and short description + availability + a 'View Details' CTA on the back. Verify the FlipCard component's usage instructions before implementing."
+          "description": "Add React Query hooks for reading and toggling the shop active/disabled state (using the backend's shop active state and store config capabilities). Ensure mutations invalidate any shop-state and product queries so the Shop page updates after toggles. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/pages/Shop.tsx",
           "operation": "modify",
-          "description": "Replace the grid-mode product rendering to use ProductFlipCard (FlipCard-based) while preserving list view behavior, existing ProductDetailsModal opening flow, keyboard accessibility, and reduced-motion compatibility."
+          "description": "Query shop active/disabled state and, when disabled, render a clear English maintenance message and hide product list, product details modal, cart drawer, and any checkout entry points (including cart button). When enabled, keep existing behavior. Ensure state updates after refresh or query invalidation."
         },
         {
-          "path": "frontend/src/components/shop/ProductDetailsModal.tsx",
+          "path": "frontend/src/components/shop/ShopCartDrawer.tsx",
           "operation": "modify",
-          "description": "Update the product details modal display to include the new product fields (image, price, stock status, availability, short description) without breaking existing save/cart flows."
+          "description": "Add a shop-disabled guard: block checkout action and show an English message if the shop is disabled, even if the drawer is opened. Also ensure createOrder is never attempted from the UI when disabled."
+        },
+        {
+          "path": "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+          "operation": "modify",
+          "description": "Add an 'Emergency Shop Disable' owner toggle UI wired to the shop active/disabled state hooks, with clear English confirmation/status text and query invalidation so Shop reflects changes. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-7",
-      "summary": "Add a public Create Testimony flow on the Testimonies page with 800-char limit, 1–5 rating, and photo/video upload; new submissions appear without refresh.",
+      "id": "REQ-16",
+      "summary": "Provide owner UI to set/clear per-product price overrides and display override status in Admin+.",
       "acceptanceCriteria": [
-        "Testimonies page includes a prominent “Create Testimony” button that opens a form (dialog or inline section).",
-        "The form enforces a maximum of 800 characters for the review text and prevents submission when exceeded.",
-        "The form supports selecting a rating from 1 to 5 and submits it with the testimony.",
-        "The form supports uploading at least one image/video file and includes basic client-side validation (e.g., file type must be image/* or video/*).",
-        "After submission succeeds, the new testimony appears in the public testimonies list without a manual page refresh (React Query invalidation/refetch)."
+        "Backend persists price overrides separately from the core Product record (so base product listing remains unchanged).",
+        "Backend provides owner-only methods to set, clear, and read price overrides per product.",
+        "Public product query endpoints used by the Shop UI return the effective price (override if present; otherwise base price).",
+        "Admin+ UI includes a per-product control to set/clear an override price and clearly indicates whether an override is active."
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-          "operation": "create",
-          "description": "Implement a public Create Testimony dialog/section that collects author name, review text (max 800), star rating (1–5), and optional photo/video uploads with client-side type validation. Use blob-storage ExternalBlob for media handling (direct URL + upload progress where appropriate); verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Testimonies.tsx",
-          "operation": "modify",
-          "description": "Add a prominent “Create Testimony” button to open CreateTestimonyDialog and wire submission success to React Query invalidation/refetch of approved testimonies so new items appear without manual refresh."
-        },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add/adjust testimony creation query/mutation hooks to call the backend createTestimony capability with rating and blob-storage ExternalBlob media parameters, and invalidate the approved testimonies query on success; verify the component's usage instructions before implementing."
+          "description": "Add/extend React Query mutations for setting and clearing per-product price overrides, and ensure the products list is invalidated after changes so effective prices refresh across Shop and any product UI. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
+          "operation": "modify",
+          "description": "Add per-product price override controls: show base price vs effective price, indicate whether an override is active, provide inputs to set an override price and a button to clear it, with English feedback and disabled states while saving. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Shop.tsx",
+          "operation": "modify",
+          "description": "Ensure all displayed product prices use the effective product price fields returned by public product queries (including list cards and any list-mode price display) so overrides are reflected to customers."
         }
       ]
     },
     {
-      "id": "REQ-8",
-      "summary": "Update testimony star rating styling to golden moss-green with glow, consistently across display and input controls.",
+      "id": "REQ-17",
+      "summary": "Provide owner UI to force per-product stock/visibility state and ensure hidden products do not appear in the customer Shop UI.",
       "acceptanceCriteria": [
-        "Filled stars use a golden moss-green tone (not the current arcane-gold) and include a visible glow (e.g., drop-shadow) on dark background.",
-        "Unfilled stars remain visually subdued and accessible.",
-        "Star styling is consistent on the testimonies listing and on the testimony submission control."
+        "Backend persists a per-product forced stock state override distinct from the existing stock/isInStock fields.",
+        "Public product queries used by customers reflect the effective availability: forced hidden products are excluded, and forced in/out-of-stock is reflected in the returned product data.",
+        "Admin+ UI includes a per-product forced stock state selector with options: In stock, Out of stock, Hidden, and a way to clear the override (return to normal behavior).",
+        "If a migration is required to support new fields/structures, add a conditional migration so upgrades do not trap."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add theme-consistent CSS variables and/or utility classes for testimony star filled/unfilled styling, including a golden moss-green color and glow effect that works on dark backgrounds."
+          "description": "Add/extend React Query mutations for setting product visibility/availability states used by the Shop UI (e.g., visible/out-of-stock/hidden), and invalidate product queries after changes. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/testimonies/StarRating.tsx",
+          "path": "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
           "operation": "modify",
-          "description": "Update StarRating to use the new golden moss-green + glow styling for filled stars and subdued styling for unfilled stars, ensuring accessibility (aria-label) remains intact."
+          "description": "Add per-product forced stock/visibility selector UI with options In stock / Out of stock / Hidden plus a clear/reset action, showing current effective state and providing English feedback. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "path": "frontend/src/pages/Shop.tsx",
           "operation": "modify",
-          "description": "Ensure the rating selection control in the Create Testimony flow uses the same star styling as StarRating for consistent appearance."
+          "description": "Ensure the customer-facing Shop UI does not display hidden products by relying on the effective product list returned from backend queries and adding a defensive client-side filter for hidden visibility if needed."
         }
       ]
     },
     {
-      "id": "REQ-10",
-      "summary": "Add an Admin Dashboard Testimony Management section for admins (not owner-only) to review and remove submitted testimonies.",
+      "id": "REQ-18",
+      "summary": "Add an owner-controlled global coupons enable/disable switch and reflect disabled state in coupon entry/validation UI.",
       "acceptanceCriteria": [
-        "Admin page shows a “Testimonies” tab/section for admins (not owner-only) that lists testimonies and provides a remove action.",
-        "Remove action updates the UI immediately after success (or shows queued/offline messaging if applicable).",
-        "Owner-only Admin+ remains functional and unchanged, but admin users no longer need owner role to access basic testimony moderation in Admin Dashboard."
+        "Backend stores a persistent `couponsEnabled` (or equivalent) flag and exposes owner-only methods to get/set it.",
+        "When coupons are globally disabled, backend coupon validation returns an invalid result with an English message and `createOrder(...)` does not apply discounts even if a coupon code is supplied.",
+        "Admin+ UI includes a clear toggle for enabling/disabling coupons globally and shows the current state.",
+        "Shop/cart coupon UI (wherever coupon codes are entered/validated) reflects the disabled state (e.g., disables coupon input or shows an English message) while still relying on backend enforcement."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-          "operation": "create",
-          "description": "Create an admin-only testimonies moderation tab that lists testimonies (including media/rating where available) and provides a remove action. Use existing admin UI patterns (cards, loading/error states, toast feedback) and reflect changes immediately via React Query invalidation/refetch."
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add React Query hooks for reading and toggling the global coupons enabled/disabled state and invalidate coupon-related queries after toggle. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/adminplus/CouponManagerSection.tsx",
+          "operation": "modify",
+          "description": "Implement the global coupons master toggle UI (current state + toggle) with English labels and clear success/error feedback, invalidating coupon state queries so Shop/cart reflects changes. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/shop/ShopCartDrawer.tsx",
+          "operation": "modify",
+          "description": "Query coupons enabled/disabled state and, when disabled, disable coupon input/apply button and show an English message explaining coupons are currently disabled; keep backend validation as the source of truth."
+        }
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "summary": "Provide owner-only Admin+ UI to promote/demote admins by Principal and keep permissions state consistent via query invalidation.",
+      "acceptanceCriteria": [
+        "Backend exposes owner-only methods to list admin registry entries, add/promote an admin principal, and demote/remove an admin principal.",
+        "Admin+ UI provides a form to enter a Principal (text) to promote/demote, validates formatting client-side, and shows success/error feedback in English.",
+        "After changes, relevant cached queries are invalidated so admin-only areas reflect updated permissions on next access.",
+        "Non-owner callers cannot promote/demote admins (backend traps with clear English authorization errors)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add hooks for listing admin registry entries and for promote/demote admin actions using Principal.fromText parsing on the client. Ensure onSuccess invalidates owner/admin-related cached queries (e.g., isCallerOwner/currentUserRole/listAdmins) to keep UI consistent. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+          "operation": "modify",
+          "description": "Implement the promote/demote UI: Principal text input with client-side validation, buttons for promote/demote, list current admin entries, and show English success/error feedback including backend authorization errors. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/AdminPlus.tsx",
+          "operation": "modify",
+          "description": "Wire the AdminRegistrySection into the Admin+ tab set under a clearly labeled owner-only 'Promote/Demote Admins' tab/section, with English labels."
+        }
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "summary": "Add owner UI to reset admin passwords and add an admin-facing password prompt step for admin-only capabilities.",
+      "acceptanceCriteria": [
+        "Backend provides owner-only methods to set/reset an admin password for a given admin principal and to clear it (if supported).",
+        "Passwords are not returned in plaintext by any backend method.",
+        "Admin+ UI allows the owner to select/enter an admin principal and set/reset that admin’s password with English success/error feedback.",
+        "There is an admin-facing UI step that requires the admin password for accessing admin-only capabilities (or a clearly defined subset), and the password check is enforced by the backend (not only frontend)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a mutation hook for owner to set/reset an admin password (client supplies a password hash or the required string payload per backend interface) and invalidate any admin-registry-related queries after success. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+          "operation": "modify",
+          "description": "Implement owner UI for changing admin passwords: Principal input, password input (never displayed after submission), clear English feedback, and safe UX (e.g., confirm before overwrite). Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/AdminPlus.tsx",
+          "operation": "modify",
+          "description": "Wire the AdminPasswordResetSection into the Admin+ tab set under a clearly labeled 'Change Admin Passwords' tab/section with English labels."
         },
         {
           "path": "frontend/src/pages/Admin.tsx",
           "operation": "modify",
-          "description": "Add a “Testimonies” tab visible to all admins (without RequireOwner), wire it to AdminTestimoniesTab, and keep owner-only sections (e.g., portfolios and Admin+ route behavior) unchanged."
+          "description": "Add an admin-facing password gate step before rendering clearly defined admin-only capabilities (or the whole Admin page), using a new password prompt component and handling backend authorization failures by showing English guidance (without exposing any password data). Use the authorization selected component patterns for auth UX; verify the component's usage instructions before implementing."
         },
+        {
+          "path": "frontend/src/components/admin/AdminPasswordGate.tsx",
+          "operation": "create",
+          "description": "Create an admin password prompt + verification UI wrapper used by Admin page sections. It should store the password only in-memory for the session, show English error messages, and react gracefully to backend authorization traps. Use the authorization selected component patterns for authorization error handling; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "summary": "Add an owner-only Site Analytics Snapshot section to Admin+ with loading/error states and refresh behavior.",
+      "acceptanceCriteria": [
+        "Backend exposes an owner-only query that returns an analytics snapshot derived from stored orders (e.g., total order count, total sales sum, last N orders summary).",
+        "Admin+ UI displays the analytics snapshot in a readable summary card/table with English labels and handles loading/error states.",
+        "Snapshot values update after new orders are created (after query invalidation or refresh)."
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add/adjust admin moderation hooks for fetching all testimonies and removing a testimony, and ensure relevant queries are invalidated after removal so removed items disappear from the list."
+          "description": "Add a React Query hook for fetching the analytics snapshot for the owner and ensure it can be invalidated/refetched after order creation and via a manual refresh action. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/hooks/useQueuedMutations.ts",
+          "path": "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
           "operation": "modify",
-          "description": "If offline queue behavior is used for admin mutations, add support for queued testimony removal (or integrate with existing queue patterns) so the UI can indicate queued vs completed states without crashing."
+          "description": "Implement a snapshot UI that displays totals in readable cards/table, includes loading and error states, and provides a refresh button. Use clear English labels and handle backend authorization errors gracefully. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/AdminPlus.tsx",
+          "operation": "modify",
+          "description": "Wire the AnalyticsSnapshotSection into the Admin+ tab set under a clearly labeled 'Site Analytics Snapshot' tab/section with English labels."
+        },
+        {
+          "path": "frontend/src/components/shop/ShopCartDrawer.tsx",
+          "operation": "modify",
+          "description": "After successful order creation, ensure analytics-related queries are invalidated/refetched (in addition to orders) so the Admin+ snapshot updates after new purchases."
         }
       ]
     }

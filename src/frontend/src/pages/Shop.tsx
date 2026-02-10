@@ -1,5 +1,5 @@
-import { useState, useMemo, memo } from 'react';
-import { useGetAllProducts, useGetMySavedArtifacts } from '../hooks/useQueries';
+import { useState, useMemo } from 'react';
+import { useGetAllProducts, useGetShopActiveState } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { Grid, List, Search, ShoppingCart } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Grid, List, Search, ShoppingCart, AlertCircle } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
 import ProductDetailsModal from '../components/shop/ProductDetailsModal';
@@ -21,73 +22,96 @@ import type { Product } from '../backend';
 
 export default function Shop() {
   const { data: products = [], isLoading, error, refetch } = useGetAllProducts();
+  const { data: shopActive = true, isLoading: shopStateLoading } = useGetShopActiveState();
   const { identity } = useInternetIdentity();
-  const { data: savedArtifacts = [] } = useGetMySavedArtifacts();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
-  const { getTotalItems } = useLocalCart();
+  const { items: cart } = useLocalCart();
 
-  const { 
-    searchQuery, 
-    setSearchQuery, 
-    inStockOnly, 
-    setInStockOnly, 
-    sortBy, 
-    setSortBy, 
-    filteredProducts 
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const {
+    searchQuery,
+    setSearchQuery,
+    inStockOnly,
+    setInStockOnly,
+    sortBy,
+    setSortBy,
+    filteredProducts,
   } = useShopFilters(products);
 
-  const savedProductIds = useMemo(
-    () => new Set(savedArtifacts.map((a) => Number(a.productId))),
-    [savedArtifacts]
-  );
+  const cartItemCount = cart.reduce((sum, item) => sum + Number(item.quantity), 0);
 
-  const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
-    setModalOpen(true);
-  };
+  if (shopStateLoading || isLoading) {
+    return (
+      <PageLayout title="Arcane Artifacts Shop" description="Browse our mystical collection">
+        <FadeInSection>
+          <section className="section-spacing">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <Skeleton className="h-48 w-full mb-4" />
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        </FadeInSection>
+      </PageLayout>
+    );
+  }
 
-  const handleModalClose = (open: boolean) => {
-    setModalOpen(open);
-    if (!open) {
-      setTimeout(() => setSelectedProduct(null), 150);
-    }
-  };
-
-  const totalCartItems = getTotalItems();
+  if (!shopActive) {
+    return (
+      <PageLayout title="Shop Temporarily Closed" description="We'll be back soon">
+        <FadeInSection>
+          <section className="section-spacing">
+            <div className="max-w-2xl mx-auto">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-center py-8">
+                  <div className="space-y-4">
+                    <h2 className="text-2xl font-bold">Shop Under Maintenance</h2>
+                    <p className="text-muted-foreground">
+                      Our shop is currently closed for maintenance or updates. Please check back soon!
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </div>
+          </section>
+        </FadeInSection>
+      </PageLayout>
+    );
+  }
 
   if (error) {
     return (
-      <PageLayout title="Shop" description="Browse our collection of mystical artifacts">
-        <ErrorState
-          title="Failed to load products"
-          description={error instanceof Error ? error.message : 'An error occurred'}
-          onRetry={refetch}
-        />
+      <PageLayout title="Arcane Artifacts Shop" description="Browse our mystical collection">
+        <FadeInSection>
+          <section className="section-spacing">
+            <ErrorState
+              title="Failed to load products"
+              onRetry={refetch}
+            />
+          </section>
+        </FadeInSection>
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout
-      title="Artifact Shop"
-      description="Discover rare and powerful artifacts from across the realms"
-    >
+    <PageLayout title="Arcane Artifacts Shop" description="Browse our mystical collection of enchanted items">
       <FadeInSection>
-        <div className="flex flex-col gap-4 mb-8">
-          {/* Top Row: Search and Cart */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <Label htmlFor="search" className="sr-only">
-                Search products
-              </Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <section className="section-spacing">
+          <div className="mb-8 space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="search"
                   type="search"
                   placeholder="Search artifacts..."
                   value={searchQuery}
@@ -95,148 +119,147 @@ export default function Shop() {
                   className="pl-10"
                 />
               </div>
-            </div>
 
-            {/* Cart Button */}
-            <Button
-              variant="default"
-              onClick={() => setCartOpen(true)}
-              className="gap-2 relative"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              Cart
-              {totalCartItems > 0 && (
-                <Badge variant="destructive" className="ml-1 px-1.5 py-0 h-5 min-w-5">
-                  {totalCartItems}
-                </Badge>
-              )}
-            </Button>
-          </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="in-stock-toggle"
+                    checked={inStockOnly}
+                    onCheckedChange={setInStockOnly}
+                  />
+                  <Label htmlFor="in-stock-toggle" className="cursor-pointer">
+                    In Stock Only
+                  </Label>
+                </div>
 
-          {/* Bottom Row: Filters and View Toggle */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            {/* Filters */}
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="in-stock"
-                  checked={inStockOnly}
-                  onCheckedChange={setInStockOnly}
-                />
-                <Label htmlFor="in-stock" className="cursor-pointer">
-                  In stock only
-                </Label>
-              </div>
+                <div className="flex items-center gap-2 border rounded-lg p-1">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
 
-              <div className="flex items-center gap-2">
-                <Label htmlFor="sort" className="text-sm">
-                  Sort:
-                </Label>
-                <select
-                  id="sort"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'name' | 'price-asc' | 'price-desc')}
-                  className="text-sm border border-border rounded-md px-2 py-1 bg-background"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="relative"
+                  onClick={() => setCartOpen(true)}
                 >
-                  <option value="name">Name</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                </select>
+                  <ShoppingCart className="h-4 w-4" />
+                  {cartItemCount > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      {cartItemCount}
+                    </Badge>
+                  )}
+                </Button>
               </div>
             </div>
 
-            {/* View Toggle */}
-            <div className="flex gap-2" role="group" aria-label="View mode">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => setViewMode('grid')}
-                aria-label="Grid view"
-                aria-pressed={viewMode === 'grid'}
+            <div className="flex items-center gap-4">
+              <Label htmlFor="sort-select">Sort by:</Label>
+              <select
+                id="sort-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="border rounded-md px-3 py-2 bg-background"
               >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => setViewMode('list')}
-                aria-label="List view"
-                aria-pressed={viewMode === 'list'}
-              >
-                <List className="h-4 w-4" />
-              </Button>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="price-asc">Price (Low to High)</option>
+                <option value="price-desc">Price (High to Low)</option>
+              </select>
             </div>
           </div>
-        </div>
+
+          {filteredProducts.length === 0 ? (
+            <Card>
+              <CardContent className="py-16 text-center">
+                <p className="text-muted-foreground">
+                  {searchQuery || inStockOnly
+                    ? 'No artifacts match your search criteria.'
+                    : 'No artifacts available at this time.'}
+                </p>
+              </CardContent>
+            </Card>
+          ) : viewMode === 'grid' ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredProducts.map((product) => (
+                <ProductFlipCard
+                  key={product.id.toString()}
+                  product={product}
+                  onClick={() => setSelectedProduct(product)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredProducts.map((product) => {
+                const effectivePrice = product.priceOverride || product.price;
+                return (
+                  <Card key={product.id.toString()} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex gap-6">
+                        <div className="w-32 h-32 flex-shrink-0">
+                          <img
+                            src={product.image.getDirectURL()}
+                            alt={product.name}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="text-xl font-semibold">{product.name}</h3>
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {product.shortDescription}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-primary">
+                                ${(Number(effectivePrice) / 100).toFixed(2)}
+                              </div>
+                              <Badge variant={product.isInStock ? 'default' : 'secondary'}>
+                                {product.isInStock ? 'In Stock' : 'Out of Stock'}
+                              </Badge>
+                            </div>
+                          </div>
+                          <Button onClick={() => setSelectedProduct(product)} className="mt-4">
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </FadeInSection>
 
-      {/* Products Grid/List */}
-      {isLoading ? (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-64 w-full" />
-          ))}
-        </div>
-      ) : filteredProducts.length === 0 ? (
-        <FadeInSection>
-          <Card className="border-border/40">
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
-                {searchQuery || inStockOnly ? 'No artifacts match your filters.' : 'No artifacts available.'}
-              </p>
-            </CardContent>
-          </Card>
-        </FadeInSection>
-      ) : (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-          {filteredProducts.map((product, index) => (
-            <FadeInSection key={Number(product.id)} delay={index * 50}>
-              {viewMode === 'grid' ? (
-                <ProductFlipCard
-                  product={product}
-                  onClick={() => handleProductClick(product)}
-                />
-              ) : (
-                <Card
-                  className="border-border/40 hover:border-arcane-gold/50 transition-all hover-lift cursor-pointer"
-                  onClick={() => handleProductClick(product)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                        <p className="text-muted-foreground mb-4">{product.shortDescription || product.description}</p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-2xl font-bold text-arcane-gold mb-2">
-                          {Number(product.price)} ICP
-                        </p>
-                        <Badge
-                          variant={product.isInStock ? 'secondary' : 'destructive'}
-                          className={product.isInStock ? 'bg-arcane-gold/20 text-arcane-gold border-arcane-gold/30' : ''}
-                        >
-                          {product.isInStock ? 'In Stock' : 'Out of Stock'}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </FadeInSection>
-          ))}
-        </div>
+      {selectedProduct && (
+        <ProductDetailsModal
+          product={selectedProduct}
+          open={!!selectedProduct}
+          onOpenChange={(open) => !open && setSelectedProduct(null)}
+          isSaved={false}
+          isAuthenticated={!!identity}
+        />
       )}
 
-      {/* Product Details Modal */}
-      <ProductDetailsModal
-        product={selectedProduct}
-        open={modalOpen}
-        onOpenChange={handleModalClose}
-        isSaved={selectedProduct ? savedProductIds.has(Number(selectedProduct.id)) : false}
-        isAuthenticated={!!identity}
-      />
-
-      {/* Shopping Cart Drawer */}
       <ShopCartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </PageLayout>
   );
