@@ -35,7 +35,7 @@ actor {
   var adminRegistry = Map.empty<Principal, AdminRole>();
   var adminCredentials = Map.empty<Principal, AdminCredentials>();
 
-  // Legacy persistent variables (should eventually migrate to persistent stores)
+  // Persistent ID counters
   var nextUserId = 1;
   var nextProductId = 1;
   var nextOrderId = 1;
@@ -908,4 +908,3 @@ actor {
     };
   };
 };
-

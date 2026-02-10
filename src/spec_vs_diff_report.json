@@ -1,149 +1,122 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T20:20:20.440Z",
-  "summary": "Diff adds several Admin+ owner UI sections (admin registry management, admin password reset, coupon master switch, advanced shop controls incl. shop disable/price override/visibility, analytics snapshot UI) and introduces backend state fields for owner principal, store config, admin registry/credentials, plus a migration that adds `visibility` and `priceOverride` fields onto Product. However, multiple backend enforcement/authorization requirements are not evidenced in the provided diff summary, and some implementation choices appear to diverge from the spec (notably storing overrides on Product and adding app-wide analytics initialization).",
+  "generatedAt": "2026-02-10T23:05:48.194Z",
+  "summary": "Diff adds substantial frontend UI for Phase 5A (request form page, testimony dialog/media pickers, flippable media cards, admin tabs, nav/CTA links, media validation utilities) but does not show corresponding backend create/list APIs or authorization enforcement. React Query hooks for Phase 5A appear to be present but explicitly noted as “temporarily disabled until backend methods are implemented,” meaning the end-to-end requirements are not implemented. Several unrelated frontend enhancements (analytics, theme/style/doc additions, homepage/about components) were also introduced without being requested.",
   "missing_requirements": [
     {
-      "id": "REQ-12",
-      "requirement": "Owner identification must be stored as a single persistent owner Principal, with `isCallerOwner()` checking equality against that stored Principal; and owner-only read/set owner Principal methods with clear English traps for non-owners.",
-      "reason": "While `backend/main.mo` shows `var ownerPrincipal : ?Principal = null;`, the diff summary does not show any `isCallerOwner()` implementation, nor any owner-only backend methods to read/update the configured owner Principal, nor the required authorization traps/messages for non-owner callers.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-13",
-      "requirement": "Dedicated backend admin registry keyed by Principal with role flags, and only-owner promote/demote admin endpoints; role checks updated to use owner check for Admin+; add conditional migration if schema changes.",
-      "reason": "`backend/main.mo` declares `adminRegistry` and `adminCredentials`, and the frontend adds an Admin Registry UI, but the diff summary does not show the backend methods to list/promote/demote admins, nor evidence those methods are owner-only and trap non-owners with clear English errors. Migration shown addresses product fields, not admin registry/owner config.",
+      "id": "REQ-1",
+      "requirement": "Backend data models and APIs for Requests and Testimonies with unique non-zero IDs; persist submissions; admin-only list methods returning all stored items in consistent order; non-admin access rejected.",
+      "reason": "backend/main.mo diff snippet shows existing stores/counters (including testimonies/quoteRequests) but no evidence of new Request/Testimony models or new create/list endpoints with unique ID assignment and admin-only list enforcement. Frontend hooks are described as disabled until backend methods exist.",
       "evidence": [
         "backend/main.mo",
-        "frontend/src/components/adminplus/AdminRegistrySection.tsx",
-        "backend/migration.mo"
+        "frontend/src/hooks/useQueries.ts (frontend-file-summaries.txt: Phase 5A hooks temporarily disabled until backend methods are implemented)"
       ]
     },
     {
-      "id": "REQ-15",
-      "requirement": "Emergency Shop Disable Switch must be backend-enforced: persistent flag with owner-only get/set, and `createOrder(...)` must trap with a clear English message when disabled; frontend Shop page must hide storefront/checkout when disabled.",
-      "reason": "Frontend includes a shop toggle and checkout path checks `shopActive`, but the diff summary does not show backend persistence/get/set methods for the flag, nor the required `createOrder(...)` trap enforcement, nor Shop page-level hiding behavior (Shop page changes are not included in the shown excerpts).",
+      "id": "REQ-2",
+      "requirement": "Backend authorization: only authenticated users can submit Requests/Testimonies; only admins can list/review; unauthenticated submission fails with clear authorization error.",
+      "reason": "No evidence in backend diff summary of new shared methods that check authentication for createRequest/createTestimony or admin checks for listing. Existing admin checks shown are for events logging only, not for requests/testimonies submissions/listing.",
       "evidence": [
-        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-        "frontend/src/components/shop/ShopCartDrawer.tsx",
         "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-16",
-      "requirement": "Price overrides must be persisted separately from the core Product record, and public product queries must return effective price; owner-only set/clear/read methods; Admin+ per-product controls indicating override active.",
-      "reason": "The migration and frontend indicate `priceOverride` is stored on the Product record itself (`products` upgraded to include `priceOverride : ?Nat`), which conflicts with the requirement to persist overrides separately from the core Product record. Backend owner-only override APIs are not evidenced in the diff summary (only frontend hooks usage is shown).",
+      "id": "REQ-3",
+      "requirement": "Backend media attachment support for Requests (optional media) and Testimonies (≤5 photos, ≤3 videos) using existing blob storage mixin, storing media metadata alongside submissions (including per-item description ≤1500).",
+      "reason": "Frontend adds media pickers and validation, but backend diff does not show storing media metadata for new Request/Testimony submissions, nor server-side enforcement of testimony max counts/description length, nor any new API contracts using the blob storage mixin for these entities.",
       "evidence": [
-        "backend/migration.mo",
         "backend/main.mo",
-        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-        "frontend/src/components/shop/ProductDetailsModal.tsx",
-        "frontend/src/components/shop/ShopCartDrawer.tsx"
+        "frontend/src/components/requests/RequestMediaPicker.tsx",
+        "frontend/src/components/testimonies/TestimonyMediaPicker.tsx",
+        "frontend/src/types/phase5a.ts"
       ]
     },
     {
-      "id": "REQ-17",
-      "requirement": "Forced stock state overrides must be persisted separately from existing inventory fields; hidden products excluded from public queries; Admin+ selector with In stock / Out of stock / Hidden and clear override; conditional migration if needed.",
-      "reason": "Migration adds `visibility` onto the Product record (`visibility : { #visible; #hidden; #outOfStock }`), which is not evidenced as being a separate override structure distinct from existing fields as required. Also, the diff summary does not show public query filtering to exclude hidden products (backend query code not shown), nor a clear UI control for all required stock-state options and clearing behavior (only a `useSetProductVisibility` call is evidenced).",
+      "id": "REQ-8",
+      "requirement": "React Query hooks for createRequest/createTestimony/listRequests/listTestimonies wired to backend actor methods with consistent query keys; mutations invalidate relevant lists.",
+      "reason": "Diff summary explicitly states Phase 5A hooks exist but are “temporarily disabled until backend methods are implemented,” so they are not reliably wired to working actor methods nor guaranteed to invalidate/refetch in practice.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (frontend-file-summaries.txt: Phase 5A hooks temporarily disabled until backend methods are implemented)"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "requirement": "Conditional backend migration preserving existing stored data when schema changes, mapping old testimonies/quote requests into new structure and keeping ID counters correct.",
+      "reason": "backend/migration.mo is a no-op (returns old state unchanged) and defines only OldTestimony/OldActor types; there is no evidence of any mapping to a new multi-media/per-media-description schema or counter safety logic.",
       "evidence": [
         "backend/migration.mo",
-        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "requirement": "Global coupons enable/disable master switch: backend persistent flag with owner-only get/set; backend coupon validation returns invalid with English message when disabled and `createOrder(...)` does not apply discounts; shop/cart coupon UI reflects disabled state.",
-      "reason": "Frontend adds a CouponManagerSection and cart UI checks `couponsEnabled`, but the diff summary does not show backend enforcement in coupon validation and order creation (no evidence of validation behavior/messages or discount blocking when disabled).",
-      "evidence": [
-        "frontend/src/components/adminplus/CouponManagerSection.tsx",
-        "frontend/src/components/shop/ShopCartDrawer.tsx",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-19",
-      "requirement": "Promote/Demote admins as owner-only actions using backend admin registry; backend list/add/demote methods; Admin+ form validates principal and gives feedback; invalidate relevant queries; non-owner traps with clear English authorization errors.",
-      "reason": "Frontend UI validates principal and calls `useListAdmins/usePromoteAdmin/useDemoteAdmin`, but the diff summary does not show the backend registry list/promote/demote methods, query invalidation behavior after changes, or the required backend authorization traps/messages for non-owners.",
-      "evidence": [
-        "frontend/src/components/adminplus/AdminRegistrySection.tsx",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-20",
-      "requirement": "Owner can change admin passwords with backend storage; passwords never returned plaintext; admin-facing flow requires password for admin-only capabilities and backend enforces password check (not frontend-only).",
-      "reason": "AdminPasswordResetSection exists and submits a `passwordHash` (base64) via `useSetAdminPassword`, but the diff summary does not show backend password storage/checking, any admin-facing password prompt flow, or backend-enforced password verification gating admin capabilities. Also, the UI comment indicates hashing is only a demo, which does not evidence secure enforcement.",
-      "evidence": [
-        "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-21",
-      "requirement": "Backend owner-only analytics snapshot query derived from orders (totals, recent activity, sales summaries) and Admin+ UI displays it and updates after new orders (via invalidation/refresh).",
-      "reason": "AnalyticsSnapshotSection UI calls `useGetAnalyticsSnapshot` and invalidates `['analyticsSnapshot']`, but the diff summary does not show the required backend owner-only analytics snapshot query derived from stored orders.",
-      "evidence": [
-        "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
         "backend/main.mo"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "App-wide analytics initialization and provider (`initAnalytics()` and `AnalyticsProvider`) not explicitly requested in Phase 4 owner-only Admin+ controls.",
-      "reason": "BuildRequest explicitly lists a specific 'Site Analytics Snapshot' feature based on backend order data; it does not request general app analytics tracking initialization/providers. This may also risk violating the non-goal of adding off-chain analytics services, depending on what `lib/analytics` does (not shown).",
+      "description": "Analytics initialization on app load.",
+      "reason": "BuildRequest does not mention analytics; this is extra scope unrelated to Phase 5A submissions/listing.",
       "evidence": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/layout/AppLayout.tsx"
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "description": "Large set of global styling/theme changes (OKLCH color system, custom fonts, animation keyframes, accessibility utilities) and Tailwind config updates.",
+      "reason": "Not requested by Phase 5A requirements; could be unrelated refactor/enhancement.",
+      "evidence": [
+        "frontend/src/index.css (frontend-file-summaries.txt)",
+        "frontend/tailwind.config.js (frontend-file-summaries.txt)"
+      ]
+    },
+    {
+      "description": "New/expanded documentation files about data architecture and local storage/offline strategies.",
+      "reason": "Docs were not requested as part of Phase 5A deliverables.",
+      "evidence": [
+        "frontend/docs/data-architecture.md (frontend-file-summaries.txt)",
+        "frontend/docs/local-storage-strategy.md (frontend-file-summaries.txt)"
+      ]
+    },
+    {
+      "description": "Additional homepage/about UI components (FeaturedCarousel, QuickLinksGrid, Announcements, TeamSection, TimelineSection) and parallax effect component.",
+      "reason": "Not part of Phase 5A requirements (requests/testimonies/admin listing).",
+      "evidence": [
+        "frontend/src/components/home/FeaturedCarousel.tsx (frontend-file-summaries.txt)",
+        "frontend/src/components/home/QuickLinksGrid.tsx (frontend-file-summaries.txt)",
+        "frontend/src/components/home/Announcements.tsx (frontend-file-summaries.txt)",
+        "frontend/src/components/about/TeamSection.tsx (frontend-file-summaries.txt)",
+        "frontend/src/components/about/TimelineSection.tsx (frontend-file-summaries.txt)",
+        "frontend/src/components/effects/ParallaxLayer.tsx (frontend-file-summaries.txt)"
+      ]
+    },
+    {
+      "description": "Privacy page rewrite/creation with organized sections and card styling.",
+      "reason": "Not requested in Phase 5A.",
+      "evidence": [
+        "frontend/src/pages/Privacy.tsx (frontend-file-summaries.txt)"
       ]
     }
   ],
-  "confidence": 0.63,
+  "confidence": 0.74,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/App.tsx",
-    "frontend/src/components/admin/AdminFeedbackTab.tsx",
-    "frontend/src/components/admin/AdminProductsTab.tsx",
+    "frontend/src/components/admin/AdminRequestsTab.tsx",
     "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-    "frontend/src/components/admin/AdminUsersTab.tsx",
-    "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
-    "frontend/src/components/adminplus/AdminRegistrySection.tsx",
-    "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-    "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
-    "frontend/src/components/adminplus/CouponManagerSection.tsx",
-    "frontend/src/components/adminplus/PortfolioManagerSection.tsx",
-    "frontend/src/components/adminplus/TestimonyManagerSection.tsx",
-    "frontend/src/components/dashboard/GuildOrdersPanel.tsx",
-    "frontend/src/components/dashboard/InventoryPanel.tsx",
-    "frontend/src/components/feedback/FeedbackDialog.tsx",
-    "frontend/src/components/feedback/FeedbackLauncher.tsx",
-    "frontend/src/components/layout/AppLayout.tsx",
     "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/portfolio/PortfolioDetailsModal.tsx",
-    "frontend/src/components/portfolio/PortfolioWidgetSection.tsx",
-    "frontend/src/components/shop/ProductDetailsModal.tsx",
+    "frontend/src/components/requests/RequestMediaPicker.tsx",
     "frontend/src/components/shop/ShopCartDrawer.tsx",
-    "frontend/src/components/system/OfflineSyncQueueDialog.tsx",
-    "frontend/src/components/system/OfflineSyncStatus.tsx",
     "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-    "frontend/src/components/testimonies/TestimoniesWidgetSection.tsx",
-    "frontend/src/hooks/useOfflineMutationReplay.ts",
+    "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
+    "frontend/src/components/testimonies/TestimonyMediaPicker.tsx",
+    "frontend/src/components/testimonies/useHoverVideoPreview.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useQueuedMutations.ts",
     "frontend/src/pages/Admin.tsx",
-    "frontend/src/pages/AdminPlus.tsx",
-    "frontend/src/pages/Dashboard.tsx",
-    "frontend/src/pages/Homepage.tsx",
-    "frontend/src/pages/Portfolio.tsx",
     "frontend/src/pages/Services.tsx",
     "frontend/src/pages/Shop.tsx",
+    "frontend/src/pages/SubmitRequest.tsx",
     "frontend/src/pages/Testimonies.tsx",
+    "frontend/src/types/phase5a.ts",
+    "frontend/src/utils/mediaValidation.ts",
     "project_state.json"
   ]
 }

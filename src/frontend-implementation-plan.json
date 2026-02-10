@@ -1,256 +1,182 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Phase 4 Owner-only Admin+ controls (frontend-only)",
+  "title": "Phase 5A (Frontend): Auth-gated Request/Testimony submission with media, flippable Testimonies gallery, and Admin listings",
   "requirements": [
     {
-      "id": "REQ-14",
-      "summary": "Expand Admin+ into an owner-only tabbed panel containing all Phase 4 owner controls and render implemented section components.",
+      "id": "REQ-3",
+      "summary": "Add media attachment UI for Requests and Testimonies with client-side validation (counts, per-item description length, file size, video duration) and submission using ExternalBlob.",
       "acceptanceCriteria": [
-        "`frontend/src/pages/AdminPlus.tsx` includes tabs/sections for all Phase 4 owner controls listed in the user request (not only portfolios/testimonies).",
-        "Admin+ remains gated by the existing `RequireOwner` component and uses `useIsCallerOwner` for visibility/authorization decisions.",
-        "All user-facing labels/messages in the new Admin+ UI are in English.",
-        "The previously-empty Admin+ placeholder section components are implemented and rendered where appropriate (e.g., `frontend/src/components/adminplus/AdvancedShopControlsSection.tsx`, `frontend/src/components/adminplus/CouponManagerSection.tsx`)."
+        "Request submission supports zero or more media attachments and stores references/metadata for each attachment.",
+        "Testimony submission enforces the maximum counts: ≤5 photos and ≤3 videos.",
+        "Each testimony media item stores a per-item description that is limited to 1,500 characters.",
+        "Frontend validates file size ≤800 MB per file before attempting upload.",
+        "Frontend captures and submits video duration metadata and blocks videos longer than 5 minutes (client-side validation)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminPlus.tsx",
-          "operation": "modify",
-          "description": "Refactor Admin+ into a tab set that includes: Change Admin Passwords, Promote/Demote Admins, Override Product Pricing, Force Stock States/Hidden, Enable/Disable Coupons Globally, Emergency Shop Disable Switch, and Site Analytics Snapshot, while keeping existing Portfolios/Testimonies tabs. Ensure the page stays wrapped by RequireOwner and relies on useIsCallerOwner for owner-only gating. Use the authorization selected component patterns for owner gating and authorization-error handling; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-          "operation": "modify",
-          "description": "Implement the currently-empty placeholder as an owner-only Admin+ section UI that contains emergency shop disable toggle plus per-product controls for pricing overrides and forced visibility/availability states, using React Query hooks/mutations and English success/error messages. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/adminplus/CouponManagerSection.tsx",
-          "operation": "modify",
-          "description": "Implement the currently-empty placeholder as an owner-only Admin+ section UI for the global coupons master switch (enabled/disabled), showing current state, mutation feedback, and English labels. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/adminplus/AdminRegistrySection.tsx",
+          "path": "frontend/src/components/requests/RequestMediaPicker.tsx",
           "operation": "create",
-          "description": "Create a new Admin+ section for Promote/Demote Admins with a Principal text input, client-side Principal format validation, and success/error feedback; wire to listAdmins/promote/demote hooks and invalidate relevant cached queries after changes. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+          "description": "Create a media picker for the Request form (optional attachments) that prepares uploads using the blob-storage ExternalBlob class and shows basic previews/progress. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
+          "path": "frontend/src/components/testimonies/TestimonyMediaPicker.tsx",
           "operation": "create",
-          "description": "Create a new Admin+ section for Change Admin Passwords with Principal input and password input, clear feedback, and safe handling so passwords are never displayed. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+          "description": "Create a media picker for Testimony submission enforcing ≤5 photos and ≤3 videos, with per-item description (≤1,500 chars), file size validation (≤800MB), and video duration validation (≤5 minutes) before submission. Use the blob-storage ExternalBlob capability for uploads and direct URL previews when available. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+          "path": "frontend/src/utils/mediaValidation.ts",
           "operation": "create",
-          "description": "Create a new Admin+ section to fetch and display the site analytics snapshot (totals and summaries) with loading/error/empty states and English labels; ensure it can refresh/invalidate after order creation. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+          "description": "Add reusable validation helpers for media: file size (≤800MB), photo/video counts, description length (≤1,500), and video duration extraction from File via HTMLMediaElement metadata."
         }
       ]
     },
     {
-      "id": "REQ-15",
-      "summary": "Hide storefront/checkout UI when shop is disabled and prevent order creation actions in the UI.",
+      "id": "REQ-4",
+      "summary": "Create auth-gated UI routes/forms for submitting Requests and Testimonies, prefilling name/email from the user profile when available.",
       "acceptanceCriteria": [
-        "Backend stores a persistent `shopDisabled` (or equivalent) flag and exposes owner-only methods to get/set it.",
-        "Backend `createOrder(...)` traps with a clear English message when the shop is disabled, regardless of caller or frontend behavior.",
-        "Frontend Shop page (`frontend/src/pages/Shop.tsx`) does not render product listing, product details, cart drawer, or checkout entry points when the shop is disabled; instead it shows a clear maintenance/disabled message in English.",
-        "Any frontend code path that initiates order creation is prevented when shop is disabled (in addition to the backend enforcement).",
-        "Owner can toggle the shop disable switch from Admin+ and the Shop page reflects the change after refresh or query invalidation."
+        "A dedicated Request submission page/route exists and presents fields: name, email, description, optional media, and pricing preference (either price range input or a “Flexible” selection).",
+        "A dedicated Testimony submission page/route or dialog exists and supports uploading up to 5 photos and 3 videos, with a description per media item (≤1,500 chars).",
+        "When unauthenticated, attempting to access submission UI shows the existing login prompt behavior (via RequireAuth) instead of the form.",
+        "When authenticated, name and email are prefilled from the existing user profile when available, while still allowing the user to edit before submitting."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/SubmitRequest.tsx",
+          "operation": "create",
+          "description": "Implement the Request submission page wrapped in the existing RequireAuth gate. Prefill name/email from useGetCallerUserProfile when available; allow edits. Include fields for description and pricing preference (range vs Flexible), and integrate RequestMediaPicker for optional attachments."
+        },
+        {
+          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
           "operation": "modify",
-          "description": "Add React Query hooks for reading and toggling the shop active/disabled state (using the backend's shop active state and store config capabilities). Ensure mutations invalidate any shop-state and product queries so the Shop page updates after toggles. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+          "description": "Implement the Testimony submission dialog (auth-gated usage) with fields for name/email prefilling (from user profile), and integrate TestimonyMediaPicker for up to 5 photos and 3 videos with per-item descriptions. Use the authorization component’s frontend guidance for handling auth state and backend authorization errors gracefully. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Testimonies.tsx",
+          "operation": "modify",
+          "description": "Add a logged-in-only ‘Submit a Testimony’ call-to-action that opens CreateTestimonyDialog; when unauthenticated, show the existing RequireAuth login prompt behavior (not the dialog)."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the new Request submission route (e.g., /submit-request) into the TanStack Router route tree and lazy-loading setup so it is navigable."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Expose Request/Testimony submission entry points in main navigation and add CTAs on Testimonies, Services, and Shop without breaking existing flows.",
+      "acceptanceCriteria": [
+        "Header navigation includes links to the Request submission page and the Testimonies page.",
+        "The Testimonies page includes a prominent logged-in-only call-to-action to submit a new testimony.",
+        "Services and Shop experiences include at least one non-intrusive call-to-action link/button that routes to the Request submission page (while preserving existing layouts and interactions)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "operation": "modify",
+          "description": "Add navigation links to the Testimonies page and the Request submission page, preserving existing responsive behavior and layouts."
+        },
+        {
+          "path": "frontend/src/pages/Services.tsx",
+          "operation": "modify",
+          "description": "Add a non-intrusive call-to-action (using TanStack Router Link where appropriate) that routes to the Request submission page, while preserving existing ‘Contact Us’ flow and layout."
         },
         {
           "path": "frontend/src/pages/Shop.tsx",
           "operation": "modify",
-          "description": "Query shop active/disabled state and, when disabled, render a clear English maintenance message and hide product list, product details modal, cart drawer, and any checkout entry points (including cart button). When enabled, keep existing behavior. Ensure state updates after refresh or query invalidation."
+          "description": "Add a subtle call-to-action link/button in the Shop UI that routes to the Request submission page without disrupting product browsing, cart drawer, or existing interactions."
         },
         {
-          "path": "frontend/src/components/shop/ShopCartDrawer.tsx",
+          "path": "frontend/src/pages/Testimonies.tsx",
           "operation": "modify",
-          "description": "Add a shop-disabled guard: block checkout action and show an English message if the shop is disabled, even if the drawer is opened. Also ensure createOrder is never attempted from the UI when disabled."
-        },
-        {
-          "path": "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-          "operation": "modify",
-          "description": "Add an 'Emergency Shop Disable' owner toggle UI wired to the shop active/disabled state hooks, with clear English confirmation/status text and query invalidation so Shop reflects changes. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+          "description": "Ensure the Testimonies page includes a prominent logged-in-only CTA to open CreateTestimonyDialog and a secondary link to the Request submission page for users who want custom work."
         }
       ]
     },
     {
-      "id": "REQ-16",
-      "summary": "Provide owner UI to set/clear per-product price overrides and display override status in Admin+.",
+      "id": "REQ-6",
+      "summary": "Implement the Testimonies page with interactive flippable media cards (video hover preview + click flip/paused description; photo hover zoom + click flip).",
       "acceptanceCriteria": [
-        "Backend persists price overrides separately from the core Product record (so base product listing remains unchanged).",
-        "Backend provides owner-only methods to set, clear, and read price overrides per product.",
-        "Public product query endpoints used by the Shop UI return the effective price (override if present; otherwise base price).",
-        "Admin+ UI includes a per-product control to set/clear an override price and clearly indicates whether an override is active."
+        "Testimonies page is implemented (not empty) and renders a grid/list of media cards.",
+        "Each card uses the existing FlipCard component behavior for click-to-flip and keyboard accessibility.",
+        "Video cards: hovering starts playback preview (muted), clicking flips to the back and pauses playback; flipping back returns to the front state.",
+        "Photo cards: hovering provides a zoom-in interaction, clicking flips to show the description on the back.",
+        "Reduced-motion preference is respected (no forced animation beyond what FlipCard already supports)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/Testimonies.tsx",
           "operation": "modify",
-          "description": "Add/extend React Query mutations for setting and clearing per-product price overrides, and ensure the products list is invalidated after changes so effective prices refresh across Shop and any product UI. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+          "description": "Implement the Testimonies page content: load/render a grid of testimony media cards and include the submission CTA section. Use the existing FlipCard component for click-to-flip + keyboard accessibility, and respect reduced-motion via FlipCard’s existing behavior."
         },
         {
-          "path": "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-          "operation": "modify",
-          "description": "Add per-product price override controls: show base price vs effective price, indicate whether an override is active, provide inputs to set an override price and a button to clear it, with English feedback and disabled states while saving. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
+          "operation": "create",
+          "description": "Create a flippable card component for a single media item: front shows photo/video preview; back shows description. For videos, start muted preview on hover and pause on flip; for photos, add hover zoom and flip to description. Use FlipCard for the flip interaction."
         },
         {
-          "path": "frontend/src/pages/Shop.tsx",
-          "operation": "modify",
-          "description": "Ensure all displayed product prices use the effective product price fields returned by public product queries (including list cards and any list-mode price display) so overrides are reflected to customers."
+          "path": "frontend/src/components/testimonies/useHoverVideoPreview.ts",
+          "operation": "create",
+          "description": "Add a small hook to manage hover-driven video preview (muted play/pause) and to coordinate pausing when the card flips, while keeping reduced-motion considerations in mind."
         }
       ]
     },
     {
-      "id": "REQ-17",
-      "summary": "Provide owner UI to force per-product stock/visibility state and ensure hidden products do not appear in the customer Shop UI.",
+      "id": "REQ-7",
+      "summary": "Update the admin dashboard UI to list submitted Requests and Testimonies with unique IDs and key metadata, and refresh after successful submissions via React Query invalidation.",
       "acceptanceCriteria": [
-        "Backend persists a per-product forced stock state override distinct from the existing stock/isInStock fields.",
-        "Public product queries used by customers reflect the effective availability: forced hidden products are excluded, and forced in/out-of-stock is reflected in the returned product data.",
-        "Admin+ UI includes a per-product forced stock state selector with options: In stock, Out of stock, Hidden, and a way to clear the override (return to normal behavior).",
-        "If a migration is required to support new fields/structures, add a conditional migration so upgrades do not trap."
+        "Admin page (existing /admin route) contains sections/tabs/panels for Requests and Testimonies listings (not just placeholders).",
+        "Each Request row shows at minimum: Request ID, submitter name/email, pricing preference (range or Flexible), and a truncated description preview.",
+        "Each Testimony row shows at minimum: Testimony ID, submitter identity label (from profile/name), counts of attached photos/videos, and approval status if present.",
+        "After a successful submission, navigating to /admin shows the new item present without requiring a hard reload (React Query invalidation/refetch is sufficient)."
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add/extend React Query mutations for setting product visibility/availability states used by the Shop UI (e.g., visible/out-of-stock/hidden), and invalidate product queries after changes. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-          "operation": "modify",
-          "description": "Add per-product forced stock/visibility selector UI with options In stock / Out of stock / Hidden plus a clear/reset action, showing current effective state and providing English feedback. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Shop.tsx",
-          "operation": "modify",
-          "description": "Ensure the customer-facing Shop UI does not display hidden products by relying on the effective product list returned from backend queries and adding a defensive client-side filter for hidden visibility if needed."
-        }
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "summary": "Add an owner-controlled global coupons enable/disable switch and reflect disabled state in coupon entry/validation UI.",
-      "acceptanceCriteria": [
-        "Backend stores a persistent `couponsEnabled` (or equivalent) flag and exposes owner-only methods to get/set it.",
-        "When coupons are globally disabled, backend coupon validation returns an invalid result with an English message and `createOrder(...)` does not apply discounts even if a coupon code is supplied.",
-        "Admin+ UI includes a clear toggle for enabling/disabling coupons globally and shows the current state.",
-        "Shop/cart coupon UI (wherever coupon codes are entered/validated) reflects the disabled state (e.g., disables coupon input or shows an English message) while still relying on backend enforcement."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add React Query hooks for reading and toggling the global coupons enabled/disabled state and invalidate coupon-related queries after toggle. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/adminplus/CouponManagerSection.tsx",
-          "operation": "modify",
-          "description": "Implement the global coupons master toggle UI (current state + toggle) with English labels and clear success/error feedback, invalidating coupon state queries so Shop/cart reflects changes. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/shop/ShopCartDrawer.tsx",
-          "operation": "modify",
-          "description": "Query coupons enabled/disabled state and, when disabled, disable coupon input/apply button and show an English message explaining coupons are currently disabled; keep backend validation as the source of truth."
-        }
-      ]
-    },
-    {
-      "id": "REQ-19",
-      "summary": "Provide owner-only Admin+ UI to promote/demote admins by Principal and keep permissions state consistent via query invalidation.",
-      "acceptanceCriteria": [
-        "Backend exposes owner-only methods to list admin registry entries, add/promote an admin principal, and demote/remove an admin principal.",
-        "Admin+ UI provides a form to enter a Principal (text) to promote/demote, validates formatting client-side, and shows success/error feedback in English.",
-        "After changes, relevant cached queries are invalidated so admin-only areas reflect updated permissions on next access.",
-        "Non-owner callers cannot promote/demote admins (backend traps with clear English authorization errors)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add hooks for listing admin registry entries and for promote/demote admin actions using Principal.fromText parsing on the client. Ensure onSuccess invalidates owner/admin-related cached queries (e.g., isCallerOwner/currentUserRole/listAdmins) to keep UI consistent. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/adminplus/AdminRegistrySection.tsx",
-          "operation": "modify",
-          "description": "Implement the promote/demote UI: Principal text input with client-side validation, buttons for promote/demote, list current admin entries, and show English success/error feedback including backend authorization errors. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminPlus.tsx",
-          "operation": "modify",
-          "description": "Wire the AdminRegistrySection into the Admin+ tab set under a clearly labeled owner-only 'Promote/Demote Admins' tab/section, with English labels."
-        }
-      ]
-    },
-    {
-      "id": "REQ-20",
-      "summary": "Add owner UI to reset admin passwords and add an admin-facing password prompt step for admin-only capabilities.",
-      "acceptanceCriteria": [
-        "Backend provides owner-only methods to set/reset an admin password for a given admin principal and to clear it (if supported).",
-        "Passwords are not returned in plaintext by any backend method.",
-        "Admin+ UI allows the owner to select/enter an admin principal and set/reset that admin’s password with English success/error feedback.",
-        "There is an admin-facing UI step that requires the admin password for accessing admin-only capabilities (or a clearly defined subset), and the password check is enforced by the backend (not only frontend)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add a mutation hook for owner to set/reset an admin password (client supplies a password hash or the required string payload per backend interface) and invalidate any admin-registry-related queries after success. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
-          "operation": "modify",
-          "description": "Implement owner UI for changing admin passwords: Principal input, password input (never displayed after submission), clear English feedback, and safe UX (e.g., confirm before overwrite). Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminPlus.tsx",
-          "operation": "modify",
-          "description": "Wire the AdminPasswordResetSection into the Admin+ tab set under a clearly labeled 'Change Admin Passwords' tab/section with English labels."
-        },
         {
           "path": "frontend/src/pages/Admin.tsx",
           "operation": "modify",
-          "description": "Add an admin-facing password gate step before rendering clearly defined admin-only capabilities (or the whole Admin page), using a new password prompt component and handling backend authorization failures by showing English guidance (without exposing any password data). Use the authorization selected component patterns for auth UX; verify the component's usage instructions before implementing."
+          "description": "Replace the current placeholder Admin page body with tabs/panels for Orders, Requests, and Testimonies listings while keeping the existing RequireAdmin guard intact."
         },
         {
-          "path": "frontend/src/components/admin/AdminPasswordGate.tsx",
+          "path": "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+          "operation": "modify",
+          "description": "Implement the admin Testimonies listing UI: show Testimony ID, submitter label (profile/name if available), photo/video counts, and approval status if present; include loading/empty/error states and rely on React Query refetch."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminRequestsTab.tsx",
           "operation": "create",
-          "description": "Create an admin password prompt + verification UI wrapper used by Admin page sections. It should store the password only in-memory for the session, show English error messages, and react gracefully to backend authorization traps. Use the authorization selected component patterns for authorization error handling; verify the component's usage instructions before implementing."
+          "description": "Create an admin Requests listing UI: show Request ID, name/email, pricing preference, and truncated description preview; include loading/empty/error states and rely on React Query refetch."
+        },
+        {
+          "path": "frontend/src/pages/SubmitRequest.tsx",
+          "operation": "modify",
+          "description": "After successful Request submission, invalidate/refetch the admin Requests list query key so the /admin view can show the new item without a hard reload."
+        },
+        {
+          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "operation": "modify",
+          "description": "After successful Testimony submission, invalidate/refetch the admin Testimonies list query key so the /admin view can show the new item without a hard reload."
         }
       ]
     },
     {
-      "id": "REQ-21",
-      "summary": "Add an owner-only Site Analytics Snapshot section to Admin+ with loading/error states and refresh behavior.",
+      "id": "REQ-8",
+      "summary": "Add React Query hooks to create and list Requests/Testimonies using existing actor-based patterns and consistent query keys, with mutation-driven invalidation.",
       "acceptanceCriteria": [
-        "Backend exposes an owner-only query that returns an analytics snapshot derived from stored orders (e.g., total order count, total sales sum, last N orders summary).",
-        "Admin+ UI displays the analytics snapshot in a readable summary card/table with English labels and handles loading/error states.",
-        "Snapshot values update after new orders are created (after query invalidation or refresh)."
+        "New hooks exist for: createRequest, createTestimony, listRequests (admin), listTestimonies (admin/public as needed).",
+        "Hooks are wired to backend actor methods and use query keys consistent with the existing useQueries.ts patterns.",
+        "Successful mutations invalidate the relevant list queries so the admin listings update predictably."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a React Query hook for fetching the analytics snapshot for the owner and ensure it can be invalidated/refetched after order creation and via a manual refresh action. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
+          "description": "Add actor-based React Query hooks for Requests/Testimonies: createRequest, createTestimony, listRequests (admin), listTestimonies (admin and/or public as needed), using consistent query keys and invalidation on mutation success."
         },
         {
-          "path": "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+          "path": "frontend/src/backend.d.ts",
           "operation": "modify",
-          "description": "Implement a snapshot UI that displays totals in readable cards/table, includes loading and error states, and provides a refresh button. Use clear English labels and handle backend authorization errors gracefully. Use the authorization selected component patterns for handling backend authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminPlus.tsx",
-          "operation": "modify",
-          "description": "Wire the AnalyticsSnapshotSection into the Admin+ tab set under a clearly labeled 'Site Analytics Snapshot' tab/section with English labels."
-        },
-        {
-          "path": "frontend/src/components/shop/ShopCartDrawer.tsx",
-          "operation": "modify",
-          "description": "After successful order creation, ensure analytics-related queries are invalidated/refetched (in addition to orders) so the Admin+ snapshot updates after new purchases."
+          "description": "Update frontend type declarations to include the new Request/Testimony types and backend actor methods used by the new React Query hooks (create/list and any required fields for UI rendering)."
         }
       ]
     }

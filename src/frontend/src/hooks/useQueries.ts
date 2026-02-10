@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { UserProfile, Product, Order, UserRole, StoreConfig, AdminRole, AnalyticsSnapshot, ProductVisibility, CouponValidationResult, Variant_dropOff_pickup_delivery } from '../backend';
+import type { Request, Testimony } from '../types/phase5a';
 import { Principal } from '@dfinity/principal';
 import { ExternalBlob } from '../backend';
 
@@ -424,19 +425,17 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { productIds: bigint[]; couponCode: string | null }) => {
+    mutationFn: async (data: { productIds: bigint[]; couponCode?: string | null }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createOrder(data.productIds, data.couponCode);
+      return actor.createOrder(data.productIds, data.couponCode || null);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myOrders'] });
       queryClient.invalidateQueries({ queryKey: ['allOrders'] });
-      queryClient.invalidateQueries({ queryKey: ['analyticsSnapshot'] });
     },
   });
 }
 
-// Coupon Queries
 export function useValidateCoupon() {
   const { actor } = useActor();
 
@@ -444,6 +443,68 @@ export function useValidateCoupon() {
     mutationFn: async (code: string) => {
       if (!actor) throw new Error('Actor not available');
       return actor.validateCoupon(code);
+    },
+  });
+}
+
+// Request Queries (Phase 5A) - Placeholder until backend is implemented
+export function useListRequests() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<Request[]>({
+    queryKey: ['requests'],
+    queryFn: async () => {
+      if (!actor) return [];
+      // TODO: Replace with actor.listRequests() when backend is ready
+      throw new Error('Backend method listRequests not yet implemented');
+    },
+    enabled: false, // Disabled until backend is ready
+  });
+}
+
+export function useCreateRequest() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (request: Request) => {
+      if (!actor) throw new Error('Actor not available');
+      // TODO: Replace with actor.createRequest(request) when backend is ready
+      throw new Error('Backend method createRequest not yet implemented');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+    },
+  });
+}
+
+// Testimony Queries (Phase 5A) - Placeholder until backend is implemented
+export function useListTestimonies() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<Testimony[]>({
+    queryKey: ['testimonies'],
+    queryFn: async () => {
+      if (!actor) return [];
+      // TODO: Replace with actor.listTestimonies() when backend is ready
+      throw new Error('Backend method listTestimonies not yet implemented');
+    },
+    enabled: false, // Disabled until backend is ready
+  });
+}
+
+export function useCreateTestimony() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (testimony: Testimony) => {
+      if (!actor) throw new Error('Actor not available');
+      // TODO: Replace with actor.createTestimony(testimony) when backend is ready
+      throw new Error('Backend method createTestimony not yet implemented');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['testimonies'] });
     },
   });
 }

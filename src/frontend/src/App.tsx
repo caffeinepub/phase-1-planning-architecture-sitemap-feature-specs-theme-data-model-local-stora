@@ -23,6 +23,8 @@ const Terms = lazy(() => import('./pages/Terms'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Admin = lazy(() => import('./pages/Admin'));
 const AdminPlus = lazy(() => import('./pages/AdminPlus'));
+const Testimonies = lazy(() => import('./pages/Testimonies'));
+const SubmitRequest = lazy(() => import('./pages/SubmitRequest'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -171,6 +173,26 @@ const adminPlusRoute = createRoute({
   ),
 });
 
+const testimoniesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/testimonies',
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Testimonies />
+    </Suspense>
+  ),
+});
+
+const submitRequestRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/submit-request',
+  component: () => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <SubmitRequest />
+    </Suspense>
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   aboutRoute,
@@ -184,6 +206,8 @@ const routeTree = rootRoute.addChildren([
   privacyRoute,
   adminRoute,
   adminPlusRoute,
+  testimoniesRoute,
+  submitRequestRoute,
 ]);
 
 const router = createRouter({ routeTree });

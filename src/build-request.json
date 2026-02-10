@@ -1,219 +1,180 @@
 {
   "kind": "build_request",
-  "title": "Phase 4: Owner-only Admin+ controls (owner config, admin registry, shop disable UI+backend blocking, pricing/stock overrides, coupon master switch, analytics)",
+  "title": "Phase 5A: Logged-in Requests & Testimonies submissions with media, unique IDs, flippable cards, and Admin listing",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-12",
-      "text": "Implement owner identification via a dedicated owner record stored in backend configuration (manually set during initial deployment), and use this stored owner identity as the sole authority for accessing the Admin+ tab and owner-only backend methods.",
+      "id": "REQ-1",
+      "text": "Add backend data models and APIs for customer Requests and Testimonies, each generating a unique ID on creation and persisting submissions so they can be listed in the admin dashboard.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Use a dedicated owner record stored in the backend configuration. The owner account should be manually set (or defined during initial deployment) rather than automatically assigning the first registered user. Only this stored owner identity can access the Admin+ tab."
+          "Logged-in customers can submit requests or testimonies... All submissions get a unique ID and appear in the admin dashboard."
         ]
       },
       "acceptanceCriteria": [
-        "Backend stores a single owner Principal in persistent state (no auto-assignment of first user).",
-        "`isCallerOwner()` returns true only when `caller` equals the stored owner Principal (not when caller is merely an admin).",
-        "Owner-only backend methods trap for non-owner callers with a clear English error message.",
-        "There is a backend method to read the configured owner Principal (owner-only) and a backend method to set/update the owner Principal (owner-only or explicitly restricted to an initial unconfigured bootstrap state)."
+        "Calling the backend create-request method returns a newly created Request containing a unique, non-zero ID.",
+        "Calling the backend create-testimony method returns a newly created Testimony containing a unique, non-zero ID.",
+        "Admin-only list methods return all stored Requests and all stored Testimonies (including newly submitted ones) in a consistent order (e.g., newest-first or id-desc).",
+        "Unauthorized callers (non-admin) cannot access admin list methods (backend traps or returns an authorization error)."
       ]
     },
     {
-      "id": "REQ-13",
-      "text": "Implement a dedicated admin registry in the backend that stores each user Principal with role flags (Admin / Owner), independent of normal user profile records, and use it for promotions/demotions and role checks.",
+      "id": "REQ-2",
+      "text": "Implement backend authorization rules so only logged-in users can submit Requests and Testimonies, and only admins can review/list submissions in the admin dashboard.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Store admin accounts in a dedicated admin registry in the backend that contains each user identity along with role flags (Admin / Owner). This allows promotion and demotion without affecting normal user records."
+          "Logged-in customers can submit requests or testimonies."
         ]
       },
       "acceptanceCriteria": [
-        "Backend maintains an admin registry keyed by Principal with at least: `isAdmin` and `isOwner` (or an equivalent role enum that can represent owner vs admin).",
-        "Promoting/demoting admins updates the admin registry without changing user profile records.",
-        "Existing admin role assignment/removal endpoints are updated or replaced so that only the owner can promote/demote admins (owner may also demote admins).",
-        "Frontend role checks for Admin+ use the owner check (not generic admin).",
-        "If backend state schema changes are required, add a conditional migration so upgrades do not trap and existing data remains readable."
+        "Submitting a Request/Testimony while unauthenticated fails with a clear authorization error from the backend.",
+        "Submitting a Request/Testimony while authenticated succeeds and persists the submission.",
+        "Admin-only endpoints (list/review actions) reject non-admin callers."
       ]
     },
     {
-      "id": "REQ-14",
-      "text": "Extend the Admin+ page to include an owner-only Admin+ tab set with controls for: Change Admin Passwords, Promote/Demote Admins, Override Product Pricing, Force Stock States (in-stock/out-of-stock/hidden), Enable/Disable Coupons Globally, Emergency Shop Disable Switch, and Site Analytics Snapshot.",
+      "id": "REQ-3",
+      "text": "Implement media attachment support for Requests (optional media) and Testimonies (up to 5 photos and 3 videos) using the existing backend blob storage mixin, storing media metadata alongside submissions.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Requests include ... optional media... Testimonies allow up to 5 photos and 3 videos (≤800\u000fMB, videos ≤5\u000fmin) with descriptions ≤1,500 characters."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Request submission supports zero or more media attachments and stores references/metadata for each attachment.",
+        "Testimony submission enforces the maximum counts: ≤5 photos and ≤3 videos.",
+        "Each testimony media item stores a per-item description that is limited to 1,500 characters.",
+        "Frontend validates file size ≤800 MB per file before attempting upload.",
+        "Frontend captures and submits video duration metadata and blocks videos longer than 5 minutes (client-side validation)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Create customer-facing UI routes and forms for (1) submitting a Request and (2) submitting a Testimony, and ensure these forms are only accessible/usable when the user is logged in.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-4",
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Create a new Admin+ tab visible only to the site owner that provides master-level control over the entire platform.",
-          "Create an Admin+ tab visible only to the owner that includes the following controls:",
-          "Build it!"
+          "Logged-in customers can submit requests or testimonies. Requests include name, email, description, optional media, and a price range or “Flexible.”"
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/src/pages/AdminPlus.tsx` includes tabs/sections for all Phase 4 owner controls listed in the user request (not only portfolios/testimonies).",
-        "Admin+ remains gated by the existing `RequireOwner` component and uses `useIsCallerOwner` for visibility/authorization decisions.",
-        "All user-facing labels/messages in the new Admin+ UI are in English.",
-        "The previously-empty Admin+ placeholder section components are implemented and rendered where appropriate (e.g., `frontend/src/components/adminplus/AdvancedShopControlsSection.tsx`, `frontend/src/components/adminplus/CouponManagerSection.tsx`)."
+        "A dedicated Request submission page/route exists and presents fields: name, email, description, optional media, and pricing preference (either price range input or a “Flexible” selection).",
+        "A dedicated Testimony submission page/route or dialog exists and supports uploading up to 5 photos and 3 videos, with a description per media item (≤1,500 chars).",
+        "When unauthenticated, attempting to access submission UI shows the existing login prompt behavior (via RequireAuth) instead of the form.",
+        "When authenticated, name and email are prefilled from the existing user profile when available, while still allowing the user to edit before submitting."
       ]
     },
     {
-      "id": "REQ-15",
-      "text": "Implement the Emergency Shop Disable Switch as a backend-enforced feature flag that (1) hides the entire storefront and checkout UI from customers and (2) blocks backend order-creation calls so purchases cannot be made even via direct API calls.",
-      "target": "both",
+      "id": "REQ-5",
+      "text": "Expose the Request and Testimony submission entry points in the main navigation and on the Testimonies page (and add clear call-to-action links in relevant service/product areas without breaking existing flows).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "The Shop Disable Switch must do both:\n\n1. Hide the entire storefront and checkout UI from customers.\n2. Block backend order-creation calls so purchases cannot be made even through direct API or external requests."
+          "The Quote / Custom Request form and the Testimonies form are accessible from the main navigation, testimonies page, and relevant product or service pages."
         ]
       },
       "acceptanceCriteria": [
-        "Backend stores a persistent `shopDisabled` (or equivalent) flag and exposes owner-only methods to get/set it.",
-        "Backend `createOrder(...)` traps with a clear English message when the shop is disabled, regardless of caller or frontend behavior.",
-        "Frontend Shop page (`frontend/src/pages/Shop.tsx`) does not render product listing, product details, cart drawer, or checkout entry points when the shop is disabled; instead it shows a clear maintenance/disabled message in English.",
-        "Any frontend code path that initiates order creation is prevented when shop is disabled (in addition to the backend enforcement).",
-        "Owner can toggle the shop disable switch from Admin+ and the Shop page reflects the change after refresh or query invalidation."
+        "Header navigation includes links to the Request submission page and the Testimonies page.",
+        "The Testimonies page includes a prominent logged-in-only call-to-action to submit a new testimony.",
+        "Services and Shop experiences include at least one non-intrusive call-to-action link/button that routes to the Request submission page (while preserving existing layouts and interactions)."
       ]
     },
     {
-      "id": "REQ-16",
-      "text": "Add owner controls to override product pricing without editing the main product listing, and ensure public product queries return the effective price (base price plus any active override).",
-      "target": "both",
+      "id": "REQ-6",
+      "text": "Implement the Testimonies page to display testimony media as interactive flippable cards with hover and click effects: videos auto-preview on hover, click flips and pauses to show description; photos support hover zoom and click flips to show description.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "Override Product Pricing: Allows the owner to temporarily or permanently adjust product prices without editing the main product listing."
+          "Media appears as flippable cards with hover and click effects."
         ]
       },
       "acceptanceCriteria": [
-        "Backend persists price overrides separately from the core Product record (so base product listing remains unchanged).",
-        "Backend provides owner-only methods to set, clear, and read price overrides per product.",
-        "Public product query endpoints used by the Shop UI return the effective price (override if present; otherwise base price).",
-        "Admin+ UI includes a per-product control to set/clear an override price and clearly indicates whether an override is active."
+        "Testimonies page is implemented (not empty) and renders a grid/list of media cards.",
+        "Each card uses the existing FlipCard component behavior for click-to-flip and keyboard accessibility.",
+        "Video cards: hovering starts playback preview (muted), clicking flips to the back and pauses playback; flipping back returns to the front state.",
+        "Photo cards: hovering provides a zoom-in interaction, clicking flips to show the description on the back.",
+        "Reduced-motion preference is respected (no forced animation beyond what FlipCard already supports)."
       ]
     },
     {
-      "id": "REQ-17",
-      "text": "Add owner controls to force stock states (in-stock, out-of-stock, hidden) independently of normal inventory fields, and ensure hidden products are not displayed to customers.",
+      "id": "REQ-7",
+      "text": "Add admin dashboard UI to list newly submitted Requests and Testimonies, showing their unique IDs and key metadata, and refresh the lists immediately after a new submission succeeds.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "Force Stock States: Lets the owner manually set products to in-stock, out-of-stock, or hidden regardless of automated inventory settings."
+          "All submissions get a unique ID and appear in the admin dashboard."
         ]
       },
       "acceptanceCriteria": [
-        "Backend persists a per-product forced stock state override distinct from the existing stock/isInStock fields.",
-        "Public product queries used by customers reflect the effective availability: forced hidden products are excluded, and forced in/out-of-stock is reflected in the returned product data.",
-        "Admin+ UI includes a per-product forced stock state selector with options: In stock, Out of stock, Hidden, and a way to clear the override (return to normal behavior).",
-        "If a migration is required to support new fields/structures, add a conditional migration so upgrades do not trap."
+        "Admin page (existing /admin route) contains sections/tabs/panels for Requests and Testimonies listings (not just placeholders).",
+        "Each Request row shows at minimum: Request ID, submitter name/email, pricing preference (range or Flexible), and a truncated description preview.",
+        "Each Testimony row shows at minimum: Testimony ID, submitter identity label (from profile/name), counts of attached photos/videos, and approval status if present.",
+        "After a successful submission, navigating to /admin shows the new item present without requiring a hard reload (React Query invalidation/refetch is sufficient)."
       ]
     },
     {
-      "id": "REQ-18",
-      "text": "Implement a global coupons enable/disable master switch controlled by the owner; when disabled, coupon validation and coupon application are blocked across the store.",
-      "target": "both",
+      "id": "REQ-8",
+      "text": "Add React Query hooks in the existing query layer for creating and listing Requests/Testimonies (and any required admin actions), following existing actor-based patterns.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-4"
-        ],
-        "quotes": [
-          "Enable / Disable Coupons Globally: Provides a master switch to turn all coupon usage on or off across the entire store."
+          "msg-1"
         ]
       },
       "acceptanceCriteria": [
-        "Backend stores a persistent `couponsEnabled` (or equivalent) flag and exposes owner-only methods to get/set it.",
-        "When coupons are globally disabled, backend coupon validation returns an invalid result with an English message and `createOrder(...)` does not apply discounts even if a coupon code is supplied.",
-        "Admin+ UI includes a clear toggle for enabling/disabling coupons globally and shows the current state.",
-        "Shop/cart coupon UI (wherever coupon codes are entered/validated) reflects the disabled state (e.g., disables coupon input or shows an English message) while still relying on backend enforcement."
+        "New hooks exist for: createRequest, createTestimony, listRequests (admin), listTestimonies (admin/public as needed).",
+        "Hooks are wired to backend actor methods and use query keys consistent with the existing useQueries.ts patterns.",
+        "Successful mutations invalidate the relevant list queries so the admin listings update predictably."
       ]
     },
     {
-      "id": "REQ-19",
-      "text": "Implement Promote/Demote Admins as owner-only actions using the backend admin registry, including UI controls within Admin+ to manage admin principals.",
-      "target": "both",
+      "id": "REQ-9",
+      "text": "If the backend schema for testimonies/quote requests must change to support multiple media items and per-media descriptions, add a conditional migration that preserves existing stored data and increments IDs safely.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-4"
-        ],
-        "quotes": [
-          "Promote / Demote Admins: Enables the owner to grant admin access to users or remove admin permissions instantly."
+          "msg-1"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes owner-only methods to list admin registry entries, add/promote an admin principal, and demote/remove an admin principal.",
-        "Admin+ UI provides a form to enter a Principal (text) to promote/demote, validates formatting client-side, and shows success/error feedback in English.",
-        "After changes, relevant cached queries are invalidated so admin-only areas reflect updated permissions on next access.",
-        "Non-owner callers cannot promote/demote admins (backend traps with clear English authorization errors)."
-      ]
-    },
-    {
-      "id": "REQ-20",
-      "text": "Implement Change Admin Passwords as an owner-only capability in Admin+ with backend storage and an admin-facing flow that uses the updated password to access admin-only functionality.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1",
-          "msg-4"
-        ],
-        "quotes": [
-          "Change Admin Passwords: Allows the owner to securely reset or update any admin login password at any time."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend provides owner-only methods to set/reset an admin password for a given admin principal and to clear it (if supported).",
-        "Passwords are not returned in plaintext by any backend method.",
-        "Admin+ UI allows the owner to select/enter an admin principal and set/reset that admin’s password with English success/error feedback.",
-        "There is an admin-facing UI step that requires the admin password for accessing admin-only capabilities (or a clearly defined subset), and the password check is enforced by the backend (not only frontend)."
-      ]
-    },
-    {
-      "id": "REQ-21",
-      "text": "Add a Site Analytics Snapshot section to Admin+ that shows a quick overview of total orders, recent activity, and sales summaries based on backend order data.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1",
-          "msg-4"
-        ],
-        "quotes": [
-          "Site Analytics Snapshot: Displays a quick overview of total orders, recent activity, sales summaries, and basic performance metrics for fast monitoring."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes an owner-only query that returns an analytics snapshot derived from stored orders (e.g., total order count, total sales sum, last N orders summary).",
-        "Admin+ UI displays the analytics snapshot in a readable summary card/table with English labels and handles loading/error states.",
-        "Snapshot values update after new orders are created (after query invalidation or refresh)."
+        "On upgrade, any existing stored testimonies/quote requests remain accessible and are mapped into the new structure without trapping.",
+        "ID counters (nextTestimonyId / nextQuoteRequestId or equivalents) remain correct and do not reset or collide.",
+        "A clean deploy with no prior state still initializes correctly and passes basic create/list operations."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister (all logic in `backend/main.mo`); only add `backend/migration.mo` changes if required for state upgrades.",
-    "Do not edit frontend files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT.",
-    "Use English for all user-facing text."
+    "Backend must remain a single-actor Motoko canister with all logic in backend/main.mo (no additional backend services).",
+    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and frontend/src/components/ui/* (compose instead).",
+    "All user-facing UI text must be in English."
   ],
   "nonGoals": [
-    "Implementing third-party authentication providers (only Internet Identity is supported).",
-    "Adding external databases or off-chain analytics services.",
-    "Real-time updates via WebSockets/push notifications."
+    "Admin-to-customer in-dashboard messaging/chat is out of scope for this phase.",
+    "Automatic conversion of Requests into Shop Orders is out of scope unless it already exists elsewhere and can be triggered without new workflow design."
   ],
   "imageRequirements": {
     "required": [],

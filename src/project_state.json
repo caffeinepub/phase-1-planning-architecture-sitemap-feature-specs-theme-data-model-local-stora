@@ -1,76 +1,64 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Platform build: Phase 4 Admin+ Owner Super Controls (owner-only Admin+ tab with master admin/store controls, including shop-wide emergency disable and analytics snapshot).",
+  "summary": "Phase 5A defined: logged-in users can submit Requests and Testimonies with media uploads, unique IDs, and instant Admin Dashboard visibility; testimonies media displays as interactive flippable cards with hover/click behaviors.",
   "architectural_notes": [
-    "Owner identification via dedicated owner record stored in backend configuration; manually set/defined during initial deployment (not first-registered user).",
-    "Admin accounts stored in a dedicated backend admin registry with role flags (Admin/Owner), separate from normal user records.",
-    "Emergency Shop Disable must both hide storefront/checkout UI and block backend order-creation endpoints (including direct API/external requests)."
+    "Require authentication to submit Requests and Testimonies.",
+    "Persist unique identifiers for each submission (Request ID, Testimony ID) in backend.",
+    "Enforce testimony media constraints: up to 5 photos + 3 videos; max 800MB per file; videos <= 5 minutes; media description text <= 1,500 characters.",
+    "Admin Dashboard must receive new submissions instantly for review/moderation.",
+    "Testimonies UI uses interactive flippable media cards with hover preview and click-to-flip behavior (video hover plays; click flips and pauses; photos click flips to description)."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Automated build/implementation attempts for Phase 5/5A repeatedly failed; needs retry via smaller scoped steps or alternative implementation approach."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-extend-the-admin-page-to-include-an-owner-only-admin-tab-set-with-controls-for-change-admin-passwords-promote-demote-admins-override-product-pricing-force-stock-states-in-stock-out-of-stock-hidden-enable-disable-coupons-globally-emergency-shop-disable-switch-and-site-analytics-snapshot",
-      "title": "Extend the Admin+ page to include an owner-only Admin+ tab set with controls for: Change Admin Passwords, Promote/Demote Admins, Override Product Pricing, Force Stock States (in-stock/out-of-stock/hidden), Enable/Disable Coupons Globally, Emergency Shop Disable Switch, and Site Analytics Snapshot.",
+      "id": "feature-implement-media-attachment-support-for-requests-optional-media-and-testimonies-up-to-5-photos-and-3-videos-using-the-existing-backend-blob-storage-mixin-storing-media-metadata-alongside-submissions",
+      "title": "Implement media attachment support for Requests (optional media) and Testimonies (up to 5 photos and 3 videos) using the existing backend blob storage mixin, storing media metadata alongside submissions.",
       "reqIds": [
-        "REQ-14"
+        "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-the-emergency-shop-disable-switch-as-a-backend-enforced-feature-flag-that-1-hides-the-entire-storefront-and-checkout-ui-from-customers-and-2-blocks-backend-order-creation-calls-so-purchases-cannot-be-made-even-via-direct-api-calls",
-      "title": "Implement the Emergency Shop Disable Switch as a backend-enforced feature flag that (1) hides the entire storefront and checkout UI from customers and (2) blocks backend order-creation calls so purchases cannot be made even via direct API calls.",
+      "id": "feature-create-customer-facing-ui-routes-and-forms-for-1-submitting-a-request-and-2-submitting-a-testimony-and-ensure-these-forms-are-only-accessible-usable-when-the-user-is-logged-in",
+      "title": "Create customer-facing UI routes and forms for (1) submitting a Request and (2) submitting a Testimony, and ensure these forms are only accessible/usable when the user is logged in.",
       "reqIds": [
-        "REQ-15"
+        "REQ-4"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-owner-controls-to-override-product-pricing-without-editing-the-main-product-listing-and-ensure-public-product-queries-return-the-effective-price-base-price-plus-any-active-override",
-      "title": "Add owner controls to override product pricing without editing the main product listing, and ensure public product queries return the effective price (base price plus any active override).",
+      "id": "feature-expose-the-request-and-testimony-submission-entry-points-in-the-main-navigation-and-on-the-testimonies-page-and-add-clear-call-to-action-links-in-relevant-service-product-areas-without-breaking-existing-flows",
+      "title": "Expose the Request and Testimony submission entry points in the main navigation and on the Testimonies page (and add clear call-to-action links in relevant service/product areas without breaking existing flows).",
       "reqIds": [
-        "REQ-16"
+        "REQ-5"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-owner-controls-to-force-stock-states-in-stock-out-of-stock-hidden-independently-of-normal-inventory-fields-and-ensure-hidden-products-are-not-displayed-to-customers",
-      "title": "Add owner controls to force stock states (in-stock, out-of-stock, hidden) independently of normal inventory fields, and ensure hidden products are not displayed to customers.",
+      "id": "feature-implement-the-testimonies-page-to-display-testimony-media-as-interactive-flippable-cards-with-hover-and-click-effects-videos-auto-preview-on-hover-click-flips-and-pauses-to-show-description-photos-support-hover-zoom-and-click-flips-to-show-description",
+      "title": "Implement the Testimonies page to display testimony media as interactive flippable cards with hover and click effects: videos auto-preview on hover, click flips and pauses to show description; photos support hover zoom and click flips to show description.",
       "reqIds": [
-        "REQ-17"
+        "REQ-6"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-a-global-coupons-enable-disable-master-switch-controlled-by-the-owner-when-disabled-coupon-validation-and-coupon-application-are-blocked-across-the-store",
-      "title": "Implement a global coupons enable/disable master switch controlled by the owner; when disabled, coupon validation and coupon application are blocked across the store.",
+      "id": "feature-add-admin-dashboard-ui-to-list-newly-submitted-requests-and-testimonies-showing-their-unique-ids-and-key-metadata-and-refresh-the-lists-immediately-after-a-new-submission-succeeds",
+      "title": "Add admin dashboard UI to list newly submitted Requests and Testimonies, showing their unique IDs and key metadata, and refresh the lists immediately after a new submission succeeds.",
       "reqIds": [
-        "REQ-18"
+        "REQ-7"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-promote-demote-admins-as-owner-only-actions-using-the-backend-admin-registry-including-ui-controls-within-admin-to-manage-admin-principals",
-      "title": "Implement Promote/Demote Admins as owner-only actions using the backend admin registry, including UI controls within Admin+ to manage admin principals.",
+      "id": "feature-add-react-query-hooks-in-the-existing-query-layer-for-creating-and-listing-requests-testimonies-and-any-required-admin-actions-following-existing-actor-based-patterns",
+      "title": "Add React Query hooks in the existing query layer for creating and listing Requests/Testimonies (and any required admin actions), following existing actor-based patterns.",
       "reqIds": [
-        "REQ-19"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-change-admin-passwords-as-an-owner-only-capability-in-admin-with-backend-storage-and-an-admin-facing-flow-that-uses-the-updated-password-to-access-admin-only-functionality",
-      "title": "Implement Change Admin Passwords as an owner-only capability in Admin+ with backend storage and an admin-facing flow that uses the updated password to access admin-only functionality.",
-      "reqIds": [
-        "REQ-20"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-site-analytics-snapshot-section-to-admin-that-shows-a-quick-overview-of-total-orders-recent-activity-and-sales-summaries-based-on-backend-order-data",
-      "title": "Add a Site Analytics Snapshot section to Admin+ that shows a quick overview of total orders, recent activity, and sales summaries based on backend order data.",
-      "reqIds": [
-        "REQ-21"
+        "REQ-8"
       ],
       "version": 1
     }
@@ -78,28 +66,36 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add owner-only Admin+ tab with master controls: reset admin passwords, promote/demote admins, override product pricing, force stock states, toggle coupons globally, emergency shop disable (UI + backend order blocking), and site analytics snapshot.",
+      "summary": "Phase 5A submission system: logged-in users submit Requests and Testimonies; Requests include contact + description + optional media + price range/Flexible; Testimonies allow up to 5 photos and 3 videos with per-file limits and media descriptions; generate unique IDs; instant Admin Dashboard listing; testimonies media shown as flippable cards with hover/click interactions.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Implement owner identification via a dedicated owner record stored in backend configuration (manually set during initial deployment), and use this stored owner identity as the sole authority for accessing the Admin+ tab and owner-only backend methods.",
+      "summary": "Add backend data models and APIs for customer Requests and Testimonies, each generating a unique ID on creation and persisting submissions so they can be listed in the admin dashboard.",
       "reqIds": [
-        "REQ-12"
+        "REQ-1"
       ],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Implement a dedicated admin registry in the backend that stores each user Principal with role flags (Admin / Owner), independent of normal user profile records, and use it for promotions/demotions and role checks.",
+      "summary": "Implement backend authorization rules so only logged-in users can submit Requests and Testimonies, and only admins can review/list submissions in the admin dashboard.",
       "reqIds": [
-        "REQ-13"
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "If the backend schema for testimonies/quote requests must change to support multiple media items and per-media descriptions, add a conditional migration that preserves existing stored data and increments IDs safely.",
+      "reqIds": [
+        "REQ-9"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Phase 4: Owner-only Admin+ controls (owner config, admin registry, shop disable UI+backend blocking, pricing/stock overrides, coupon master switch, analytics)",
+  "projectName": "Phase 5A: Logged-in Requests & Testimonies submissions with media, unique IDs, flippable cards, and Admin listing",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from '@tanstack/react-router';
 import { useGetAllProducts, useGetShopActiveState } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Card, CardContent } from '@/components/ui/card';
@@ -107,6 +108,22 @@ export default function Shop() {
     <PageLayout title="Arcane Artifacts Shop" description="Browse our mystical collection of enchanted items">
       <FadeInSection>
         <section className="section-spacing">
+          {/* Custom Request CTA */}
+          <div className="mb-8">
+            <Card className="bg-accent/10 border-arcane-gold/20">
+              <CardContent className="p-6 text-center">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Looking for something custom?
+                </p>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/submit-request">
+                    Submit a Custom Request
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="mb-8 space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <div className="relative flex-1 max-w-md">

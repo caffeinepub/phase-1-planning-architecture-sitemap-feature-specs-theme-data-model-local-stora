@@ -1,6 +1,8 @@
+import { Link } from '@tanstack/react-router';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
 import ServiceDetailsAccordion from '../components/services/ServiceDetailsAccordion';
+import { Button } from '@/components/ui/button';
 
 export default function Services() {
   return (
@@ -19,14 +21,20 @@ export default function Services() {
           <div className="bg-accent/20 border border-arcane-gold/30 rounded-lg p-8 text-center">
             <h2 className="font-display text-2xl font-bold mb-4">Need a Custom Service?</h2>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Our team can provide specialized services tailored to your unique needs. Contact us to discuss your requirements and receive a personalized quote.
+              Our team can provide specialized services tailored to your unique needs. Submit a request to discuss your requirements and receive a personalized quote.
             </p>
-            <a
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 py-2"
-            >
-              Contact Us
-            </a>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Button asChild size="lg">
+                <Link to="/submit-request">
+                  Submit a Request
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild>
+                <Link to="/contact">
+                  Contact Us
+                </Link>
+              </Button>
+            </div>
           </div>
         </section>
       </FadeInSection>
