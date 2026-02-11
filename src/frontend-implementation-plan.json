@@ -1,131 +1,144 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Phase 6B: Admin Dashboard Control Center (full tabs after login) — Frontend",
+  "title": "Testimony verification UI + Search Artifacts UI + controlled discoverability + responsive layout",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Expand /admin into a single control-center UI with 7 sections (Requests, Orders, Testimonies, Messaging, Coupons, Analytics, System Settings) after admin login + Admin Access unlock, keeping existing tab behavior unchanged.",
+      "summary": "Show newly submitted testimonies publicly immediately with a clear “Awaiting Admin Verification” status until approved, then reflect verified state in the UI.",
       "acceptanceCriteria": [
-        "Visiting /admin as a logged-in admin who has unlocked Admin Access (via /admin-access) shows a dashboard with navigation for all 7 sections: Requests, Orders, Testimonies, Messaging, Coupons, Analytics, System Settings.",
-        "The existing sections (Orders, Requests, Testimonies) remain functional and unchanged in behavior.",
-        "All user-facing labels for the new sections are in English and consistent with the existing admin UI tone."
+        "Submitting a testimony results in it appearing on the public Testimonies page with a visible \"Awaiting Admin Verification\" label/badge.",
+        "After an admin approves a testimony, the public Testimonies page updates to show that testimony as verified/approved (no longer labeled \"Awaiting Admin Verification\").",
+        "Admin approval action is available in the admin dashboard and persists in the backend so the status survives refresh/redeploy."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/Admin.tsx",
+          "path": "frontend/src/pages/Testimonies.tsx",
           "operation": "modify",
-          "description": "Expand the existing Tabs UI to include additional tab triggers/contents for Messaging, Coupons, Analytics, and System Settings while preserving the existing Orders/Requests/Testimonies tabs and their behavior. Leverage existing admin gating (Use the authorization component via RequireAdmin + RequireAdminAccessGate to ensure admin-only access after unlock). Verify the component's usage instructions before implementing."
+          "description": "Stop filtering out unapproved testimonies for public display; render both approved and pending items and add a prominent English badge/label for pending items reading \"Awaiting Admin Verification\" while keeping approved items visually distinct."
         },
         {
-          "path": "frontend/src/components/admin/AdminMessagingTab.tsx",
-          "operation": "create",
-          "description": "Create a new Messaging tab component to be rendered from /admin. Use existing admin UI patterns (cards, lists, loading/error states) consistent with other admin tabs. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminCouponsTab.tsx",
-          "operation": "create",
-          "description": "Create a new Coupons tab component to be rendered from /admin, with list and management actions wired to existing React Query patterns/hooks. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminAnalyticsTab.tsx",
-          "operation": "create",
-          "description": "Create a new Analytics tab component to be rendered from /admin that shows an analytics snapshot with clear loading/error states and a manual refresh action. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
-          "operation": "create",
-          "description": "Create a new System Settings tab component to be rendered from /admin that centralizes health/status and audit views, and conditionally exposes sensitive tools for the owner only. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Add an Admin Messaging section allowing admins to review customer inbox items/threads and send admin-to-customer messages, optionally including attachments using existing attachment UI and validation.",
-      "acceptanceCriteria": [
-        "Admins can open the Messaging section and see a list of message threads or inbox items that clearly identifies the customer (Principal) and message content/type/time (where available).",
-        "Admins can send a message to a selected customer; successful send results in the new message appearing in the UI after refresh or automatic query invalidation.",
-        "If attachments are enabled in the UI, invalid files are rejected using the existing validation behavior and the UI shows upload/progress states consistent with existing patterns (e.g., MessageAttachmentPicker)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/admin/AdminMessagingTab.tsx",
+          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
           "operation": "modify",
-          "description": "Implement the Messaging UI: (1) fetch and render an admin-view list of customer inbox items/threads (grouped or flat), showing customer Principal, message type, preview, and timestamp when available; (2) provide a compose/send panel targeting a selected customer Principal; (3) integrate attachment selection and upload states using the existing MessageAttachmentPicker component. Use the blob-storage component capability (ExternalBlob for attachment representation + direct URL access where needed) only through the existing attachment flow and types. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useAdminMessaging.ts",
-          "operation": "create",
-          "description": "Create dedicated React Query hooks for admin messaging (admin inbox listing + send message). These hooks should use useActor() and follow existing query invalidation/refetch patterns so sent messages appear after refresh/invalidations. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/types/adminMessaging.ts",
-          "operation": "create",
-          "description": "Add frontend-only TypeScript types for the admin messaging view model (e.g., admin inbox row/thread shape, send payload shape) to keep UI components typed and stable even if backend-returned shapes evolve. Verify the component's usage instructions before implementing."
+          "description": "Update English helper text and success toast to match the new behavior (appears immediately but marked as awaiting verification). Ensure messaging aligns with the public pending badge behavior."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Add an Admin Coupons section allowing admins to view coupons, create coupons, toggle validity, and (when supported) send coupons to customers using existing workflows so they appear in the customer Inbox.",
+      "summary": "Enable admins to review testimony status and approve pending testimonies from the Admin Testimonies UI with React Query invalidation and error handling.",
       "acceptanceCriteria": [
-        "Admins can open the Coupons section and see a list of coupons with code, discount, and validity status.",
-        "Admins can create a coupon and the coupons list updates after creation.",
-        "Admins can toggle coupon validity and the UI reflects the updated status after the mutation completes.",
-        "If sending coupons to customers is supported by existing backend/workflows, the Coupons section provides a way to select a customer and send a coupon, and the customer receives a corresponding inbox item visible on the customer Inbox page."
+        "Admin testimonies tab shows each testimony’s current status.",
+        "Pending testimonies have an \"Approve\" (or equivalent) control.",
+        "Approving from the admin UI updates the item status without requiring a hard refresh (queries invalidate/refetch).",
+        "Error states are handled using existing patterns (inline error + retry)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/AdminCouponsTab.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Implement Coupons UI using existing hooks/patterns: list coupons (code/discount/validity), create coupon, and toggle validity with mutation pending states and post-mutation list refresh. Add a guarded 'Send to customer' panel that is shown only if the backend actor exposes a coupon-send function at runtime; otherwise show a clear English message that sending is unavailable. Verify the component's usage instructions before implementing."
+          "description": "Add a React Query mutation hook for approving/verifying a testimony (calling the new backend capability), and invalidate/refetch relevant queries (admin list, public testimonies list, and any search-related queries that include testimonies)."
         },
         {
-          "path": "frontend/src/hooks/useAdminCoupons.ts",
-          "operation": "create",
-          "description": "Create focused admin coupon hooks to wrap existing coupon hooks (list/create/toggle) and (optionally) coupon-send if available, including query invalidation keys to keep the list in sync and to prompt customer inbox refresh flows where applicable. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+          "operation": "modify",
+          "description": "Add a clear status indicator (Pending vs Verified/Approved) and an \"Approve\" action for pending items. Use the new mutation hook and follow existing ErrorState/inline error + retry patterns; disable controls while pending; on success trigger query invalidation refresh."
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Add an Admin Analytics section that displays an analytics snapshot with clear loading/error states and a manual refresh action using existing React Query patterns.",
+      "summary": "Add a Search Artifacts UI with keyword search and category filtering (including “Testimonies”) that surfaces testimonies via backend indexing.",
       "acceptanceCriteria": [
-        "Admins can open the Analytics section and see an analytics snapshot card/grid with key metrics returned by the backend.",
-        "The section shows a non-blocking loading state while data is fetched and a recoverable error state if fetching fails.",
-        "A manual refresh action is available and triggers a refetch (or React Query invalidation) for the analytics snapshot."
+        "A new Search Artifacts UI exists where users can enter a keyword query and see results.",
+        "Search results support filtering by category, including \"Testimonies\".",
+        "Newly submitted testimonies become searchable via Search Artifacts without manual re-entry.",
+        "Search indexing includes testimony textual fields and per-media description text (photos/videos).",
+        "The backend provides query methods needed for search and category filtering."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/AdminAnalyticsTab.tsx",
-          "operation": "modify",
-          "description": "Implement analytics snapshot rendering and manual refresh. Prefer reusing existing adminplus AnalyticsSnapshotSection for consistent UI/behavior; wrap it in admin-facing framing if needed and ensure loading/error states remain recoverable for admin users (including unauthorized errors). Verify the component's usage instructions before implementing."
+          "path": "frontend/src/pages/SearchArtifacts.tsx",
+          "operation": "create",
+          "description": "Create the Search Artifacts page UI with a keyword input, category filter (including \"Testimonies\"), loading/empty/error states, and a results list that can render testimony results. Use existing shadcn-ui components for inputs, selects, badges, cards, and skeletons. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+          "path": "frontend/src/hooks/useSearchArtifacts.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for searching artifacts by keyword and category (including \"Testimonies\"), calling the backend-provided search capabilities and exposing typed loading/error state for the new page."
+        },
+        {
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Adjust the analytics snapshot section (if necessary) to behave well when used from /admin: keep non-blocking loading UI, provide recoverable errors, and ensure refresh triggers React Query invalidation/refetch without crashing on unauthorized responses. Verify the component's usage instructions before implementing."
+          "description": "Register a new route for the Search Artifacts page and ensure it is reachable via the router configuration (no orphan page)."
+        },
+        {
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "operation": "modify",
+          "description": "Add a navigation link to the new Search Artifacts route in both desktop and mobile menus. Keep English labels and ensure the link is reachable without authentication for public search browsing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the testimony submission mutation to invalidate Search Artifacts queries so newly submitted testimonies can become discoverable through search as soon as backend indexing is updated."
         }
       ]
     },
     {
       "id": "REQ-5",
-      "summary": "Add a System Settings section consolidating system status and audit views, and enforce owner-only access for sensitive tools while allowing admins to view non-sensitive settings.",
+      "summary": "Ensure testimonies are discoverable publicly only on the Testimonies page and in Search Artifacts results (admin dashboard remains allowed).",
       "acceptanceCriteria": [
-        "Admins can open System Settings and view system status information (e.g., health check info) and admin audit data that is already collected (e.g., admin access log, login attempts, event logs) where supported by the backend.",
-        "Sensitive mutations (e.g., changing global store configuration, admin registry changes, password resets) are either (a) available only to the owner, or (b) clearly blocked with an explicit English message indicating owner-only access, while still allowing admins to view non-sensitive settings.",
-        "All settings/audit panels have consistent empty/loading/error states and do not crash if a particular endpoint is unavailable."
+        "No other existing pages/components display testimony lists/cards/teasers by default.",
+        "Only the Testimonies route and the Search Artifacts route surface testimonies to non-admin users.",
+        "Admin dashboard may list testimonies for review, but public discovery outside Testimonies and Search Artifacts does not occur."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Implement System Settings UI panels: (1) Health/Status using healthCheck(); (2) Audit views using getAdminAccessLog(), getLoginAttempts(), getEvents(); each with consistent empty/loading/error states. For sensitive tools, use the authorization component’s owner check pattern (useIsCallerOwner / RequireOwner-style gating) to either render owner-only sections (e.g., existing AdminRegistrySection, AdminPasswordResetSection, AdvancedShopControlsSection) or show a clear English 'Owner-only' blocked message while keeping read-only panels visible to admins. Verify the component's usage instructions before implementing."
+          "description": "Audit and ensure there are no additional routes/pages wiring testimony lists outside of /testimonies and the new Search Artifacts route; keep testimonies surfaced only in those two public locations and the admin dashboard tab."
         },
         {
-          "path": "frontend/src/hooks/useSystemSettings.ts",
-          "operation": "create",
-          "description": "Create React Query hooks for system status and audit data (health check, admin access log, login attempts, events), including safe error handling and refetch helpers used by the System Settings tab. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/pages/Homepage.tsx",
+          "operation": "modify",
+          "description": "Confirm homepage does not fetch or render testimonies; remove/avoid any testimony list/teaser wiring if present, keeping only navigation links (no public testimony surfacing outside the allowed pages)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Improve responsive layout across the site for navigation, pages, dashboards, forms, testimonies, and media grids so the UI works well on mobile/tablet/desktop/large screens.",
+      "acceptanceCriteria": [
+        "Key pages (Homepage, Shop, Submit Request, Admin, AdminPlus, Testimonies, Inbox, FAQ, Contact) render without horizontal overflow at common breakpoints.",
+        "Header navigation works on touch devices (mobile menu opens/closes and is usable).",
+        "Media grids (including testimony media) adapt columns appropriately and videos/images keep correct aspect ratios using responsive sizing classes.",
+        "Forms and dialogs remain usable on small screens (no clipped content; scroll within dialogs where needed)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "operation": "modify",
+          "description": "Harden mobile navigation for touch: ensure tap targets are sufficiently large, menu content scrolls if needed, and prevent background scroll while the menu is open using the existing .body-scroll-lock utility class behavior."
+        },
+        {
+          "path": "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
+          "operation": "modify",
+          "description": "Make testimony media cards responsive: replace fixed heights with responsive sizing, maintain correct aspect ratios for images/videos, and ensure descriptions remain readable/scrollable on small screens."
+        },
+        {
+          "path": "frontend/src/pages/Testimonies.tsx",
+          "operation": "modify",
+          "description": "Adjust testimonies layout for responsive breakpoints: ensure grids adapt cleanly, badges/status labels wrap correctly, and no horizontal overflow occurs on mobile while keeping media responsive."
+        },
+        {
+          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "operation": "modify",
+          "description": "Ensure the testimony submission dialog is fully usable on small screens (scroll within dialog, responsive spacing, touch-friendly buttons) and that all user-facing text remains in English."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add/adjust global responsive utilities where needed to prevent horizontal overflow and improve consistent spacing across breakpoints (without changing the overall theme beyond what’s necessary)."
         }
       ]
     }

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Menu, X, ShoppingCart, User, Shield, Inbox } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Shield, Inbox, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LoginButton from '../auth/LoginButton';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
@@ -27,22 +27,34 @@ export default function HeaderNav() {
     { to: '/contact', label: 'Contact' },
   ];
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.classList.add('body-scroll-lock');
+    } else {
+      document.body.classList.remove('body-scroll-lock');
+    }
+    return () => {
+      document.body.classList.remove('body-scroll-lock');
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
           <img src="/assets/generated/arcane-sigil.dim_512x512.png" alt="Arcane Artifacts" className="h-10 w-10" />
           <span className="font-cinzel text-xl font-bold hidden sm:inline">Arcane Artifacts</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center space-x-1">
+        {/* Desktop & Tablet Navigation */}
+        <div className="hidden md:flex items-center space-x-1 overflow-x-auto">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors whitespace-nowrap"
             >
               {link.label}
             </Link>
@@ -50,21 +62,30 @@ export default function HeaderNav() {
           {isAdmin && (
             <Link
               to="/admin-access"
-              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors whitespace-nowrap"
             >
               Admin
             </Link>
           )}
         </div>
 
-        {/* Desktop Actions */}
-        <div className="hidden lg:flex items-center space-x-2">
+        {/* Desktop & Tablet Actions */}
+        <div className="hidden md:flex items-center space-x-2 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate({ to: '/search-artifacts' })}
+            aria-label="Search Artifacts"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
           {isAuthenticated && (
             <>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate({ to: '/inbox' })}
+                aria-label="Inbox"
               >
                 <Inbox className="h-5 w-5" />
               </Button>
@@ -72,6 +93,7 @@ export default function HeaderNav() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate({ to: '/dashboard' })}
+                aria-label="Dashboard"
               >
                 <User className="h-5 w-5" />
               </Button>
@@ -82,9 +104,10 @@ export default function HeaderNav() {
 
         {/* Mobile Menu Button */}
         <button
-          className="lg:hidden p-2"
+          className="md:hidden p-2 touch-manipulation"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -92,24 +115,33 @@ export default function HeaderNav() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t bg-background">
+        <div className="md:hidden border-t bg-background max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="container mx-auto px-4 py-4 space-y-2">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="block px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+                className="block px-3 py-3 text-sm font-medium rounded-md hover:bg-accent transition-colors touch-manipulation"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
             
+            <Link
+              to="/search-artifacts"
+              className="flex items-center gap-2 px-3 py-3 text-sm font-medium rounded-md hover:bg-accent transition-colors touch-manipulation"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Search className="h-5 w-5" />
+              Search Artifacts
+            </Link>
+            
             {isAuthenticated && (
               <>
                 <Link
                   to="/inbox"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+                  className="flex items-center gap-2 px-3 py-3 text-sm font-medium rounded-md hover:bg-accent transition-colors touch-manipulation"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Inbox className="h-5 w-5" />
@@ -117,7 +149,7 @@ export default function HeaderNav() {
                 </Link>
                 <Link
                   to="/dashboard"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+                  className="flex items-center gap-2 px-3 py-3 text-sm font-medium rounded-md hover:bg-accent transition-colors touch-manipulation"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <User className="h-5 w-5" />
@@ -129,7 +161,7 @@ export default function HeaderNav() {
             {isAdmin && (
               <Link
                 to="/admin-access"
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+                className="flex items-center gap-2 px-3 py-3 text-sm font-medium rounded-md hover:bg-accent transition-colors touch-manipulation"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Shield className="h-5 w-5" />

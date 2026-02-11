@@ -1,48 +1,52 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Build an Admin Dashboard Control Center accessible after login, covering requests, orders, testimonies, messaging, coupons, analytics, and system settings, plus support for adding multiple admins with adjustable permission levels while the owner retains full control.",
-  "architectural_notes": [],
+  "summary": "Build a fully responsive website UI across all pages and implement a new Testimony submission/management system integrated with a new Search Artifacts system (testimonies as an artifact type), including admin verification workflow and controlled discovery/visibility rules.",
+  "architectural_notes": [
+    "Testimonies require an admin verification workflow: public items may appear as 'Awaiting Admin Verification' until verified; approval marks as verified and controls placement on the Testimonies page.",
+    "Discovery constraint: testimonies should only be accessible via the Testimonies page or through Search Artifacts search results (not from other site areas).",
+    "Search Artifacts is a generalized indexing/search system with artifact categories (start with testimonies; designed to support photos/videos/documents)."
+  ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-expand-the-existing-admin-dashboard-so-that-after-internet-identity-login-successful-admin-access-unlock-admins-can-access-a-single-control-center-ui-that-includes-sections-for-requests-orders-testimonies-messaging-coupons-analytics-and-system-settings",
-      "title": "Expand the existing /admin dashboard so that after Internet Identity login + successful Admin Access unlock, admins can access a single control-center UI that includes sections for: Requests, Orders, Testimonies, Messaging, Coupons, Analytics, and System Settings.",
+      "id": "feature-implement-a-testimony-verification-workflow-where-testimonies-are-publicly-visible-on-the-testimonies-page-immediately-after-submission-but-are-clearly-labeled-as-awaiting-admin-verification-until-an-admin-approves-them-once-approved-in-the-admin-dashboard-the-testimony-becomes-verified-status-changes-and-is-treated-as-approved-verified-in-the-ui",
+      "title": "Implement a testimony verification workflow where testimonies are publicly visible on the Testimonies page immediately after submission but are clearly labeled as \"Awaiting Admin Verification\" until an admin approves them; once approved in the admin dashboard, the testimony becomes verified (status changes) and is treated as approved/verified in the UI.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-an-admin-messaging-section-in-the-admin-dashboard-that-lets-admins-review-customer-inbox-items-and-send-new-admin-to-customer-messages-including-attachments-if-supported-by-existing-attachment-components",
-      "title": "Implement an Admin Messaging section in the admin dashboard that lets admins review customer inbox items and send new admin-to-customer messages (including attachments if supported by existing attachment components).",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-an-admin-coupons-section-in-the-admin-dashboard-that-allows-admins-to-view-coupons-and-perform-coupon-management-actions-already-supported-by-the-backend-e-g-create-coupon-toggle-validity-and-to-send-coupons-to-customers-when-supported-by-existing-workflows",
-      "title": "Implement an Admin Coupons section in the admin dashboard that allows admins to view coupons and perform coupon management actions already supported by the backend (e.g., create coupon, toggle validity) and to send coupons to customers when supported by existing workflows.",
+      "id": "feature-update-the-admin-testimonies-ui-to-support-reviewing-and-approving-verifying-testimonies-show-clear-status-pending-vs-verified-approved-and-provide-an-action-to-approve-pending-testimonies-with-react-query-invalidation-so-both-admin-and-public-views-refresh",
+      "title": "Update the Admin Testimonies UI to support reviewing and approving/verifying testimonies: show clear status (Pending vs Verified/Approved) and provide an action to approve pending testimonies, with React Query invalidation so both admin and public views refresh.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-an-admin-analytics-section-in-the-admin-dashboard-that-displays-an-analytics-snapshot-using-existing-analytics-query-mutation-patterns-with-clear-loading-error-states",
-      "title": "Implement an Admin Analytics section in the admin dashboard that displays an analytics snapshot using existing analytics query/mutation patterns, with clear loading/error states.",
+      "id": "feature-create-a-search-artifacts-system-from-scratch-that-supports-keyword-search-and-filtered-categorized-results-including-a-testimonies-category-and-automatically-indexes-each-testimony-s-title-description-and-media-descriptions-so-testimonies-can-be-discovered-via-search-artifacts-search",
+      "title": "Create a Search Artifacts system from scratch that supports keyword search and filtered/categorized results (including a \"Testimonies\" category), and automatically indexes each testimony’s title/description and media descriptions so testimonies can be discovered via Search Artifacts search.",
       "reqIds": [
         "REQ-4"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-a-system-settings-section-in-the-admin-dashboard-that-centralizes-system-level-tools-e-g-store-configuration-health-status-audit-logs-and-enforces-appropriate-permissions-for-sensitive-actions",
-      "title": "Implement a System Settings section in the admin dashboard that centralizes system-level tools (e.g., store configuration, health/status, audit logs) and enforces appropriate permissions for sensitive actions.",
+      "id": "feature-enforce-controlled-discoverability-for-testimonies-testimonies-must-not-appear-on-any-other-pages-or-global-listings-besides-1-the-public-testimonies-page-and-2-search-artifacts-search-results",
+      "title": "Enforce controlled discoverability for testimonies: testimonies must not appear on any other pages or global listings besides (1) the public Testimonies page and (2) Search Artifacts search results.",
       "reqIds": [
         "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-responsive-layout-support-across-the-entire-website-so-all-pages-forms-dashboards-navigation-testimonies-media-upload-components-scale-correctly-on-mobile-tablet-desktop-and-large-screens-with-readable-spacing-properly-scaled-images-videos-and-touch-friendly-menus-buttons",
+      "title": "Implement responsive layout support across the entire website so all pages/forms/dashboards/navigation/testimonies/media upload components scale correctly on mobile, tablet, desktop, and large screens, with readable spacing, properly scaled images/videos, and touch-friendly menus/buttons.",
+      "reqIds": [
+        "REQ-6"
       ],
       "version": 1
     }
@@ -50,26 +54,32 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Phase 6B: Admin Dashboard Control Center (requests, orders, testimonies, messaging, coupons, analytics, system settings) accessible after admin login",
+      "summary": "Implement global responsive layout support across the entire website (pages, forms, dashboards, testimonies, media uploads, navigation) for mobile/tablet/desktop/large screens with touch+mouse usability and proper image/video scaling.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Phase 6C: Multi-admin management with adjustable permission levels; owner retains full control",
+      "summary": "Create a full Testimony System from scratch: testimony submission with title/description/photos/videos, public listing on Testimonies page with 'Awaiting Admin Verification' labeling, and admin dashboard workflow to approve/verify testimonies (verified items are pushed to the Testimonies page).",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-8",
-      "summary": "Add/verify backend canister methods required by the new Admin dashboard sections (Messaging, Coupons, Analytics, System Settings), ensuring they are admin-gated and return stable, frontend-consumable types.",
+      "id": "AR-3",
+      "summary": "Create a Search Artifacts system from scratch supporting multiple artifact categories (testimonies, photos, videos, documents) with keyword search and filtered/categorized results; automatically index testimonies and allow discovery only via the Testimonies page and Search Artifacts search (not elsewhere).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add backend APIs and storage updates to support testimony approval and verified status changes by admins, including audit logging for the approval action (using the existing audit log system).",
       "reqIds": [
-        "REQ-6"
+        "REQ-2"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Phase 6B: Admin Dashboard Control Center (full tabs after login)",
+  "projectName": "Testimony approval/verification workflow + Search Artifacts indexing with controlled discoverability",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

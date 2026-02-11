@@ -1,56 +1,51 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useGetCallerUserProfile, useCreateRequest } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useGetCallerUserProfile, useSubmitRequest } from '../hooks/useQueries';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { Send } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
-import RequireAuth from '../components/auth/RequireAuth';
-import RequestMediaPicker, { RequestMediaItem } from '../components/requests/RequestMediaPicker';
-import { toast } from 'sonner';
+import RequestMediaPicker from '../components/requests/RequestMediaPicker';
+import type { RequestMediaItem } from '../components/requests/RequestMediaPicker';
 
-function SubmitRequestForm() {
+export default function SubmitRequest() {
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
-  const createRequest = useCreateRequest();
+  const { data: userProfile } = useGetCallerUserProfile();
+  const submitRequest = useSubmitRequest();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
-  const [pricingType, setPricingType] = useState<'flexible' | 'range'>('flexible');
-  const [priceRange, setPriceRange] = useState('');
+  const [pricingPreference, setPricingPreference] = useState<string>('flexible');
   const [media, setMedia] = useState<RequestMediaItem[]>([]);
 
-  // Prefill from profile when loaded
+  useEffect(() => {
+    if (!identity) {
+      navigate({ to: '/' });
+      toast.error('Please log in to submit a request');
+    }
+  }, [identity, navigate]);
+
   useEffect(() => {
     if (userProfile) {
-      setName(userProfile.name);
-      setEmail(userProfile.email);
+      setName(userProfile.name || '');
+      setEmail(userProfile.email || '');
     }
   }, [userProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!identity) {
-      toast.error('You must be logged in to submit a request');
-      return;
-    }
-
     if (!name.trim() || !email.trim() || !description.trim()) {
       toast.error('Please fill in all required fields');
-      return;
-    }
-
-    if (pricingType === 'range' && !priceRange.trim()) {
-      toast.error('Please enter a price range');
       return;
     }
 
@@ -59,171 +54,131 @@ function SubmitRequestForm() {
         name: name.trim(),
         email: email.trim(),
         description: description.trim(),
-        attachments: media.map(m => ({
+        pricingPreference,
+        media: media.map(m => ({
           blob: m.blob,
-          filename: m.isVideo ? 'video.mp4' : 'photo.jpg',
+          mediaType: m.isVideo ? 'video' : 'photo',
         })),
-        pricingPreference: pricingType === 'flexible' 
-          ? { __kind__: 'flexible' as const }
-          : { __kind__: 'range' as const, value: priceRange.trim() },
       };
 
-      await createRequest.mutateAsync(requestData);
-      toast.success('Request submitted successfully!');
+      await submitRequest.mutateAsync(requestData);
+      toast.success('Request submitted successfully! We will review it shortly.');
+      
+      // Reset form
+      setDescription('');
+      setPricingPreference('flexible');
+      setMedia([]);
+      
       navigate({ to: '/dashboard' });
     } catch (error: any) {
       console.error('Failed to submit request:', error);
-      toast.error(error.message || 'Failed to submit request. This feature will be available once the backend is updated.');
+      toast.error(error.message || 'Failed to submit request');
     }
   };
 
-  if (profileLoading) {
-    return (
-      <PageLayout title="Submit Request" description="Request a custom quote">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      </PageLayout>
-    );
+  if (!identity) {
+    return null;
   }
 
   return (
     <PageLayout
-      title="Submit a Request"
-      description="Tell us about your custom project or freelance job"
+      title="Submit Custom Request"
+      description="Tell us about your custom project needs"
     >
       <FadeInSection>
-        <section className="section-spacing">
-          <Card className="max-w-3xl mx-auto">
+        <section className="section-spacing px-4 sm:px-6">
+          <Card className="max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle>Custom Request Form</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Send className="h-5 w-5" />
+                Custom Request Form
+              </CardTitle>
               <CardDescription>
-                Fill out the form below to request a custom quote for your project
+                Describe your custom project and we'll get back to you with a quote
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name *</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Your name"
-                      required
-                      disabled={createRequest.isPending}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      required
-                      disabled={createRequest.isPending}
-                    />
-                  </div>
+                {/* Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                    required
+                    autoComplete="name"
+                  />
                 </div>
 
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your.email@example.com"
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+
+                {/* Description */}
                 <div className="space-y-2">
                   <Label htmlFor="description">Project Description *</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe your custom project, freelance job, or special request in detail..."
+                    placeholder="Describe your custom project in detail..."
                     rows={6}
                     required
-                    disabled={createRequest.isPending}
+                    className="resize-none"
                   />
                 </div>
 
-                <div className="space-y-4">
-                  <Label>Pricing Preference *</Label>
-                  <RadioGroup
-                    value={pricingType}
-                    onValueChange={(value) => setPricingType(value as 'flexible' | 'range')}
-                    disabled={createRequest.isPending}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="flexible" id="flexible" />
-                      <Label htmlFor="flexible" className="cursor-pointer font-normal">
-                        Flexible - Open to your pricing
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="range" id="range" />
-                      <Label htmlFor="range" className="cursor-pointer font-normal">
-                        Price Range - I have a budget in mind
-                      </Label>
-                    </div>
-                  </RadioGroup>
-
-                  {pricingType === 'range' && (
-                    <div className="space-y-2 ml-6">
-                      <Label htmlFor="priceRange">Your Budget Range</Label>
-                      <Input
-                        id="priceRange"
-                        value={priceRange}
-                        onChange={(e) => setPriceRange(e.target.value)}
-                        placeholder="e.g., $500 - $1000"
-                        disabled={createRequest.isPending}
-                      />
-                    </div>
-                  )}
+                {/* Pricing Preference */}
+                <div className="space-y-2">
+                  <Label htmlFor="pricing">Pricing Preference</Label>
+                  <Select value={pricingPreference} onValueChange={setPricingPreference}>
+                    <SelectTrigger id="pricing">
+                      <SelectValue placeholder="Select pricing preference" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="flexible">Flexible</SelectItem>
+                      <SelectItem value="budget">Budget Range</SelectItem>
+                      <SelectItem value="fixed">Fixed Price</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
+                {/* Media Attachments */}
                 <div className="space-y-2">
                   <Label>Attachments (Optional)</Label>
                   <RequestMediaPicker
                     media={media}
                     onChange={setMedia}
-                    disabled={createRequest.isPending}
                   />
                 </div>
 
-                <div className="flex gap-4">
-                  <Button
-                    type="submit"
-                    disabled={createRequest.isPending}
-                    className="flex-1"
-                  >
-                    {createRequest.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      'Submit Request'
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate({ to: '/' })}
-                    disabled={createRequest.isPending}
-                  >
-                    Cancel
-                  </Button>
-                </div>
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  disabled={submitRequest.isPending}
+                  className="w-full"
+                  size="lg"
+                >
+                  {submitRequest.isPending ? 'Submitting...' : 'Submit Request'}
+                </Button>
               </form>
             </CardContent>
           </Card>
         </section>
       </FadeInSection>
     </PageLayout>
-  );
-}
-
-export default function SubmitRequest() {
-  return (
-    <RequireAuth>
-      <SubmitRequestForm />
-    </RequireAuth>
   );
 }

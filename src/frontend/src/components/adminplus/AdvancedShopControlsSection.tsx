@@ -4,228 +4,263 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, DollarSign, Eye, EyeOff } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { AlertTriangle, DollarSign, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useGetAllProducts, useOverrideProductPrice, useSetProductVisibility, useGetStoreConfig, useSetStoreActive } from '../../hooks/useQueries';
 import { toast } from 'sonner';
-import { useGetAllProductsAdmin, useSetShopActiveState, useGetShopActiveState, useOverrideProductPrice, useClearProductPriceOverride, useSetProductVisibility } from '../../hooks/useQueries';
-import type { Product, ProductVisibility } from '../../types/common';
+import type { ProductVisibility } from '../../types/common';
 
 export default function AdvancedShopControlsSection() {
-  const { data: products = [], isLoading: productsLoading } = useGetAllProductsAdmin();
-  const { data: shopActive = true } = useGetShopActiveState();
-  const setShopActive = useSetShopActiveState();
+  const { data: products = [], refetch: refetchProducts } = useGetAllProducts();
+  const { data: storeConfig } = useGetStoreConfig();
+  const setStoreActive = useSetStoreActive();
   const overridePriceMutation = useOverrideProductPrice();
-  const clearPriceOverride = useClearProductPriceOverride();
-  const setVisibility = useSetProductVisibility();
+  const setVisibilityMutation = useSetProductVisibility();
 
-  const [selectedProductId, setSelectedProductId] = useState<string>('');
-  const [newPriceInput, setNewPriceInput] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState<bigint | null>(null);
+  const [overridePrice, setOverridePrice] = useState('');
+
+  const isShopActive = storeConfig?.isActive ?? true;
 
   const handleToggleShop = async () => {
     try {
-      await setShopActive.mutateAsync(!shopActive);
-      toast.success(shopActive ? 'Shop disabled' : 'Shop enabled');
+      await setStoreActive.mutateAsync(!isShopActive);
+      toast.success(isShopActive ? 'Shop deactivated' : 'Shop activated');
     } catch (error: any) {
       toast.error(error.message || 'Failed to toggle shop state');
     }
   };
 
-  const handleOverridePrice = async () => {
+  const handleSetPriceOverride = async () => {
     if (!selectedProductId) {
       toast.error('Please select a product');
       return;
     }
 
-    const price = parseFloat(newPriceInput);
+    const price = parseFloat(overridePrice);
     if (isNaN(price) || price < 0) {
       toast.error('Please enter a valid price');
       return;
     }
 
-    const productId = BigInt(selectedProductId);
     const priceCents = BigInt(Math.floor(price * 100));
 
     try {
-      await overridePriceMutation.mutateAsync({ productId, price: priceCents });
-      toast.success('Price override applied');
-      setNewPriceInput('');
+      await overridePriceMutation.mutateAsync({ productId: selectedProductId, newPrice: priceCents });
+      toast.success('Price override set successfully');
+      setOverridePrice('');
+      setSelectedProductId(null);
+      refetchProducts();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to override price');
+      toast.error(error.message || 'Failed to set price override');
     }
   };
 
-  const handleClearPriceOverride = async () => {
-    if (!selectedProductId) {
-      toast.error('Please select a product');
-      return;
-    }
-
-    const productId = BigInt(selectedProductId);
-
+  const handleClearPriceOverride = async (productId: bigint) => {
     try {
-      await clearPriceOverride.mutateAsync({ productId, price: null });
+      await overridePriceMutation.mutateAsync({ productId, newPrice: null });
       toast.success('Price override cleared');
+      refetchProducts();
     } catch (error: any) {
       toast.error(error.message || 'Failed to clear price override');
     }
   };
 
-  const handleSetVisibility = async (visibility: ProductVisibility) => {
-    if (!selectedProductId) {
-      toast.error('Please select a product');
-      return;
-    }
-
-    const productId = BigInt(selectedProductId);
+  const handleToggleVisibility = async (productId: bigint, currentVisibility: ProductVisibility) => {
+    const currentKind = currentVisibility.__kind__;
+    const newVisibility: ProductVisibility = 
+      currentKind === 'visible' ? { __kind__: 'hidden' } : { __kind__: 'visible' };
 
     try {
-      await setVisibility.mutateAsync({ productId, visibility });
-      toast.success('Product visibility updated');
+      await setVisibilityMutation.mutateAsync({ 
+        productId, 
+        visibility: newVisibility
+      });
+      toast.success(`Product ${newVisibility.__kind__ === 'visible' ? 'shown' : 'hidden'}`);
+      refetchProducts();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update visibility');
+      toast.error(error.message || 'Failed to toggle visibility');
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Emergency Shop Disable */}
-      <Card>
+      <Card className="border-destructive/30">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-destructive" />
-            Emergency Shop Controls
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <CardTitle>Emergency Shop Control</CardTitle>
+          </div>
           <CardDescription>
             Instantly disable the entire shop for maintenance or emergencies
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <Alert variant={isShopActive ? 'default' : 'destructive'}>
+            <AlertDescription>
+              Shop is currently <strong>{isShopActive ? 'ACTIVE' : 'DISABLED'}</strong>
+            </AlertDescription>
+          </Alert>
+
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div>
               <p className="font-medium">Shop Status</p>
               <p className="text-sm text-muted-foreground">
-                {shopActive ? 'Shop is currently active' : 'Shop is currently disabled'}
+                {isShopActive ? 'Customers can browse and purchase' : 'Shop is closed to customers'}
               </p>
             </div>
             <Switch
-              checked={shopActive}
+              checked={isShopActive}
               onCheckedChange={handleToggleShop}
-              disabled={setShopActive.isPending}
+              disabled={setStoreActive.isPending}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Product Price Override */}
+      <Separator />
+
+      {/* Price Override Management */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-arcane-gold" />
-            Product Price Override
-          </CardTitle>
+            <CardTitle>Product Price Overrides</CardTitle>
+          </div>
           <CardDescription>
-            Temporarily override product prices without editing the product
+            Set temporary price overrides for specific products
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="product-select">Select Product</Label>
-            <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-              <SelectTrigger id="product-select">
-                <SelectValue placeholder="Choose a product..." />
-              </SelectTrigger>
-              <SelectContent>
-                {products.map((product: Product) => (
-                  <SelectItem key={product.id.toString()} value={product.id.toString()}>
-                    {product.name} - {Number(product.price) / 100} ICP
-                    {product.priceOverride && ' (Override Active)'}
-                  </SelectItem>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="product-select">Select Product</Label>
+              <select
+                id="product-select"
+                value={selectedProductId?.toString() || ''}
+                onChange={(e) => setSelectedProductId(e.target.value ? BigInt(e.target.value) : null)}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background"
+              >
+                <option value="">Choose a product...</option>
+                {products.map((product: any) => (
+                  <option key={product.id.toString()} value={product.id.toString()}>
+                    {product.name} (Original: {Number(product.price) / 100} ICP)
+                  </option>
                 ))}
-              </SelectContent>
-            </Select>
+              </select>
+            </div>
+
+            <div>
+              <Label htmlFor="override-price">Override Price (ICP)</Label>
+              <Input
+                id="override-price"
+                type="number"
+                step="0.01"
+                value={overridePrice}
+                onChange={(e) => setOverridePrice(e.target.value)}
+                placeholder="Enter new price..."
+              />
+            </div>
+
+            <Button
+              onClick={handleSetPriceOverride}
+              disabled={!selectedProductId || !overridePrice || overridePriceMutation.isPending}
+              className="w-full"
+            >
+              {overridePriceMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <DollarSign className="h-4 w-4 mr-2" />
+              )}
+              Set Price Override
+            </Button>
           </div>
+
+          <Separator />
 
           <div className="space-y-2">
-            <Label htmlFor="new-price">New Price (ICP)</Label>
-            <Input
-              id="new-price"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="e.g., 10.50"
-              value={newPriceInput}
-              onChange={(e) => setNewPriceInput(e.target.value)}
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              onClick={handleOverridePrice}
-              disabled={!selectedProductId || !newPriceInput || overridePriceMutation.isPending}
-              className="flex-1"
-            >
-              Apply Override
-            </Button>
-            <Button
-              onClick={handleClearPriceOverride}
-              disabled={!selectedProductId || clearPriceOverride.isPending}
-              variant="outline"
-              className="flex-1"
-            >
-              Clear Override
-            </Button>
+            <h4 className="font-medium text-sm">Active Overrides</h4>
+            {products.filter((p: any) => p.priceOverride !== null).length === 0 ? (
+              <p className="text-sm text-muted-foreground">No active price overrides</p>
+            ) : (
+              <div className="space-y-2">
+                {products
+                  .filter((p: any) => p.priceOverride !== null)
+                  .map((product: any) => (
+                    <div key={product.id.toString()} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{product.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Original: {Number(product.price) / 100} ICP → Override: {Number(product.priceOverride) / 100} ICP
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleClearPriceOverride(product.id)}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Product Visibility Control */}
+      <Separator />
+
+      {/* Product Visibility Controls */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-primary" />
-            Product Visibility Control
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Eye className="h-5 w-5 text-arcane-gold" />
+            <CardTitle>Product Visibility</CardTitle>
+          </div>
           <CardDescription>
-            Control which products are visible in the shop
+            Show or hide products from the shop without deleting them
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div className="space-y-2">
-            <Label>Selected Product</Label>
-            <p className="text-sm text-muted-foreground">
-              {selectedProductId 
-                ? products.find((p: Product) => p.id.toString() === selectedProductId)?.name || 'Unknown'
-                : 'No product selected'}
-            </p>
-          </div>
+            {products.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No products available</p>
+            ) : (
+              products.map((product: any) => {
+                const visibility: ProductVisibility = product.visibility || { __kind__: 'visible' };
+                const isVisible = visibility.__kind__ === 'visible';
 
-          <div className="flex gap-2">
-            <Button
-              onClick={() => handleSetVisibility({ __kind__: 'visible' })}
-              disabled={!selectedProductId || setVisibility.isPending}
-              variant="outline"
-              className="flex-1"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Visible
-            </Button>
-            <Button
-              onClick={() => handleSetVisibility({ __kind__: 'hidden' })}
-              disabled={!selectedProductId || setVisibility.isPending}
-              variant="outline"
-              className="flex-1"
-            >
-              <EyeOff className="h-4 w-4 mr-2" />
-              Hidden
-            </Button>
-            <Button
-              onClick={() => handleSetVisibility({ __kind__: 'outOfStock' })}
-              disabled={!selectedProductId || setVisibility.isPending}
-              variant="outline"
-              className="flex-1"
-            >
-              Out of Stock
-            </Button>
+                return (
+                  <div key={product.id.toString()} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {isVisible ? (
+                        <Eye className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <div>
+                        <p className="font-medium">{product.name}</p>
+                        <Badge variant={isVisible ? 'default' : 'secondary'} className="text-xs">
+                          {visibility.__kind__}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleToggleVisibility(product.id, visibility)}
+                      disabled={setVisibilityMutation.isPending}
+                    >
+                      {isVisible ? 'Hide' : 'Show'}
+                    </Button>
+                  </div>
+                );
+              })
+            )}
           </div>
         </CardContent>
       </Card>

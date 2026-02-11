@@ -2,33 +2,32 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { CheckCircle, XCircle, Send, Gift, ShoppingCart, Download, ExternalLink, Loader2 } from 'lucide-react';
-import type { RequestDetail, MessageAttachment } from '../../types/phase5b';
-import { useApproveRequest, useDeclineRequest, useSendMessageToCustomer, useSendCouponToCustomer, useConvertRequestToOrder } from '../../hooks/useQueries';
-import MessageAttachmentPicker from './MessageAttachmentPicker';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
+import { CheckCircle, XCircle, Send, Gift, DollarSign, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { useApproveRequest, useDeclineRequest, useSendMessageToCustomer, useSendCouponToCustomer, useConvertRequestToOrder } from '../../hooks/useQueries';
+import type { RequestDetail } from '../../types/phase5b';
+import { Principal } from '@dfinity/principal';
 
 interface AdminRequestDetailModalProps {
-  request: RequestDetail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  request: RequestDetail | null;
+  isLoading: boolean;
 }
 
 export default function AdminRequestDetailModal({
-  request,
   open,
   onOpenChange,
+  request,
+  isLoading,
 }: AdminRequestDetailModalProps) {
-  const [messageBody, setMessageBody] = useState('');
-  const [messageAttachments, setMessageAttachments] = useState<MessageAttachment[]>([]);
-  const [couponCode, setCouponCode] = useState('');
-  const [orderPrice, setOrderPrice] = useState('');
+  const [message, setMessage] = useState('');
+  const [couponId, setCouponId] = useState('');
+  const [orderAmount, setOrderAmount] = useState('');
 
   const approveRequest = useApproveRequest();
   const declineRequest = useDeclineRequest();
@@ -36,370 +35,275 @@ export default function AdminRequestDetailModal({
   const sendCoupon = useSendCouponToCustomer();
   const convertToOrder = useConvertRequestToOrder();
 
-  if (!request) return null;
-
-  const isApproved = request.status.__kind__ === 'approved';
-  const isDeclined = request.status.__kind__ === 'declined';
-  const isPending = request.status.__kind__ === 'pending';
-
   const handleApprove = async () => {
+    if (!request) return;
     try {
       await approveRequest.mutateAsync(request.id);
       toast.success('Request approved successfully');
+      onOpenChange(false);
     } catch (error: any) {
+      console.error('Failed to approve request:', error);
       toast.error(error.message || 'Failed to approve request');
     }
   };
 
   const handleDecline = async () => {
+    if (!request) return;
     try {
       await declineRequest.mutateAsync(request.id);
       toast.success('Request declined');
+      onOpenChange(false);
     } catch (error: any) {
+      console.error('Failed to decline request:', error);
       toast.error(error.message || 'Failed to decline request');
     }
   };
 
   const handleSendMessage = async () => {
-    if (!messageBody.trim()) {
+    if (!request || !message.trim()) {
       toast.error('Please enter a message');
       return;
     }
-
     try {
       await sendMessage.mutateAsync({
         customerId: request.submittedBy,
-        subject: `Re: Request #${request.id.toString()}`,
-        message: messageBody,
-        attachments: messageAttachments,
+        message: message.trim(),
       });
-      toast.success('Message sent to customer');
-      setMessageBody('');
-      setMessageAttachments([]);
+      toast.success('Message sent successfully');
+      setMessage('');
     } catch (error: any) {
+      console.error('Failed to send message:', error);
       toast.error(error.message || 'Failed to send message');
     }
   };
 
   const handleSendCoupon = async () => {
-    if (!couponCode.trim()) {
-      toast.error('Please enter a coupon code');
+    if (!request || !couponId.trim()) {
+      toast.error('Please enter a coupon ID');
       return;
     }
-
     try {
       await sendCoupon.mutateAsync({
         customerId: request.submittedBy,
-        couponCode: couponCode.trim(),
+        couponId: BigInt(couponId),
       });
-      toast.success('Coupon sent to customer');
-      setCouponCode('');
+      toast.success('Coupon sent successfully');
+      setCouponId('');
     } catch (error: any) {
+      console.error('Failed to send coupon:', error);
       toast.error(error.message || 'Failed to send coupon');
     }
   };
 
   const handleConvertToOrder = async () => {
-    if (!orderPrice.trim()) {
-      toast.error('Please enter an order price');
+    if (!request || !orderAmount.trim()) {
+      toast.error('Please enter an order amount');
       return;
     }
-
-    const price = parseFloat(orderPrice);
-    if (isNaN(price) || price <= 0) {
-      toast.error('Please enter a valid price');
-      return;
-    }
-
     try {
-      const orderId = await convertToOrder.mutateAsync({
+      await convertToOrder.mutateAsync({
         requestId: request.id,
-        price: BigInt(Math.floor(price * 100)), // Convert to cents
+        totalAmount: BigInt(orderAmount),
       });
-      toast.success(`Request converted to Order #${orderId.toString()}`);
-      setOrderPrice('');
+      toast.success('Request converted to order successfully');
+      setOrderAmount('');
+      onOpenChange(false);
     } catch (error: any) {
+      console.error('Failed to convert to order:', error);
       toast.error(error.message || 'Failed to convert to order');
     }
   };
 
-  const pricingText = request.pricingPreference.__kind__ === 'flexible' 
-    ? 'Flexible' 
-    : request.pricingPreference.value;
+  const getStatusLabel = (status: any): string => {
+    if (typeof status === 'object' && status.__kind__) {
+      return status.__kind__;
+    }
+    return String(status);
+  };
+
+  const isPending = (status: any): boolean => {
+    if (typeof status === 'object' && status.__kind__) {
+      return status.__kind__ === 'pending';
+    }
+    return status === 'pending';
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Request #{request.id.toString()}</DialogTitle>
+          <DialogTitle>Request Details</DialogTitle>
           <DialogDescription>
-            Review and manage custom request details
+            Review and manage custom request submission
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-8rem)] pr-4">
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        ) : !request ? (
+          <p className="text-muted-foreground">No request data available</p>
+        ) : (
           <div className="space-y-6">
-            {/* Status and Actions */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Status & Actions</CardTitle>
-                  <Badge variant={isApproved ? 'default' : isDeclined ? 'destructive' : 'outline'}>
-                    {request.status.__kind__}
-                  </Badge>
+            {/* Request Info */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Request #{request.id.toString()}</h3>
+                <Badge variant={getStatusLabel(request.status) === 'approved' ? 'default' : getStatusLabel(request.status) === 'declined' ? 'destructive' : 'secondary'}>
+                  {getStatusLabel(request.status)}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Name:</span>
+                  <p className="font-medium">{request.name}</p>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {isPending && (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleApprove}
-                      disabled={approveRequest.isPending}
-                      className="flex-1"
-                    >
-                      {approveRequest.isPending ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                      )}
-                      Approve
-                    </Button>
-                    <Button
-                      onClick={handleDecline}
-                      disabled={declineRequest.isPending}
-                      variant="destructive"
-                      className="flex-1"
-                    >
-                      {declineRequest.isPending ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <XCircle className="h-4 w-4 mr-2" />
-                      )}
-                      Decline
-                    </Button>
-                  </div>
-                )}
+                <div>
+                  <span className="text-muted-foreground">Email:</span>
+                  <p className="font-medium break-all">{request.email}</p>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Submitted by:</span>
+                  <p className="font-mono text-xs break-all">{request.submittedBy.toString()}</p>
+                </div>
+              </div>
+            </div>
 
-                {isApproved && !request.convertedOrderId && (
-                  <div className="space-y-3">
-                    <div>
-                      <Label htmlFor="order-price">Order Price (in ICP)</Label>
-                      <Input
-                        id="order-price"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="e.g., 10.50"
-                        value={orderPrice}
-                        onChange={(e) => setOrderPrice(e.target.value)}
-                      />
+            {/* Description */}
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <p className="text-sm p-3 bg-accent/10 rounded-lg">{request.description}</p>
+            </div>
+
+            {/* Pricing Preference */}
+            <div className="space-y-2">
+              <Label>Pricing Preference</Label>
+              <p className="text-sm p-3 bg-accent/10 rounded-lg">
+                {typeof request.pricingPreference === 'object' && request.pricingPreference.__kind__ === 'flexible' 
+                  ? 'Flexible' 
+                  : typeof request.pricingPreference === 'object' && request.pricingPreference.__kind__ === 'range'
+                    ? `Range: ${request.pricingPreference.value}`
+                    : String(request.pricingPreference)}
+              </p>
+            </div>
+
+            {/* Media Attachments */}
+            {request.attachments && request.attachments.length > 0 && (
+              <div className="space-y-2">
+                <Label>Attachments ({request.attachments.length})</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {request.attachments.map((item, index) => (
+                    <div key={index} className="relative">
+                      {item.filename.match(/\.(mp4|mov|avi|webm)$/i) ? (
+                        <video
+                          src={item.blob.getDirectURL()}
+                          className="w-full h-24 object-cover rounded"
+                        />
+                      ) : (
+                        <img
+                          src={item.blob.getDirectURL()}
+                          alt={`Attachment ${index + 1}`}
+                          className="w-full h-24 object-cover rounded"
+                        />
+                      )}
                     </div>
-                    <Button
-                      onClick={handleConvertToOrder}
-                      disabled={convertToOrder.isPending || !orderPrice.trim()}
-                      className="w-full"
-                    >
-                      {convertToOrder.isPending ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                      )}
-                      Convert to Order
-                    </Button>
-                  </div>
-                )}
-
-                {request.convertedOrderId && (
-                  <div className="p-3 bg-muted rounded-md">
-                    <p className="text-sm">
-                      <span className="font-medium">Converted to Order:</span>{' '}
-                      #{request.convertedOrderId.toString()}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Request Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Request Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Name</p>
-                    <p className="font-medium">{request.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{request.email}</p>
-                  </div>
+                  ))}
                 </div>
+              </div>
+            )}
 
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Pricing Preference</p>
-                  <Badge variant="outline">{pricingText}</Badge>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Description</p>
-                  <p className="text-sm whitespace-pre-wrap">{request.description}</p>
-                </div>
-
-                {request.attachments.length > 0 && (
-                  <>
-                    <Separator />
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Attachments ({request.attachments.length})
-                      </p>
-                      <div className="space-y-2">
-                        {request.attachments.map((item, idx) => {
-                          const url = item.blob.getDirectURL();
-                          return (
-                            <div key={idx} className="flex items-center justify-between p-2 border rounded-md">
-                              <span className="text-sm truncate flex-1">{item.filename}</span>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => window.open(url, '_blank')}
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = item.filename;
-                                    a.click();
-                                  }}
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                <Separator />
-
-                <div>
-                  <p className="text-sm text-muted-foreground">Submitted By</p>
-                  <p className="text-xs font-mono break-all">{request.submittedBy.toString()}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Action History */}
-            {request.actionHistory.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Action History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {request.actionHistory.map((action, idx) => (
-                      <div key={idx} className="text-sm p-2 rounded bg-muted/30 border border-border/20">
-                        <p>{action.actionType}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {action.timestamp > 0n ? new Date(Number(action.timestamp)).toLocaleString() : 'N/A'}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Actions */}
+            {isPending(request.status) && (
+              <div className="flex gap-3 pt-4 border-t">
+                <Button
+                  onClick={handleApprove}
+                  disabled={approveRequest.isPending}
+                  className="flex-1"
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  {approveRequest.isPending ? 'Approving...' : 'Approve'}
+                </Button>
+                <Button
+                  onClick={handleDecline}
+                  disabled={declineRequest.isPending}
+                  variant="destructive"
+                  className="flex-1"
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  {declineRequest.isPending ? 'Declining...' : 'Decline'}
+                </Button>
+              </div>
             )}
 
             {/* Send Message */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Send className="h-4 w-4" />
-                  Send Message to Customer
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <Label htmlFor="message-body">Message</Label>
-                  <Textarea
-                    id="message-body"
-                    placeholder="Type your message here..."
-                    value={messageBody}
-                    onChange={(e) => setMessageBody(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <Label>Attachments (Optional)</Label>
-                  <MessageAttachmentPicker
-                    attachments={messageAttachments}
-                    onChange={setMessageAttachments}
-                  />
-                </div>
-
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!messageBody.trim() || sendMessage.isPending}
-                  className="w-full"
-                >
-                  {sendMessage.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
-                  )}
-                  Send Message
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="space-y-2 pt-4 border-t">
+              <Label>Send Message to Customer</Label>
+              <div className="flex gap-2">
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  rows={3}
+                  className="flex-1"
+                />
+              </div>
+              <Button
+                onClick={handleSendMessage}
+                disabled={sendMessage.isPending || !message.trim()}
+                size="sm"
+              >
+                <Send className="mr-2 h-4 w-4" />
+                {sendMessage.isPending ? 'Sending...' : 'Send Message'}
+              </Button>
+            </div>
 
             {/* Send Coupon */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Gift className="h-4 w-4" />
-                  Send Coupon to Customer
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <Label htmlFor="coupon-code">Coupon Code</Label>
-                  <Input
-                    id="coupon-code"
-                    placeholder="e.g., SAVE20"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                  />
-                </div>
-
+            <div className="space-y-2 pt-4 border-t">
+              <Label>Send Coupon to Customer</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  value={couponId}
+                  onChange={(e) => setCouponId(e.target.value)}
+                  placeholder="Coupon ID"
+                  className="flex-1"
+                />
                 <Button
                   onClick={handleSendCoupon}
-                  disabled={!couponCode.trim() || sendCoupon.isPending}
-                  className="w-full"
-                  variant="outline"
+                  disabled={sendCoupon.isPending || !couponId.trim()}
+                  size="sm"
                 >
-                  {sendCoupon.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Gift className="h-4 w-4 mr-2" />
-                  )}
-                  Send Coupon
+                  <Gift className="mr-2 h-4 w-4" />
+                  {sendCoupon.isPending ? 'Sending...' : 'Send Coupon'}
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+
+            {/* Convert to Order */}
+            <div className="space-y-2 pt-4 border-t">
+              <Label>Convert to Order</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  value={orderAmount}
+                  onChange={(e) => setOrderAmount(e.target.value)}
+                  placeholder="Total amount"
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleConvertToOrder}
+                  disabled={convertToOrder.isPending || !orderAmount.trim()}
+                  size="sm"
+                >
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  {convertToOrder.isPending ? 'Converting...' : 'Convert to Order'}
+                </Button>
+              </div>
+            </div>
           </div>
-        </ScrollArea>
+        )}
       </DialogContent>
     </Dialog>
   );

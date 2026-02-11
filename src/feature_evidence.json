@@ -2,14 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-expand-the-existing-admin-dashboard-so-that-after-internet-identity-login-successful-admin-access-unlock-admins-can-access-a-single-control-center-ui-that-includes-sections-for-requests-orders-testimonies-messaging-coupons-analytics-and-system-settings",
-      "featureTitle": "Expand the existing /admin dashboard so that after Internet Identity login + successful Admin Access unlock, admins can access a single control-center UI that includes sections for: Requests, Orders, Testimonies, Messaging, Coupons, Analytics, and System Settings.",
+      "featureId": "feature-implement-a-testimony-verification-workflow-where-testimonies-are-publicly-visible-on-the-testimonies-page-immediately-after-submission-but-are-clearly-labeled-as-awaiting-admin-verification-until-an-admin-approves-them-once-approved-in-the-admin-dashboard-the-testimony-becomes-verified-status-changes-and-is-treated-as-approved-verified-in-the-ui",
+      "featureTitle": "Implement a testimony verification workflow where testimonies are publicly visible on the Testimonies page immediately after submission but are clearly labeled as \"Awaiting Admin Verification\" until an admin approves them; once approved in the admin dashboard, the testimony becomes verified (status changes) and is treated as approved/verified in the UI.",
       "files": [
-        "frontend/src/components/admin/AdminAnalyticsTab.tsx",
-        "frontend/src/components/admin/AdminCouponsTab.tsx",
-        "frontend/src/components/admin/AdminMessagingTab.tsx",
-        "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
-        "frontend/src/pages/Admin.tsx"
+        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+        "frontend/src/pages/Testimonies.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -26,33 +23,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-an-admin-messaging-section-in-the-admin-dashboard-that-lets-admins-review-customer-inbox-items-and-send-new-admin-to-customer-messages-including-attachments-if-supported-by-existing-attachment-components",
-      "featureTitle": "Implement an Admin Messaging section in the admin dashboard that lets admins review customer inbox items and send new admin-to-customer messages (including attachments if supported by existing attachment components).",
+      "featureId": "feature-update-the-admin-testimonies-ui-to-support-reviewing-and-approving-verifying-testimonies-show-clear-status-pending-vs-verified-approved-and-provide-an-action-to-approve-pending-testimonies-with-react-query-invalidation-so-both-admin-and-public-views-refresh",
+      "featureTitle": "Update the Admin Testimonies UI to support reviewing and approving/verifying testimonies: show clear status (Pending vs Verified/Approved) and provide an action to approve pending testimonies, with React Query invalidation so both admin and public views refresh.",
       "files": [
-        "frontend/src/components/admin/AdminMessagingTab.tsx",
-        "frontend/src/hooks/useAdminMessaging.ts",
-        "frontend/src/types/adminMessaging.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-an-admin-coupons-section-in-the-admin-dashboard-that-allows-admins-to-view-coupons-and-perform-coupon-management-actions-already-supported-by-the-backend-e-g-create-coupon-toggle-validity-and-to-send-coupons-to-customers-when-supported-by-existing-workflows",
-      "featureTitle": "Implement an Admin Coupons section in the admin dashboard that allows admins to view coupons and perform coupon management actions already supported by the backend (e.g., create coupon, toggle validity) and to send coupons to customers when supported by existing workflows.",
-      "files": [
-        "frontend/src/components/admin/AdminCouponsTab.tsx",
-        "frontend/src/hooks/useAdminCoupons.ts"
+        "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -69,10 +44,14 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-an-admin-analytics-section-in-the-admin-dashboard-that-displays-an-analytics-snapshot-using-existing-analytics-query-mutation-patterns-with-clear-loading-error-states",
-      "featureTitle": "Implement an Admin Analytics section in the admin dashboard that displays an analytics snapshot using existing analytics query/mutation patterns, with clear loading/error states.",
+      "featureId": "feature-create-a-search-artifacts-system-from-scratch-that-supports-keyword-search-and-filtered-categorized-results-including-a-testimonies-category-and-automatically-indexes-each-testimony-s-title-description-and-media-descriptions-so-testimonies-can-be-discovered-via-search-artifacts-search",
+      "featureTitle": "Create a Search Artifacts system from scratch that supports keyword search and filtered/categorized results (including a \"Testimonies\" category), and automatically indexes each testimony’s title/description and media descriptions so testimonies can be discovered via Search Artifacts search.",
       "files": [
-        "frontend/src/components/admin/AdminAnalyticsTab.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/layout/HeaderNav.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/hooks/useSearchArtifacts.ts",
+        "frontend/src/pages/SearchArtifacts.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -89,11 +68,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-a-system-settings-section-in-the-admin-dashboard-that-centralizes-system-level-tools-e-g-store-configuration-health-status-audit-logs-and-enforces-appropriate-permissions-for-sensitive-actions",
-      "featureTitle": "Implement a System Settings section in the admin dashboard that centralizes system-level tools (e.g., store configuration, health/status, audit logs) and enforces appropriate permissions for sensitive actions.",
+      "featureId": "feature-enforce-controlled-discoverability-for-testimonies-testimonies-must-not-appear-on-any-other-pages-or-global-listings-besides-1-the-public-testimonies-page-and-2-search-artifacts-search-results",
+      "featureTitle": "Enforce controlled discoverability for testimonies: testimonies must not appear on any other pages or global listings besides (1) the public Testimonies page and (2) Search Artifacts search results.",
       "files": [
-        "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
-        "frontend/src/hooks/useSystemSettings.ts"
+        "frontend/src/App.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -106,6 +84,30 @@
       ],
       "testIds": [
         "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-responsive-layout-support-across-the-entire-website-so-all-pages-forms-dashboards-navigation-testimonies-media-upload-components-scale-correctly-on-mobile-tablet-desktop-and-large-screens-with-readable-spacing-properly-scaled-images-videos-and-touch-friendly-menus-buttons",
+      "featureTitle": "Implement responsive layout support across the entire website so all pages/forms/dashboards/navigation/testimonies/media upload components scale correctly on mobile, tablet, desktop, and large screens, with readable spacing, properly scaled images/videos, and touch-friendly menus/buttons.",
+      "files": [
+        "frontend/src/components/layout/HeaderNav.tsx",
+        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+        "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
+        "frontend/src/index.css",
+        "frontend/src/pages/Testimonies.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
       ],
       "confidence": "high"
     }

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import type { AuditLogEntry } from '../backend';
 
 export function useGetHealthCheck() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -48,6 +49,19 @@ export function useGetEvents() {
     queryFn: async () => {
       if (!actor) return [];
       return actor.getEvents();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useGetAdminActivityLog() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<AuditLogEntry[]>({
+    queryKey: ['adminActivityLog'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllAuditLogEntries();
     },
     enabled: !!actor && !actorFetching,
   });

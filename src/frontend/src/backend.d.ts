@@ -7,11 +7,27 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface AdminLoginAttempt {
+export class ExternalBlob {
+    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
+    getDirectURL(): string;
+    static fromURL(url: string): ExternalBlob;
+    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
+    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
+}
+export interface UserProfile {
+    name: string;
+    email: string;
+}
+export interface Testimony {
     id: bigint;
-    principal: Principal;
-    timestamp: bigint;
-    successful: boolean;
+    shortReview?: string;
+    starRating?: number;
+    content: string;
+    video?: ExternalBlob;
+    author: string;
+    approved: boolean;
+    rating?: bigint;
+    photo?: ExternalBlob;
 }
 export interface Event {
     id: bigint;
@@ -20,14 +36,17 @@ export interface Event {
     message: string;
     timestamp: bigint;
 }
+export interface AuditLogEntry {
+    id: bigint;
+    actionType: AuditActionType;
+    target?: Principal;
+    timestamp: bigint;
+    details: string;
+    actorPrincipal: Principal;
+}
 export interface PageFeatures {
     features: Array<Feature>;
     page: string;
-}
-export interface AdminAccessLogEntry {
-    id: bigint;
-    principal: Principal;
-    timestamp: bigint;
 }
 export interface HealthStatus {
     status: string;
@@ -39,9 +58,50 @@ export interface Feature {
     description: string;
     phase: Variant_later_phase1;
 }
-export interface UserProfile {
-    name: string;
-    email: string;
+export interface AdminLoginAttempt {
+    id: bigint;
+    principal: Principal;
+    timestamp: bigint;
+    successful: boolean;
+}
+export interface AdminAccessLogEntry {
+    id: bigint;
+    principal: Principal;
+    timestamp: bigint;
+    deviceType?: string;
+    browserInfo?: string;
+}
+export interface NotificationCounts {
+    newOrders: bigint;
+    newMessagesCount: bigint;
+    newTestimonies: bigint;
+    newQuotes: bigint;
+}
+export interface AdminPermissions {
+    canDeactivateStore: boolean;
+    canApplyDiscounts: boolean;
+    principal: Principal;
+    canCreateOrder: boolean;
+    canManageUsers: boolean;
+    canCreateProduct: boolean;
+    canManageInventory: boolean;
+    canProcessRefunds: boolean;
+    fullPermissions: boolean;
+    canRemoveUsers: boolean;
+    canDeleteProduct: boolean;
+    isOwner: boolean;
+    canViewMetrics: boolean;
+    canEditProduct: boolean;
+}
+export enum AuditActionType {
+    adminEdit = "adminEdit",
+    adminMessage = "adminMessage",
+    adminLogin = "adminLogin",
+    orderUpdate = "orderUpdate",
+    couponCreate = "couponCreate",
+    couponToggle = "couponToggle",
+    adminApproval = "adminApproval",
+    adminDecline = "adminDecline"
 }
 export enum UserRole {
     admin = "admin",
@@ -53,19 +113,44 @@ export enum Variant_later_phase1 {
     phase1 = "phase1"
 }
 export interface backendInterface {
-    assignAdminRole(user: Principal): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     getAdminAccessLog(): Promise<Array<AdminAccessLogEntry>>;
+    getAdminAttempts(principal: Principal): Promise<bigint>;
+    getAdminNotifications(): Promise<NotificationCounts>;
+    getAllAdmins(): Promise<Array<AdminPermissions>>;
+    getAllAuditLogEntries(): Promise<Array<AuditLogEntry>>;
+    getAllTestimonies(): Promise<Array<Testimony>>;
+    getAttemptCount(principal: Principal): Promise<bigint>;
+    getAuditLogEntriesByType(actionType: AuditActionType): Promise<Array<AuditLogEntry>>;
+    getAuditLogEntriesForActor(actorPrincipal: Principal): Promise<Array<AuditLogEntry>>;
+    getAuditLogEntry(id: bigint): Promise<AuditLogEntry | null>;
+    getAuditLogStats(): Promise<{
+        total: bigint;
+        orderUpdateCounts: bigint;
+        couponCreateCounts: bigint;
+        approvalCounts: bigint;
+        messageCounts: bigint;
+        editCounts: bigint;
+        declineCounts: bigint;
+        couponToggleCounts: bigint;
+        loginCounts: bigint;
+    }>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getEvents(): Promise<Array<Event>>;
     getFeatureSpecification(): Promise<Array<PageFeatures>>;
     getLoginAttempts(): Promise<Array<AdminLoginAttempt>>;
+    getOnlyVerifiedTestimonies(): Promise<Array<Testimony>>;
+    getPermissions(principal: Principal): Promise<AdminPermissions | null>;
+    getRecentAuditLogEntries(count: bigint): Promise<Array<AuditLogEntry>>;
+    getTestimony(id: bigint): Promise<Testimony | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     healthCheck(): Promise<HealthStatus>;
     isCallerAdmin(): Promise<boolean>;
+    listAdmins(): Promise<Array<AdminPermissions>>;
     logEvent(message: string, level: string): Promise<void>;
-    removeAdminRole(user: Principal): Promise<void>;
+    resetAdminAttempts(principal: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    verifyAdminAccess(inputCode: string): Promise<boolean>;
+    setOwner(owner: Principal): Promise<void>;
+    verifyAdminAccess(inputCode: string, browserInfo: string | null, deviceType: string | null): Promise<boolean>;
 }

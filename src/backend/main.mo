@@ -1,25 +1,41 @@
 import Runtime "mo:core/Runtime";
-import Map "mo:core/Map";
-import Nat "mo:core/Nat";
-import Text "mo:core/Text";
-import Iter "mo:core/Iter";
-import Principal "mo:core/Principal";
-import Array "mo:core/Array";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
-
+import Array "mo:core/Array";
+import Nat "mo:core/Nat";
+import Text "mo:core/Text";
+import Principal "mo:core/Principal";
+import Iter "mo:core/Iter";
+import Map "mo:core/Map";
+import List "mo:core/List";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
-// Auto-migrate on upgrade!
 actor {
+  type AdminAccessLogEntry = {
+    id : Nat;
+    principal : Principal;
+    timestamp : Nat;
+    browserInfo : ?Text;
+    deviceType : ?Text;
+  };
+
+  // Integrate prefabricated components.
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
   include MixinStorage();
 
-  // Persistent stores using var Maps for dynamic allocation
+  // Track failed attempts per session (non-persistent)
+  var adminAttempts = Map.empty<Principal, Nat>();
+  let ADMIN_LOCKOUT_THRESHOLD = 3;
+
+  var adminAccessLog = Map.empty<Nat, AdminAccessLogEntry>();
+  var nextAdminAccessLogId = 1;
+  var nextEventId = 1;
+  var nextAuditLogId = 1;
+
   var users = Map.empty<Nat, User>();
   var products = Map.empty<Nat, Product>();
   var orders = Map.empty<Nat, Order>();
@@ -33,12 +49,14 @@ actor {
   var coupons = Map.empty<Nat, Coupon>();
   var quoteRequests = Map.empty<Nat, QuoteRequest>();
   var expandedProducts = Map.empty<Nat, ExpandedProduct>();
-  var adminRegistry = Map.empty<Principal, AdminRole>();
+  var adminRegistry = Map.empty<Principal, AdminPermissions>();
   var adminCredentials = Map.empty<Principal, AdminCredentials>();
   var inbox = Map.empty<Principal, [InboxItem]>();
   var adminLogins = Map.empty<Nat, AdminLoginAttempt>();
+  var auditLog = Map.empty<Nat, AuditLogEntry>();
+  var events = Map.empty<Nat, Event>();
+  var artifacts = Map.empty<Nat, Artifact>();
 
-  // Persistent ID counters
   var nextUserId = 1;
   var nextProductId = 1;
   var nextOrderId = 1;
@@ -50,7 +68,10 @@ actor {
   var nextQuoteRequestId = 1;
   var nextExpandedProductId = 1;
   var nextInboxItemId = 1;
-  var nextLoginId = 1; // Counter for login attempts
+  var nextLoginId = 1;
+  var nextLoginAttemptId = 1;
+  var globalInboxId = 1;
+  var nextArtifactId = 1;
 
   var ownerPrincipal : ?Principal = null;
   var storeConfig : StoreConfig = {
@@ -58,7 +79,82 @@ actor {
     enableCoupons = true;
   };
 
-  // Health Checks
+  var searchQueryStats : Map.Map<Text, Nat> = Map.empty<Text, Nat>();
+
+  public type ArtifactCategory = {
+    #product;
+    #testimony;
+    #portfolio;
+    #design;
+    #service;
+    #certificate;
+    #caseStudy;
+    #tutorial;
+  };
+
+  public type Artifact = {
+    id : Nat;
+    title : Text;
+    description : Text;
+    searchableText : Text;
+    category : ArtifactCategory;
+    isVisible : Bool;
+    createdBy : Principal;
+    media : ?Storage.ExternalBlob;
+    externalLink : ?Text;
+    publicationDate : Nat;
+    createdAt : Nat;
+    lastUpdated : Nat;
+    location : ?Text;
+    platform : ?Text;
+    tags : [Text];
+    rating : ?Float;
+  };
+
+  public type ArtifactSortOption = {
+    #relevance;
+    #rating;
+    #preferenceMatch;
+    #recency;
+    #hybrid;
+    #priority;
+    #random;
+  };
+
+  public type ArtifactSearchResult = {
+    artifact : Artifact;
+    matchCount : Nat;
+    relevanceScore : Float;
+    userPreferenceScore : ?Float;
+    overallScore : ?Float;
+    searchScore : Float;
+    highlightedTitle : Text;
+    highlightedDescription : Text;
+    source : ArtifactCategory;
+    visibility : Nat;
+    timestamp : Nat;
+    assetStatus : {
+      #visibilityPublic;
+      #inReview;
+      #restricted;
+      #pending;
+    };
+  };
+
+  private func isOwner(caller : Principal) : Bool {
+    switch (ownerPrincipal) {
+      case (?owner) { caller == owner };
+      case (null) { false };
+    };
+  };
+
+  private func hasAdminPermission(admin : Principal, checkPermission : (AdminPermissions) -> Bool) : Bool {
+    switch (adminRegistry.get(admin)) {
+      case (?permissions) { permissions.isOwner or permissions.fullPermissions or checkPermission(permissions) };
+      case (null) { false };
+    };
+  };
+
   public type HealthStatus = {
     status : Text;
     deployedVersion : Text;
@@ -77,7 +173,48 @@ actor {
     deploymentInfo;
   };
 
-  // Secure Admin Login Tracking
+  private func recordAdminAttemptInternal(principal : Principal) {
+    let newAttempts = switch (adminAttempts.get(principal)) {
+      case (null) { 1 };
+      case (?prev) { prev + 1 };
+    };
+
+    if (newAttempts >= ADMIN_LOCKOUT_THRESHOLD) {
+      adminAttempts.add(principal, 0);
+    } else {
+      adminAttempts.add(principal, newAttempts);
+    };
+  };
+
+  public shared ({ caller }) func resetAdminAttempts(principal : Principal) : async () {
+    if (caller != principal and not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only the admin or another admin can reset attempts");
+    };
+    adminAttempts.add(principal, 0);
+  };
+
+  public query ({ caller }) func getAttemptCount(principal : Principal) : async Nat {
+    if (caller != principal and not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Can only view your own attempt count");
+    };
+    let attempts = switch (adminAttempts.get(principal)) {
+      case (null) { 0 };
+      case (?count) { count };
+    };
+    attempts;
+  };
+
+  public query ({ caller }) func getAdminAttempts(principal : Principal) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view admin attempts");
+    };
+    let attempts = switch (adminAttempts.get(principal)) {
+      case (null) { 0 };
+      case (?count) { count };
+    };
+    attempts;
+  };
+
   public type AdminLoginAttempt = {
     id : Nat;
     principal : Principal;
@@ -85,25 +222,24 @@ actor {
     successful : Bool;
   };
 
-  var nextLoginAttemptId = 1;
+  public shared ({ caller }) func verifyAdminAccess(inputCode : Text, browserInfo : ?Text, deviceType : ?Text) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can attempt admin access");
+    };
 
-  // --- Admin Access Log Entry ---
-  public type AdminAccessLogEntry = {
-    id : Nat;
-    principal : Principal;
-    timestamp : Nat;
-  };
+    let currentAttempts = switch (adminAttempts.get(caller)) {
+      case (null) { 0 };
+      case (?count) { count };
+    };
 
-  var nextAdminAccessLogId = 1;
-  var adminAccessLog = Map.empty<Nat, AdminAccessLogEntry>();
+    if (currentAttempts >= ADMIN_LOCKOUT_THRESHOLD) {
+      Runtime.trap("Account locked due to too many failed attempts. Contact administrator.");
+    };
 
-  // PIN Verification and Audit Logging
-  public shared ({ caller }) func verifyAdminAccess(inputCode : Text) : async Bool {
     let masterCode = "7583A";
     let isValid = inputCode == masterCode;
     let currentTimestamp = Int.abs(Time.now());
 
-    // Log the attempt regardless of outcome
     let attempt : AdminLoginAttempt = {
       id = nextLoginAttemptId;
       principal = caller;
@@ -115,38 +251,47 @@ actor {
     nextLoginAttemptId += 1;
 
     if (isValid) {
-      // Log successful access attempt
+      adminAttempts.add(caller, 0);
+
       let accessLogEntry : AdminAccessLogEntry = {
         id = nextAdminAccessLogId;
         principal = caller;
         timestamp = currentTimestamp;
+        browserInfo;
+        deviceType;
       };
       adminAccessLog.add(nextAdminAccessLogId, accessLogEntry);
       nextAdminAccessLogId += 1;
-
-      // Grant admin role to the caller
       AccessControl.assignRole(accessControlState, caller, caller, #admin);
+
+      recordAuditLogInternal(
+        caller,
+        #adminLogin,
+        "Admin access granted via master code",
+        null
+      );
+
       return true;
+    } else {
+      recordAdminAttemptInternal(caller);
+      return false;
     };
-    return false;
   };
 
   public query ({ caller }) func getLoginAttempts() : async [AdminLoginAttempt] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view login attempts");
     };
     adminLogins.values().toArray();
   };
 
-  // Admin-only endpoint to query successful admin access attempts
   public query ({ caller }) func getAdminAccessLog() : async [AdminAccessLogEntry] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view admin access log");
     };
     adminAccessLog.values().toArray();
   };
 
-  // Event Logging
   public type Event = {
     id : Nat;
     message : Text;
@@ -155,11 +300,7 @@ actor {
     principal : Principal;
   };
 
-  var nextEventId = 1;
-  var events = Map.empty<Nat, Event>();
-
   public shared ({ caller }) func logEvent(message : Text, level : Text) : async () {
-    // Validate level
     let validLevels = ["info", "warning", "error", "admin"];
     var isValidLevel = false;
     for (lvl in validLevels.vals()) {
@@ -171,8 +312,7 @@ actor {
       Runtime.trap("Invalid event level: " # level);
     };
 
-    // Admin-level events require admin permission
-    if (level == "admin" and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (level == "admin" and not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can log admin-level events");
     };
 
@@ -189,41 +329,150 @@ actor {
   };
 
   public query ({ caller }) func getEvents() : async [Event] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view events");
     };
     events.values().toArray();
   };
 
-  ////////////////////////////////////////////////////
-  // User Profile Management (Required by Frontend)
-  ////////////////////////////////////////////////////
+  public type AuditActionType = {
+    #adminLogin;
+    #adminEdit;
+    #adminApproval;
+    #adminDecline;
+    #adminMessage;
+    #couponCreate;
+    #couponToggle;
+    #orderUpdate;
+  };
+
+  public type AuditLogEntry = {
+    id : Nat;
+    actorPrincipal : Principal;
+    actionType : AuditActionType;
+    timestamp : Nat;
+    details : Text;
+    target : ?Principal;
+  };
+
+  private func recordAuditLogInternal(actorPrincipal : Principal, actionType : AuditActionType, details : Text, target : ?Principal) {
+    let timestamp = Int.abs(Time.now());
+    let entry : AuditLogEntry = {
+      id = nextAuditLogId;
+      actorPrincipal;
+      actionType;
+      timestamp;
+      details;
+      target;
+    };
+
+    auditLog.add(nextAuditLogId, entry);
+    nextAuditLogId += 1;
+  };
+
+  public query ({ caller }) func getAuditLogEntry(id : Nat) : async ?AuditLogEntry {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view audit logs");
+    };
+    auditLog.get(id);
+  };
+
+  public query ({ caller }) func getAuditLogEntriesForActor(actorPrincipal : Principal) : async [AuditLogEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view audit logs");
+    };
+
+    auditLog.values().toArray().filter(func(entry) { entry.actorPrincipal == actorPrincipal });
+  };
+
+  public query ({ caller }) func getAuditLogEntriesByType(actionType : AuditActionType) : async [AuditLogEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view audit logs");
+    };
+
+    auditLog.values().toArray().filter(func(entry) { entry.actionType == actionType });
+  };
+
+  public query ({ caller }) func getAllAuditLogEntries() : async [AuditLogEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view audit logs");
+    };
+    auditLog.values().toArray();
+  };
+
+  public query ({ caller }) func getRecentAuditLogEntries(count : Nat) : async [AuditLogEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view audit logs");
+    };
+
+    let allEntries = auditLog.values().toArray();
+    if (allEntries.size() <= count) {
+      return allEntries;
+    };
+
+    let startIndex = if (allEntries.size() > count) { allEntries.size() - count } else { 0 };
+    allEntries.sliceToArray(startIndex, allEntries.size());
+  };
+
+  public query ({ caller }) func getAuditLogStats() : async {
+    total : Nat;
+    loginCounts : Nat;
+    editCounts : Nat;
+    approvalCounts : Nat;
+    declineCounts : Nat;
+    messageCounts : Nat;
+    couponCreateCounts : Nat;
+    couponToggleCounts : Nat;
+    orderUpdateCounts : Nat;
+  } {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view audit log stats");
+    };
+
+    let values = auditLog.values().toArray();
+
+    let loginCounts = values.filter(func(entry) { entry.actionType == #adminLogin }).size();
+    let editCounts = values.filter(func(entry) { entry.actionType == #adminEdit }).size();
+    let approvalCounts = values.filter(func(entry) { entry.actionType == #adminApproval }).size();
+    let declineCounts = values.filter(func(entry) { entry.actionType == #adminDecline }).size();
+    let messageCounts = values.filter(func(entry) { entry.actionType == #adminMessage }).size();
+    let couponCreateCounts = values.filter(func(entry) { entry.actionType == #couponCreate }).size();
+    let couponToggleCounts = values.filter(func(entry) { entry.actionType == #couponToggle }).size();
+    let orderUpdateCounts = values.filter(func(entry) { entry.actionType == #orderUpdate }).size();
+
+    {
+      total = values.size();
+      loginCounts;
+      editCounts;
+      approvalCounts;
+      declineCounts;
+      messageCounts;
+      couponCreateCounts;
+      couponToggleCounts;
+      orderUpdateCounts;
+    };
+  };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
     };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    // Users can only view their own profile, admins can view any profile
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (caller != user and not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
-
-  ////////////////////////////////////////////////////
-  // PHASE 1: Feature Specification
-  ////////////////////////////////////////////////////
 
   public type Feature = {
     description : Text;
@@ -274,10 +523,6 @@ actor {
       },
     ];
   };
-
-  ////////////////////////////////////////////////////
-  // PHASE 1: Data Architecture (Core Entities)
-  ////////////////////////////////////////////////////
 
   public type User = {
     id : Nat;
@@ -419,6 +664,23 @@ actor {
     isOwner : Bool;
   };
 
+  public type AdminPermissions = {
+    principal : Principal;
+    canCreateProduct : Bool;
+    canEditProduct : Bool;
+    canDeleteProduct : Bool;
+    canCreateOrder : Bool;
+    canManageUsers : Bool;
+    canApplyDiscounts : Bool;
+    canProcessRefunds : Bool;
+    canViewMetrics : Bool;
+    canManageInventory : Bool;
+    canRemoveUsers : Bool;
+    canDeactivateStore : Bool;
+    fullPermissions : Bool;
+    isOwner : Bool;
+  };
+
   public type StoreConfig = {
     isActive : Bool;
     enableCoupons : Bool;
@@ -434,22 +696,119 @@ actor {
     customerId : Principal;
     messageType : Text;
     content : Text;
+    isRead : Bool;
   };
 
-  ////////////////////////////////////////////////////
-  // Role Management (Admin-only)
-  ////////////////////////////////////////////////////
-  public shared ({ caller }) func assignAdminRole(user : Principal) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can assign admin role");
-    };
-    AccessControl.assignRole(accessControlState, caller, user, #admin);
+  public type NotificationCounts = {
+    newQuotes : Nat;
+    newOrders : Nat;
+    newTestimonies : Nat;
+    newMessagesCount : Nat;
   };
 
-  public shared ({ caller }) func removeAdminRole(user : Principal) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can remove admin role");
+  public query ({ caller }) func getAdminNotifications() : async NotificationCounts {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can fetch notifications");
     };
-    AccessControl.assignRole(accessControlState, caller, user, #user);
+
+    countUnreadNotifications();
+  };
+
+  private func countUnreadNotifications() : NotificationCounts {
+    let numNewQuotes = quoteRequests.values().toArray().filter(
+      func(_quote) {
+        true;
+      }
+    );
+
+    let newOrders = orders.values().toArray().filter(
+      func(_order) {
+        true;
+      }
+    );
+
+    let unpublishedTestimonies = testimonies.values().toArray().filter(
+      func(testimony) {
+        not testimony.approved;
+      }
+    );
+
+    let unreadMessages = List.fromArray<InboxItem>([]);
+
+    for (inboxArray in inbox.values()) {
+      let unreadForCustomer = List.fromArray<InboxItem>(
+        inboxArray.filter(func(item) { not item.isRead })
+      );
+      unreadMessages.addAll(unreadForCustomer.values());
+    };
+
+    {
+      newQuotes = numNewQuotes.size();
+      newOrders = newOrders.size();
+      newTestimonies = unpublishedTestimonies.size();
+      newMessagesCount = unreadMessages.size();
+    };
+  };
+
+  public query ({ caller }) func getPermissions(principal : Principal) : async ?AdminPermissions {
+    if (caller != principal and not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only the admin themselves or the owner can view permissions");
+    };
+    adminRegistry.get(principal);
+  };
+
+  public query ({ caller }) func listAdmins() : async [AdminPermissions] {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only the owner can list admins");
+    };
+    adminRegistry.values().toArray();
+  };
+
+  public query ({ caller }) func getAllAdmins() : async [AdminPermissions] {
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only the owner can view all admins");
+    };
+    adminRegistry.values().toArray();
+  };
+
+  public shared ({ caller }) func setOwner(owner : Principal) : async () {
+    if (ownerPrincipal != null) {
+      Runtime.trap("Owner already set. Cannot modify owner.");
+    };
+    ownerPrincipal := ?owner;
+    AccessControl.assignRole(accessControlState, caller, owner, #admin);
+
+    let ownerPermissions : AdminPermissions = {
+      principal = owner;
+      canCreateProduct = true;
+      canEditProduct = true;
+      canDeleteProduct = true;
+      canCreateOrder = true;
+      canManageUsers = true;
+      canApplyDiscounts = true;
+      canProcessRefunds = true;
+      canViewMetrics = true;
+      canManageInventory = true;
+      canRemoveUsers = true;
+      canDeactivateStore = true;
+      fullPermissions = true;
+      isOwner = true;
+    };
+    adminRegistry.add(owner, ownerPermissions);
+  };
+
+  public query ({ caller }) func getTestimony(id : Nat) : async ?Testimony {
+    testimonies.get(id);
+  };
+
+  public query ({ caller }) func getOnlyVerifiedTestimonies() : async [Testimony] {
+    testimonies.toArray().filter(func((_, t)) { t.approved }).map(func((_, t)) { t });
+  };
+
+  public query ({ caller }) func getAllTestimonies() : async [Testimony] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view all testimonies including unverified ones");
+    };
+    testimonies.toArray().map(func((_, t)) { t });
   };
 };

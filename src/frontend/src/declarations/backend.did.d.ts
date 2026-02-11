@@ -14,12 +14,46 @@ export interface AdminAccessLogEntry {
   'id' : bigint,
   'principal' : Principal,
   'timestamp' : bigint,
+  'deviceType' : [] | [string],
+  'browserInfo' : [] | [string],
 }
 export interface AdminLoginAttempt {
   'id' : bigint,
   'principal' : Principal,
   'timestamp' : bigint,
   'successful' : boolean,
+}
+export interface AdminPermissions {
+  'canDeactivateStore' : boolean,
+  'canApplyDiscounts' : boolean,
+  'principal' : Principal,
+  'canCreateOrder' : boolean,
+  'canManageUsers' : boolean,
+  'canCreateProduct' : boolean,
+  'canManageInventory' : boolean,
+  'canProcessRefunds' : boolean,
+  'fullPermissions' : boolean,
+  'canRemoveUsers' : boolean,
+  'canDeleteProduct' : boolean,
+  'isOwner' : boolean,
+  'canViewMetrics' : boolean,
+  'canEditProduct' : boolean,
+}
+export type AuditActionType = { 'adminEdit' : null } |
+  { 'adminMessage' : null } |
+  { 'adminLogin' : null } |
+  { 'orderUpdate' : null } |
+  { 'couponCreate' : null } |
+  { 'couponToggle' : null } |
+  { 'adminApproval' : null } |
+  { 'adminDecline' : null };
+export interface AuditLogEntry {
+  'id' : bigint,
+  'actionType' : AuditActionType,
+  'target' : [] | [Principal],
+  'timestamp' : bigint,
+  'details' : string,
+  'actorPrincipal' : Principal,
 }
 export interface Event {
   'id' : bigint,
@@ -28,6 +62,7 @@ export interface Event {
   'message' : string,
   'timestamp' : bigint,
 }
+export type ExternalBlob = Uint8Array;
 export interface Feature {
   'description' : string,
   'phase' : { 'later' : null } |
@@ -39,7 +74,24 @@ export interface HealthStatus {
   'build' : string,
   'deployedVersion' : string,
 }
+export interface NotificationCounts {
+  'newOrders' : bigint,
+  'newMessagesCount' : bigint,
+  'newTestimonies' : bigint,
+  'newQuotes' : bigint,
+}
 export interface PageFeatures { 'features' : Array<Feature>, 'page' : string }
+export interface Testimony {
+  'id' : bigint,
+  'shortReview' : [] | [string],
+  'starRating' : [] | [number],
+  'content' : string,
+  'video' : [] | [ExternalBlob],
+  'author' : string,
+  'approved' : boolean,
+  'rating' : [] | [bigint],
+  'photo' : [] | [ExternalBlob],
+}
 export interface UserProfile { 'name' : string, 'email' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -72,21 +124,55 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'assignAdminRole' : ActorMethod<[Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'getAdminAccessLog' : ActorMethod<[], Array<AdminAccessLogEntry>>,
+  'getAdminAttempts' : ActorMethod<[Principal], bigint>,
+  'getAdminNotifications' : ActorMethod<[], NotificationCounts>,
+  'getAllAdmins' : ActorMethod<[], Array<AdminPermissions>>,
+  'getAllAuditLogEntries' : ActorMethod<[], Array<AuditLogEntry>>,
+  'getAllTestimonies' : ActorMethod<[], Array<Testimony>>,
+  'getAttemptCount' : ActorMethod<[Principal], bigint>,
+  'getAuditLogEntriesByType' : ActorMethod<
+    [AuditActionType],
+    Array<AuditLogEntry>
+  >,
+  'getAuditLogEntriesForActor' : ActorMethod<[Principal], Array<AuditLogEntry>>,
+  'getAuditLogEntry' : ActorMethod<[bigint], [] | [AuditLogEntry]>,
+  'getAuditLogStats' : ActorMethod<
+    [],
+    {
+      'total' : bigint,
+      'orderUpdateCounts' : bigint,
+      'couponCreateCounts' : bigint,
+      'approvalCounts' : bigint,
+      'messageCounts' : bigint,
+      'editCounts' : bigint,
+      'declineCounts' : bigint,
+      'couponToggleCounts' : bigint,
+      'loginCounts' : bigint,
+    }
+  >,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getEvents' : ActorMethod<[], Array<Event>>,
   'getFeatureSpecification' : ActorMethod<[], Array<PageFeatures>>,
   'getLoginAttempts' : ActorMethod<[], Array<AdminLoginAttempt>>,
+  'getOnlyVerifiedTestimonies' : ActorMethod<[], Array<Testimony>>,
+  'getPermissions' : ActorMethod<[Principal], [] | [AdminPermissions]>,
+  'getRecentAuditLogEntries' : ActorMethod<[bigint], Array<AuditLogEntry>>,
+  'getTestimony' : ActorMethod<[bigint], [] | [Testimony]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'healthCheck' : ActorMethod<[], HealthStatus>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'listAdmins' : ActorMethod<[], Array<AdminPermissions>>,
   'logEvent' : ActorMethod<[string, string], undefined>,
-  'removeAdminRole' : ActorMethod<[Principal], undefined>,
+  'resetAdminAttempts' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'verifyAdminAccess' : ActorMethod<[string], boolean>,
+  'setOwner' : ActorMethod<[Principal], undefined>,
+  'verifyAdminAccess' : ActorMethod<
+    [string, [] | [string], [] | [string]],
+    boolean
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

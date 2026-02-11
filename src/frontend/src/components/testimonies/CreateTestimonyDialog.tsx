@@ -47,7 +47,7 @@ export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTest
       };
 
       await submitTestimony.mutateAsync(testimonyData);
-      toast.success('Testimony submitted! It will appear after admin approval.');
+      toast.success('Testimony submitted! It will appear immediately with "Awaiting Admin Verification" status until approved.');
       
       // Reset form
       setRating(0);
@@ -67,7 +67,7 @@ export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTest
         <DialogHeader>
           <DialogTitle>Create Testimony</DialogTitle>
           <DialogDescription>
-            Share your experience with a star rating, short review, photos, and videos. Your testimony will be reviewed before appearing publicly.
+            Share your experience with a star rating, short review, photos, and videos. Your testimony will appear immediately with "Awaiting Admin Verification" status until approved by an administrator.
           </DialogDescription>
         </DialogHeader>
 
@@ -110,7 +110,7 @@ export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTest
           </div>
 
           {/* Submit */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Button
               onClick={handleSubmit}
               disabled={
@@ -134,7 +134,7 @@ export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTest
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            Your testimony will be reviewed by an administrator before appearing publicly.
+            Your testimony will appear immediately on the public page with "Awaiting Admin Verification" status until an administrator approves it.
           </p>
         </div>
       </DialogContent>

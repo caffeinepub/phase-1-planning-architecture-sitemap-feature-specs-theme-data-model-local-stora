@@ -28,6 +28,60 @@ export const AdminAccessLogEntry = IDL.Record({
   'id' : IDL.Nat,
   'principal' : IDL.Principal,
   'timestamp' : IDL.Nat,
+  'deviceType' : IDL.Opt(IDL.Text),
+  'browserInfo' : IDL.Opt(IDL.Text),
+});
+export const NotificationCounts = IDL.Record({
+  'newOrders' : IDL.Nat,
+  'newMessagesCount' : IDL.Nat,
+  'newTestimonies' : IDL.Nat,
+  'newQuotes' : IDL.Nat,
+});
+export const AdminPermissions = IDL.Record({
+  'canDeactivateStore' : IDL.Bool,
+  'canApplyDiscounts' : IDL.Bool,
+  'principal' : IDL.Principal,
+  'canCreateOrder' : IDL.Bool,
+  'canManageUsers' : IDL.Bool,
+  'canCreateProduct' : IDL.Bool,
+  'canManageInventory' : IDL.Bool,
+  'canProcessRefunds' : IDL.Bool,
+  'fullPermissions' : IDL.Bool,
+  'canRemoveUsers' : IDL.Bool,
+  'canDeleteProduct' : IDL.Bool,
+  'isOwner' : IDL.Bool,
+  'canViewMetrics' : IDL.Bool,
+  'canEditProduct' : IDL.Bool,
+});
+export const AuditActionType = IDL.Variant({
+  'adminEdit' : IDL.Null,
+  'adminMessage' : IDL.Null,
+  'adminLogin' : IDL.Null,
+  'orderUpdate' : IDL.Null,
+  'couponCreate' : IDL.Null,
+  'couponToggle' : IDL.Null,
+  'adminApproval' : IDL.Null,
+  'adminDecline' : IDL.Null,
+});
+export const AuditLogEntry = IDL.Record({
+  'id' : IDL.Nat,
+  'actionType' : AuditActionType,
+  'target' : IDL.Opt(IDL.Principal),
+  'timestamp' : IDL.Nat,
+  'details' : IDL.Text,
+  'actorPrincipal' : IDL.Principal,
+});
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
+export const Testimony = IDL.Record({
+  'id' : IDL.Nat,
+  'shortReview' : IDL.Opt(IDL.Text),
+  'starRating' : IDL.Opt(IDL.Float64),
+  'content' : IDL.Text,
+  'video' : IDL.Opt(ExternalBlob),
+  'author' : IDL.Text,
+  'approved' : IDL.Bool,
+  'rating' : IDL.Opt(IDL.Nat),
+  'photo' : IDL.Opt(ExternalBlob),
 });
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
@@ -89,14 +143,59 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-  'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'getAdminAccessLog' : IDL.Func([], [IDL.Vec(AdminAccessLogEntry)], ['query']),
+  'getAdminAttempts' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
+  'getAdminNotifications' : IDL.Func([], [NotificationCounts], ['query']),
+  'getAllAdmins' : IDL.Func([], [IDL.Vec(AdminPermissions)], ['query']),
+  'getAllAuditLogEntries' : IDL.Func([], [IDL.Vec(AuditLogEntry)], ['query']),
+  'getAllTestimonies' : IDL.Func([], [IDL.Vec(Testimony)], ['query']),
+  'getAttemptCount' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
+  'getAuditLogEntriesByType' : IDL.Func(
+      [AuditActionType],
+      [IDL.Vec(AuditLogEntry)],
+      ['query'],
+    ),
+  'getAuditLogEntriesForActor' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Vec(AuditLogEntry)],
+      ['query'],
+    ),
+  'getAuditLogEntry' : IDL.Func([IDL.Nat], [IDL.Opt(AuditLogEntry)], ['query']),
+  'getAuditLogStats' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'total' : IDL.Nat,
+          'orderUpdateCounts' : IDL.Nat,
+          'couponCreateCounts' : IDL.Nat,
+          'approvalCounts' : IDL.Nat,
+          'messageCounts' : IDL.Nat,
+          'editCounts' : IDL.Nat,
+          'declineCounts' : IDL.Nat,
+          'couponToggleCounts' : IDL.Nat,
+          'loginCounts' : IDL.Nat,
+        }),
+      ],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getFeatureSpecification' : IDL.Func([], [IDL.Vec(PageFeatures)], ['query']),
   'getLoginAttempts' : IDL.Func([], [IDL.Vec(AdminLoginAttempt)], ['query']),
+  'getOnlyVerifiedTestimonies' : IDL.Func([], [IDL.Vec(Testimony)], ['query']),
+  'getPermissions' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(AdminPermissions)],
+      ['query'],
+    ),
+  'getRecentAuditLogEntries' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(AuditLogEntry)],
+      ['query'],
+    ),
+  'getTestimony' : IDL.Func([IDL.Nat], [IDL.Opt(Testimony)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -104,10 +203,16 @@ export const idlService = IDL.Service({
     ),
   'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'listAdmins' : IDL.Func([], [IDL.Vec(AdminPermissions)], ['query']),
   'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
-  'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
+  'resetAdminAttempts' : IDL.Func([IDL.Principal], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'verifyAdminAccess' : IDL.Func([IDL.Text], [IDL.Bool], []),
+  'setOwner' : IDL.Func([IDL.Principal], [], []),
+  'verifyAdminAccess' : IDL.Func(
+      [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+      [IDL.Bool],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -133,6 +238,60 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat,
     'principal' : IDL.Principal,
     'timestamp' : IDL.Nat,
+    'deviceType' : IDL.Opt(IDL.Text),
+    'browserInfo' : IDL.Opt(IDL.Text),
+  });
+  const NotificationCounts = IDL.Record({
+    'newOrders' : IDL.Nat,
+    'newMessagesCount' : IDL.Nat,
+    'newTestimonies' : IDL.Nat,
+    'newQuotes' : IDL.Nat,
+  });
+  const AdminPermissions = IDL.Record({
+    'canDeactivateStore' : IDL.Bool,
+    'canApplyDiscounts' : IDL.Bool,
+    'principal' : IDL.Principal,
+    'canCreateOrder' : IDL.Bool,
+    'canManageUsers' : IDL.Bool,
+    'canCreateProduct' : IDL.Bool,
+    'canManageInventory' : IDL.Bool,
+    'canProcessRefunds' : IDL.Bool,
+    'fullPermissions' : IDL.Bool,
+    'canRemoveUsers' : IDL.Bool,
+    'canDeleteProduct' : IDL.Bool,
+    'isOwner' : IDL.Bool,
+    'canViewMetrics' : IDL.Bool,
+    'canEditProduct' : IDL.Bool,
+  });
+  const AuditActionType = IDL.Variant({
+    'adminEdit' : IDL.Null,
+    'adminMessage' : IDL.Null,
+    'adminLogin' : IDL.Null,
+    'orderUpdate' : IDL.Null,
+    'couponCreate' : IDL.Null,
+    'couponToggle' : IDL.Null,
+    'adminApproval' : IDL.Null,
+    'adminDecline' : IDL.Null,
+  });
+  const AuditLogEntry = IDL.Record({
+    'id' : IDL.Nat,
+    'actionType' : AuditActionType,
+    'target' : IDL.Opt(IDL.Principal),
+    'timestamp' : IDL.Nat,
+    'details' : IDL.Text,
+    'actorPrincipal' : IDL.Principal,
+  });
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
+  const Testimony = IDL.Record({
+    'id' : IDL.Nat,
+    'shortReview' : IDL.Opt(IDL.Text),
+    'starRating' : IDL.Opt(IDL.Float64),
+    'content' : IDL.Text,
+    'video' : IDL.Opt(ExternalBlob),
+    'author' : IDL.Text,
+    'approved' : IDL.Bool,
+    'rating' : IDL.Opt(IDL.Nat),
+    'photo' : IDL.Opt(ExternalBlob),
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
   const Event = IDL.Record({
@@ -191,11 +350,48 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-    'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'getAdminAccessLog' : IDL.Func(
         [],
         [IDL.Vec(AdminAccessLogEntry)],
+        ['query'],
+      ),
+    'getAdminAttempts' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
+    'getAdminNotifications' : IDL.Func([], [NotificationCounts], ['query']),
+    'getAllAdmins' : IDL.Func([], [IDL.Vec(AdminPermissions)], ['query']),
+    'getAllAuditLogEntries' : IDL.Func([], [IDL.Vec(AuditLogEntry)], ['query']),
+    'getAllTestimonies' : IDL.Func([], [IDL.Vec(Testimony)], ['query']),
+    'getAttemptCount' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
+    'getAuditLogEntriesByType' : IDL.Func(
+        [AuditActionType],
+        [IDL.Vec(AuditLogEntry)],
+        ['query'],
+      ),
+    'getAuditLogEntriesForActor' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(AuditLogEntry)],
+        ['query'],
+      ),
+    'getAuditLogEntry' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(AuditLogEntry)],
+        ['query'],
+      ),
+    'getAuditLogStats' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'total' : IDL.Nat,
+            'orderUpdateCounts' : IDL.Nat,
+            'couponCreateCounts' : IDL.Nat,
+            'approvalCounts' : IDL.Nat,
+            'messageCounts' : IDL.Nat,
+            'editCounts' : IDL.Nat,
+            'declineCounts' : IDL.Nat,
+            'couponToggleCounts' : IDL.Nat,
+            'loginCounts' : IDL.Nat,
+          }),
+        ],
         ['query'],
       ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
@@ -207,6 +403,22 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getLoginAttempts' : IDL.Func([], [IDL.Vec(AdminLoginAttempt)], ['query']),
+    'getOnlyVerifiedTestimonies' : IDL.Func(
+        [],
+        [IDL.Vec(Testimony)],
+        ['query'],
+      ),
+    'getPermissions' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(AdminPermissions)],
+        ['query'],
+      ),
+    'getRecentAuditLogEntries' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(AuditLogEntry)],
+        ['query'],
+      ),
+    'getTestimony' : IDL.Func([IDL.Nat], [IDL.Opt(Testimony)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -214,10 +426,16 @@ export const idlFactory = ({ IDL }) => {
       ),
     'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'listAdmins' : IDL.Func([], [IDL.Vec(AdminPermissions)], ['query']),
     'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
-    'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
+    'resetAdminAttempts' : IDL.Func([IDL.Principal], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'verifyAdminAccess' : IDL.Func([IDL.Text], [IDL.Bool], []),
+    'setOwner' : IDL.Func([IDL.Principal], [], []),
+    'verifyAdminAccess' : IDL.Func(
+        [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+        [IDL.Bool],
+        [],
+      ),
   });
 };
 

@@ -8,7 +8,7 @@ import { useGetCouponsActiveState, useSetCouponsActiveState } from '../../hooks/
 import { toast } from 'sonner';
 
 export default function CouponManagerSection() {
-  const { data: couponsEnabled = true, isLoading } = useGetCouponsActiveState();
+  const { data: couponsEnabled = true } = useGetCouponsActiveState();
   const setCouponsActive = useSetCouponsActiveState();
 
   const handleToggle = async () => {
@@ -33,52 +33,43 @@ export default function CouponManagerSection() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {isLoading ? (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading coupon state...
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="space-y-1">
-                  <div className="font-medium">Coupon System Status</div>
-                  <div className="text-sm text-muted-foreground">
-                    {couponsEnabled 
-                      ? 'Coupons are currently enabled and can be applied at checkout' 
-                      : 'Coupons are currently disabled store-wide'}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={couponsEnabled ? 'default' : 'secondary'}>
-                    {couponsEnabled ? 'Enabled' : 'Disabled'}
-                  </Badge>
-                  <Switch
-                    checked={couponsEnabled}
-                    onCheckedChange={handleToggle}
-                    disabled={setCouponsActive.isPending}
-                  />
-                </div>
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="space-y-1">
+              <div className="font-medium">Coupon System Status</div>
+              <div className="text-sm text-muted-foreground">
+                {couponsEnabled 
+                  ? 'Coupons are currently enabled and can be applied at checkout' 
+                  : 'Coupons are currently disabled store-wide'}
               </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant={couponsEnabled ? 'default' : 'secondary'}>
+                {couponsEnabled ? 'Enabled' : 'Disabled'}
+              </Badge>
+              <Switch
+                checked={couponsEnabled}
+                onCheckedChange={handleToggle}
+                disabled={setCouponsActive.isPending}
+              />
+            </div>
+          </div>
 
-              {!couponsEnabled && (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Coupons are currently disabled. Customers cannot apply coupon codes at checkout, and existing coupon codes will not provide discounts.
-                  </AlertDescription>
-                </Alert>
-              )}
+          {!couponsEnabled && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Coupons are currently disabled. Customers cannot apply coupon codes at checkout, and existing coupon codes will not provide discounts.
+              </AlertDescription>
+            </Alert>
+          )}
 
-              {couponsEnabled && (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Coupons are active. Valid coupon codes can be applied during checkout for discounts.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </>
+          {couponsEnabled && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Coupons are active. Valid coupon codes can be applied during checkout for discounts.
+              </AlertDescription>
+            </Alert>
           )}
         </CardContent>
       </Card>

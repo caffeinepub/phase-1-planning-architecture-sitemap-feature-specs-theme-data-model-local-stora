@@ -47,12 +47,11 @@ export default function AdminPasswordResetSection() {
     }
 
     try {
-      // Simple hash for demonstration - in production, use proper hashing
-      const passwordHash = btoa(passwordInput);
+      const principal = Principal.fromText(principalInput.trim());
       
       await setAdminPassword.mutateAsync({
-        admin: principalInput.trim(),
-        passwordHash,
+        principal,
+        password: passwordInput,
       });
 
       toast.success('Admin password set successfully');

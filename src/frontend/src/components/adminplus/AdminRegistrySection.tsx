@@ -1,170 +1,166 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { UserPlus, UserMinus, Shield, Crown, Loader2, AlertCircle } from 'lucide-react';
-import { useListAdmins, usePromoteAdmin, useDemoteAdmin } from '../../hooks/useQueries';
-import { Principal } from '@dfinity/principal';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { UserPlus, UserMinus, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { useListAdmins, usePromoteAdmin, useDemoteAdmin, useUpdateAdminPermissions } from '../../hooks/useQueries';
+import { Principal } from '@dfinity/principal';
+import ErrorState from '../system/ErrorState';
 
 export default function AdminRegistrySection() {
-  const { data: admins = [], isLoading } = useListAdmins();
+  const { data: admins = [], isLoading, error, refetch } = useListAdmins();
   const promoteAdmin = usePromoteAdmin();
   const demoteAdmin = useDemoteAdmin();
+  const updatePermissions = useUpdateAdminPermissions();
 
-  const [principalInput, setPrincipalInput] = useState('');
-  const [validationError, setValidationError] = useState('');
+  const [editingPermissions, setEditingPermissions] = useState<string | null>(null);
 
-  const validatePrincipal = (input: string): boolean => {
-    if (!input.trim()) {
-      setValidationError('Principal cannot be empty');
-      return false;
-    }
-
+  const handlePromote = async (principalStr: string) => {
     try {
-      Principal.fromText(input.trim());
-      setValidationError('');
-      return true;
-    } catch (error) {
-      setValidationError('Invalid principal format');
-      return false;
-    }
-  };
-
-  const handlePromote = async () => {
-    if (!validatePrincipal(principalInput)) return;
-
-    try {
-      await promoteAdmin.mutateAsync(principalInput.trim());
+      const principal = Principal.fromText(principalStr);
+      await promoteAdmin.mutateAsync(principal);
       toast.success('Admin promoted successfully');
-      setPrincipalInput('');
     } catch (error: any) {
+      console.error('Failed to promote admin:', error);
       toast.error(error.message || 'Failed to promote admin');
     }
   };
 
-  const handleDemote = async (principal: string) => {
+  const handleDemote = async (principalStr: string) => {
     try {
+      const principal = Principal.fromText(principalStr);
       await demoteAdmin.mutateAsync(principal);
       toast.success('Admin demoted successfully');
     } catch (error: any) {
+      console.error('Failed to demote admin:', error);
       toast.error(error.message || 'Failed to demote admin');
     }
   };
 
-  return (
-    <div className="space-y-6">
+  const handlePermissionToggle = async (principalStr: string, permission: string, value: boolean) => {
+    try {
+      const principal = Principal.fromText(principalStr);
+      await updatePermissions.mutateAsync({
+        principal,
+        permissions: { [permission]: value },
+      });
+      toast.success('Permission updated successfully');
+    } catch (error: any) {
+      console.error('Failed to update permission:', error);
+      toast.error(error.message || 'Failed to update permission');
+    }
+  };
+
+  if (isLoading) {
+    return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
-            Promote / Demote Admins
-          </CardTitle>
-          <CardDescription>
-            Grant or remove admin permissions instantly by entering a user's Principal ID
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="principal-input">Principal ID</Label>
-            <Input
-              id="principal-input"
-              placeholder="Enter principal (e.g., aaaaa-aa...)"
-              value={principalInput}
-              onChange={(e) => {
-                setPrincipalInput(e.target.value);
-                if (validationError) validatePrincipal(e.target.value);
-              }}
-              onBlur={() => {
-                if (principalInput.trim()) validatePrincipal(principalInput);
-              }}
-            />
-            {validationError && (
-              <p className="text-sm text-destructive">{validationError}</p>
-            )}
-          </div>
-
-          <Button
-            onClick={handlePromote}
-            disabled={!principalInput.trim() || !!validationError || promoteAdmin.isPending}
-            className="w-full"
-          >
-            {promoteAdmin.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <UserPlus className="mr-2 h-4 w-4" />
-            Promote to Admin
-          </Button>
-
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs">
-              Promoted admins will have access to the Admin panel but not the Admin+ owner controls.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Current Admin Registry
-          </CardTitle>
-          <CardDescription>
-            List of all users with admin or owner privileges
-          </CardDescription>
+          <CardTitle>Admin Registry</CardTitle>
+          <CardDescription>Manage admin users and their permissions</CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading admin registry...
-            </div>
-          ) : admins.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              No admins registered yet
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {admins.map((admin) => (
-                <div
-                  key={admin.principal.toString()}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    {admin.isOwner ? (
-                      <Crown className="h-4 w-4 text-primary flex-shrink-0" />
-                    ) : (
-                      <Shield className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    )}
-                    <code className="text-xs font-mono truncate">
-                      {admin.principal.toString()}
-                    </code>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Badge variant={admin.isOwner ? 'default' : 'secondary'}>
-                      {admin.isOwner ? 'Owner' : 'Admin'}
-                    </Badge>
-                    {!admin.isOwner && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDemote(admin.principal.toString())}
-                        disabled={demoteAdmin.isPending}
-                      >
-                        {demoteAdmin.isPending && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                        <UserMinus className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
         </CardContent>
       </Card>
-    </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Admin Registry</CardTitle>
+          <CardDescription>Manage admin users and their permissions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ErrorState title="Failed to load admins" onRetry={refetch} />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          Admin Registry
+        </CardTitle>
+        <CardDescription>Manage admin users and their permissions</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {admins.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">No admins found</p>
+        ) : (
+          admins.map((admin) => {
+            const principalStr = admin.principal.toString();
+            const isEditing = editingPermissions === principalStr;
+
+            return (
+              <Card key={principalStr} className="border-border/40">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1 flex-1">
+                      <p className="font-mono text-xs break-all">{principalStr}</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {admin.isOwner && <Badge variant="default">Owner</Badge>}
+                        {admin.fullPermissions && <Badge variant="secondary">Full Permissions</Badge>}
+                      </div>
+                    </div>
+                    {!admin.isOwner && (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingPermissions(isEditing ? null : principalStr)}
+                        >
+                          {isEditing ? 'Done' : 'Edit Permissions'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDemote(principalStr)}
+                          disabled={demoteAdmin.isPending}
+                        >
+                          <UserMinus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {isEditing && !admin.isOwner && (
+                    <div className="grid grid-cols-2 gap-3 pt-3 border-t">
+                      {Object.entries(admin)
+                        .filter(([key]) => key.startsWith('can') && key !== 'canDeactivateStore')
+                        .map(([key, value]) => (
+                          <div key={key} className="flex items-center justify-between">
+                            <Label htmlFor={`${principalStr}-${key}`} className="text-xs">
+                              {key.replace('can', '').replace(/([A-Z])/g, ' $1').trim()}
+                            </Label>
+                            <Switch
+                              id={`${principalStr}-${key}`}
+                              checked={value as boolean}
+                              onCheckedChange={(checked) => handlePermissionToggle(principalStr, key, checked)}
+                              disabled={updatePermissions.isPending}
+                            />
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
+      </CardContent>
+    </Card>
   );
 }

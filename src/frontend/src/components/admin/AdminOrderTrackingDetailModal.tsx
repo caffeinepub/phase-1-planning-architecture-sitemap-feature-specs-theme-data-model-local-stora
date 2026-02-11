@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -65,7 +66,7 @@ export default function AdminOrderTrackingDetailModal({
     try {
       await updateStatus.mutateAsync({
         orderId: order.id,
-        newStatus: selectedStatus,
+        status: selectedStatus,
       });
       toast.success('Status updated successfully');
       setSelectedStatus('');
@@ -96,14 +97,14 @@ export default function AdminOrderTrackingDetailModal({
 
   const handleAddNote = async () => {
     if (!noteText.trim()) {
-      toast.error('Please enter a note message');
+      toast.error('Please enter a note');
       return;
     }
 
     try {
       await addNote.mutateAsync({
         orderId: order.id,
-        message: noteText.trim(),
+        note: noteText.trim(),
       });
       toast.success('Pop-up note added');
       setNoteText('');
@@ -114,205 +115,163 @@ export default function AdminOrderTrackingDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-arcane-gold" />
-            Order #{order.id.toString()} - Tracking Management
-          </DialogTitle>
+          <DialogTitle>Order Tracking Management</DialogTitle>
           <DialogDescription>
-            Update tracking status, add location updates, and send custom notes to the customer
+            Update tracking status, add location updates, and manage customer-visible notes for Order #{order.id.toString()}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Current Status Overview */}
-          <div className="p-4 rounded-lg bg-muted/50 border border-border/40 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Current Status:</span>
-              <Badge className="bg-arcane-gold/20 text-arcane-gold border-arcane-gold/30">
-                {TRACKING_STATUS_LABELS[currentStatus]}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Fulfillment:</span>
-              <span>{FULFILLMENT_METHOD_LABELS[fulfillmentMethod]}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Customer:</span>
-              <span className="font-mono text-xs">{order.userId.toString().slice(0, 20)}...</span>
+          {/* Current Status */}
+          <div className="space-y-2">
+            <Label>Current Status</Label>
+            <div className="flex items-center gap-2">
+              <Badge variant="default">{TRACKING_STATUS_LABELS[currentStatus]}</Badge>
+              <span className="text-sm text-muted-foreground">
+                {FULFILLMENT_METHOD_LABELS[fulfillmentMethod]}
+              </span>
             </div>
           </div>
-
-          <Alert className="border-blue-500/30 bg-blue-500/5">
-            <AlertCircle className="h-4 w-4 text-blue-500" />
-            <AlertDescription className="text-sm">
-              Customers only see status progression after you update it. They will see the next status as locked until you advance it.
-            </AlertDescription>
-          </Alert>
 
           <Separator />
 
           {/* Update Status */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-arcane-gold" />
-              <h3 className="font-semibold">Update Tracking Status</h3>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="status-select">Select New Status</Label>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger id="status-select">
-                    <SelectValue placeholder="Choose status..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TRACKING_STATUS_ORDER.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {TRACKING_STATUS_LABELS[status]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <Label>Update Tracking Status</Label>
+            <div className="flex gap-2">
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select new status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TRACKING_STATUS_ORDER.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {TRACKING_STATUS_LABELS[status as TrackingStatus]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 onClick={handleUpdateStatus}
                 disabled={!selectedStatus || updateStatus.isPending}
-                className="w-full"
               >
-                {updateStatus.isPending ? 'Updating...' : 'Update Status'}
+                {updateStatus.isPending ? 'Updating...' : 'Update'}
               </Button>
             </div>
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                Status changes are immediately visible to customers on their order tracking page.
+              </AlertDescription>
+            </Alert>
           </div>
 
           <Separator />
 
           {/* Add Location Update */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-arcane-gold" />
-              <h3 className="font-semibold">Add Location Update</h3>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="location-input">Location</Label>
-                <Textarea
-                  id="location-input"
-                  placeholder="e.g., Sorting facility, Ashland, KY..."
-                  value={locationText}
-                  onChange={(e) => setLocationText(e.target.value)}
-                  rows={2}
-                />
-              </div>
-              <div>
-                <Label htmlFor="location-description">Description (Optional)</Label>
-                <Textarea
-                  id="location-description"
-                  placeholder="e.g., Package at sorting facility, En route..."
-                  value={locationDescription}
-                  onChange={(e) => setLocationDescription(e.target.value)}
-                  rows={2}
-                />
-              </div>
-              <Button
-                onClick={handleAddLocation}
-                disabled={!locationText.trim() || addLocation.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {addLocation.isPending ? 'Adding...' : 'Add Location Update'}
-              </Button>
-            </div>
+            <Label>Add Location Update</Label>
+            <Input
+              placeholder="Location (e.g., Distribution Center, City Name)"
+              value={locationText}
+              onChange={(e) => setLocationText(e.target.value)}
+            />
+            <Input
+              placeholder="Description (optional)"
+              value={locationDescription}
+              onChange={(e) => setLocationDescription(e.target.value)}
+            />
+            <Button
+              onClick={handleAddLocation}
+              disabled={!locationText.trim() || addLocation.isPending}
+              className="w-full"
+            >
+              <MapPin className="mr-2 h-4 w-4" />
+              {addLocation.isPending ? 'Adding...' : 'Add Location Update'}
+            </Button>
           </div>
 
           <Separator />
 
           {/* Add Pop-up Note */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-arcane-gold" />
-              <h3 className="font-semibold">Add Custom Pop-up Note</h3>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="note-input">Note Message</Label>
-                <Textarea
-                  id="note-input"
-                  placeholder="e.g., On its way, Delayed due to weather, Package has arrived..."
-                  value={noteText}
-                  onChange={(e) => setNoteText(e.target.value)}
-                  rows={3}
-                />
-              </div>
-              <Button
-                onClick={handleAddNote}
-                disabled={!noteText.trim() || addNote.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {addNote.isPending ? 'Adding...' : 'Add Pop-up Note'}
-              </Button>
-            </div>
+            <Label>Add Customer Pop-up Note</Label>
+            <Textarea
+              placeholder="Enter a note that will be prominently displayed to the customer..."
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              rows={3}
+            />
+            <Button
+              onClick={handleAddNote}
+              disabled={!noteText.trim() || addNote.isPending}
+              className="w-full"
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              {addNote.isPending ? 'Adding...' : 'Add Pop-up Note'}
+            </Button>
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                Pop-up notes appear prominently at the top of the customer's tracking view.
+              </AlertDescription>
+            </Alert>
           </div>
 
           <Separator />
 
           {/* Current Tracking History */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-sm">Current Tracking History</h3>
-            
-            {/* Status History */}
-            {tracking.statusHistory.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase">Status Changes</p>
-                <div className="space-y-1">
-                  {[...tracking.statusHistory].reverse().slice(0, 3).map((entry, idx) => (
-                    <div key={idx} className="text-sm p-2 rounded bg-muted/30 border border-border/20">
-                      <div className="flex justify-between">
-                        <span>{TRACKING_STATUS_LABELS[entry.status as TrackingStatus]}</span>
+            <Label>Current Tracking History</Label>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {tracking.statusHistory.length === 0 && tracking.locationUpdates.length === 0 && tracking.popUpNotes.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No tracking history yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {/* Status History */}
+                  {tracking.statusHistory.map((entry, index) => (
+                    <div key={`status-${index}`} className="p-3 border rounded-lg space-y-1">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">{TRACKING_STATUS_LABELS[entry.status]}</Badge>
                         <span className="text-xs text-muted-foreground">
                           {formatTimestamp(entry.timestamp)}
                         </span>
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-            )}
-
-            {/* Location Updates */}
-            {tracking.locationUpdates.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase">Recent Locations</p>
-                <div className="space-y-1">
-                  {[...tracking.locationUpdates].reverse().slice(0, 3).map((update, idx) => (
-                    <div key={idx} className="text-sm p-2 rounded bg-muted/30 border border-border/20">
-                      <p>{update.location}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatTimestamp(update.timestamp)}
-                      </p>
+                  
+                  {/* Location Updates */}
+                  {tracking.locationUpdates.map((entry, index) => (
+                    <div key={`location-${index}`} className="p-3 border rounded-lg space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          <span className="text-sm font-medium">{entry.location}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {formatTimestamp(entry.timestamp)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Pop-up Notes */}
+                  {tracking.popUpNotes.map((entry, index) => (
+                    <div key={`note-${index}`} className="p-3 border rounded-lg space-y-1">
+                      <div className="flex items-center justify-between">
+                        <MessageSquare className="h-4 w-4" />
+                        <span className="text-xs text-muted-foreground">
+                          {formatTimestamp(entry.timestamp)}
+                        </span>
+                      </div>
+                      <p className="text-sm">{entry.message}</p>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Pop-up Notes */}
-            {tracking.popUpNotes.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase">Recent Notes</p>
-                <div className="space-y-1">
-                  {[...tracking.popUpNotes].reverse().slice(0, 3).map((note, idx) => (
-                    <div key={idx} className="text-sm p-2 rounded bg-muted/30 border border-border/20">
-                      <p>{note.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatTimestamp(note.timestamp)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>

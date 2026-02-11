@@ -1,33 +1,49 @@
-import { useState, useEffect } from 'react';
-import { useListAllRequests, useGetRequestById } from '../../hooks/useQueries';
+import { useState } from 'react';
+import { useListRequests, useGetRequestDetail } from '../../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, Paperclip } from 'lucide-react';
+import { FileText, Search, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import ErrorState from '../system/ErrorState';
 import AdminRequestDetailModal from './AdminRequestDetailModal';
 import type { RequestDetail } from '../../types/phase5b';
 
 export default function AdminRequestsTab() {
-  const { data: requests = [], isLoading, error, refetch } = useListAllRequests();
-  const [selectedRequestId, setSelectedRequestId] = useState<bigint | null>(null);
-  const [selectedRequest, setSelectedRequest] = useState<RequestDetail | null>(null);
-  const getRequestDetail = useGetRequestById();
+  const { data: requests = [], isLoading, error, refetch } = useListRequests();
+  const getRequestDetail = useGetRequestDetail();
 
-  // Fetch request detail when selectedRequestId changes
-  useEffect(() => {
-    if (selectedRequestId !== null) {
-      getRequestDetail.mutateAsync(selectedRequestId)
-        .then(detail => setSelectedRequest(detail))
-        .catch(err => {
-          console.error('Failed to fetch request detail:', err);
-          setSelectedRequest(null);
-        });
-    } else {
-      setSelectedRequest(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState<RequestDetail | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const filteredRequests = requests.filter((req) =>
+    req.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    req.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    req.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleViewDetails = async (requestId: bigint) => {
+    setLoadingDetail(true);
+    try {
+      const detail = await getRequestDetail.mutateAsync(requestId);
+      setSelectedRequest(detail);
+      setDetailModalOpen(true);
+    } catch (error: any) {
+      console.error('Failed to load request details:', error);
+    } finally {
+      setLoadingDetail(false);
     }
-  }, [selectedRequestId]);
+  };
+
+  const getStatusLabel = (status: any): string => {
+    if (typeof status === 'object' && status.__kind__) {
+      return status.__kind__;
+    }
+    return String(status);
+  };
 
   if (isLoading) {
     return (
@@ -47,87 +63,81 @@ export default function AdminRequestsTab() {
     return <ErrorState title="Failed to load requests" onRetry={refetch} />;
   }
 
-  if (requests.length === 0) {
-    return (
-      <Card>
-        <CardContent className="py-16 text-center">
-          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No requests submitted yet</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <>
-      <div className="space-y-4">
-        {requests.map((request) => {
-          const pricingText = request.pricingPreference.__kind__ === 'flexible' 
-            ? 'Flexible' 
-            : request.pricingPreference.value;
-
-          const statusVariant = 
-            request.status.__kind__ === 'approved' ? 'default' :
-            request.status.__kind__ === 'declined' ? 'destructive' :
-            'outline';
-
-          const attachmentCount = Number(request.attachmentCount);
-
-          return (
-            <Card key={request.id.toString()} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1 flex-1">
-                    <CardTitle className="text-lg">Request #{request.id.toString()}</CardTitle>
-                    <div className="flex gap-2 text-sm text-muted-foreground">
-                      <span>{request.name}</span>
-                      <span>•</span>
-                      <span>{request.email}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Badge variant={statusVariant}>{request.status.__kind__}</Badge>
-                    <Badge variant="outline">{pricingText}</Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm line-clamp-2">{request.description}</p>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-4 text-sm text-muted-foreground">
-                    {attachmentCount > 0 && (
-                      <div className="flex items-center gap-1">
-                        <Paperclip className="h-4 w-4" />
-                        <span>{attachmentCount} attachment{attachmentCount !== 1 ? 's' : ''}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setSelectedRequestId(request.id)}
-                  >
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+    <div className="space-y-4">
+      {/* Search */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search requests..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
       </div>
+
+      {/* Requests List */}
+      {filteredRequests.length === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">
+              {searchQuery ? 'No requests match your search' : 'No custom requests submitted yet'}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        filteredRequests.map((request) => (
+          <Card key={request.id.toString()}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="space-y-1 flex-1">
+                  <CardTitle className="text-lg">Request #{request.id.toString()}</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {request.name} ({request.email})
+                  </p>
+                </div>
+                <Badge variant={getStatusLabel(request.status) === 'approved' ? 'default' : getStatusLabel(request.status) === 'declined' ? 'destructive' : 'secondary'}>
+                  {getStatusLabel(request.status)}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm line-clamp-2">{request.description}</p>
+
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <span>Pricing: {typeof request.pricingPreference === 'object' && request.pricingPreference.__kind__ === 'flexible' ? 'Flexible' : 'Range'}</span>
+                </div>
+                {request.attachmentCount > 0n && (
+                  <div className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" />
+                    <span>{request.attachmentCount.toString()} attachment{request.attachmentCount !== 1n ? 's' : ''}</span>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                onClick={() => handleViewDetails(request.id)}
+                disabled={loadingDetail}
+                variant="outline"
+                size="sm"
+              >
+                {loadingDetail ? 'Loading...' : 'View Details'}
+              </Button>
+            </CardContent>
+          </Card>
+        ))
+      )}
 
       <AdminRequestDetailModal
         request={selectedRequest}
-        open={selectedRequestId !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedRequestId(null);
-            setSelectedRequest(null);
-          }
-        }}
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        isLoading={loadingDetail}
       />
-    </>
+    </div>
   );
 }

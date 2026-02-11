@@ -2,19 +2,46 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Settings, Activity, FileText, Shield, Crown, Loader2, RefreshCw, AlertCircle, Lock } from 'lucide-react';
-import { useGetHealthCheck, useGetAdminAccessLog, useGetLoginAttempts, useGetEvents } from '../../hooks/useSystemSettings';
+import { Settings, Activity, FileText, Shield, Crown, Loader2, RefreshCw, AlertCircle, Lock, ScrollText } from 'lucide-react';
+import { useGetHealthCheck, useGetAdminAccessLog, useGetLoginAttempts, useGetEvents, useGetAdminActivityLog } from '../../hooks/useSystemSettings';
 import { useIsCallerOwner } from '../../hooks/useQueries';
 import { toast } from 'sonner';
 import AdminRegistrySection from '../adminplus/AdminRegistrySection';
 import AdminPasswordResetSection from '../adminplus/AdminPasswordResetSection';
 import AdvancedShopControlsSection from '../adminplus/AdvancedShopControlsSection';
+import BackupRecoverySection from './BackupRecoverySection';
+import type { AuditLogEntry, AuditActionType } from '../../backend';
+
+// Helper function to convert action type to human-readable label
+function getActionLabel(actionType: AuditActionType): string {
+  switch (actionType) {
+    case 'adminLogin':
+      return 'Admin Login';
+    case 'adminEdit':
+      return 'Admin Edit';
+    case 'adminApproval':
+      return 'Approval';
+    case 'adminDecline':
+      return 'Decline';
+    case 'adminMessage':
+      return 'Message Sent';
+    case 'couponCreate':
+      return 'Coupon Created';
+    case 'couponToggle':
+      return 'Coupon Toggled';
+    case 'orderUpdate':
+      return 'Order Updated';
+    default:
+      return 'Unknown Action';
+  }
+}
 
 export default function AdminSystemSettingsTab() {
   const { data: health, isLoading: healthLoading, error: healthError, refetch: refetchHealth } = useGetHealthCheck();
   const { data: accessLog = [], isLoading: accessLogLoading, error: accessLogError, refetch: refetchAccessLog } = useGetAdminAccessLog();
   const { data: loginAttempts = [], isLoading: loginAttemptsLoading, error: loginAttemptsError, refetch: refetchLoginAttempts } = useGetLoginAttempts();
   const { data: events = [], isLoading: eventsLoading, error: eventsError, refetch: refetchEvents } = useGetEvents();
+  const { data: activityLog = [], isLoading: activityLogLoading, error: activityLogError, refetch: refetchActivityLog } = useGetAdminActivityLog();
   const { data: isOwner = false, isLoading: ownerLoading } = useIsCallerOwner();
 
   const handleRefreshHealth = async () => {
@@ -50,6 +77,15 @@ export default function AdminSystemSettingsTab() {
       toast.success('Events refreshed');
     } catch (error: any) {
       toast.error('Failed to refresh events');
+    }
+  };
+
+  const handleRefreshActivityLog = async () => {
+    try {
+      await refetchActivityLog();
+      toast.success('Activity log refreshed');
+    } catch (error: any) {
+      toast.error('Failed to refresh activity log');
     }
   };
 
@@ -112,6 +148,84 @@ export default function AdminSystemSettingsTab() {
               </div>
             </div>
           ) : null}
+        </CardContent>
+      </Card>
+
+      {/* Backup & Recovery Section */}
+      <BackupRecoverySection />
+
+      {/* Admin Activity Log */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <ScrollText className="h-5 w-5" />
+                Admin Activity Log
+              </CardTitle>
+              <CardDescription>
+                Comprehensive log of all admin actions including logins, edits, approvals, messages, coupon operations, and order updates
+              </CardDescription>
+            </div>
+            <Button onClick={handleRefreshActivityLog} variant="outline" size="sm" disabled={activityLogLoading}>
+              {activityLogLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {activityLogError ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Failed to load activity log. You may not have permission to view this data.
+              </AlertDescription>
+            </Alert>
+          ) : activityLogLoading ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading activity log...
+            </div>
+          ) : activityLog.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No activity log entries found
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {activityLog.map((entry) => (
+                <div key={entry.id.toString()} className="p-3 border rounded-lg space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">
+                        {getActionLabel(entry.actionType)}
+                      </Badge>
+                      <span className="text-sm font-medium">{entry.details}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {new Date(Number(entry.timestamp) / 1000000).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">Admin:</span>
+                    <code className="font-mono text-muted-foreground truncate">
+                      {entry.actorPrincipal.toString()}
+                    </code>
+                  </div>
+                  {entry.target && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground">Target:</span>
+                      <code className="font-mono text-muted-foreground truncate">
+                        {entry.target.toString()}
+                      </code>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -341,12 +455,15 @@ export default function AdminSystemSettingsTab() {
               <Lock className="h-5 w-5" />
               Owner-Only Controls
             </CardTitle>
+            <CardDescription>
+              Additional system controls are available to the owner
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Alert>
-              <AlertCircle className="h-4 w-4" />
+              <Shield className="h-4 w-4" />
               <AlertDescription>
-                Additional system settings and controls are available only to the owner. These include admin registry management, password resets, and advanced shop controls.
+                You do not have owner permissions. Contact the system owner for access to advanced controls.
               </AlertDescription>
             </Alert>
           </CardContent>
