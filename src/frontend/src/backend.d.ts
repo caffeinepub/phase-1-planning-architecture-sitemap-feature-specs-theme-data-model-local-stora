@@ -38,82 +38,41 @@ export enum Variant_later_phase1 {
     phase1 = "phase1"
 }
 
-// Phase 5B: Request and Inbox types
-export interface RequestAttachment {
-    blob: ExternalBlob;
-    filename: string;
-}
-
-export interface RequestDetail {
-    id: bigint;
-    submittedBy: Principal;
-    name: string;
-    email: string;
-    description: string;
-    pricingPreference: PricingPreference;
-    attachments: RequestAttachment[];
-    status: RequestStatus;
-    actionHistory: RequestAction[];
-    convertedOrderId: bigint | null;
-}
-
-export interface RequestSummary {
-    id: bigint;
-    submittedBy: Principal;
-    name: string;
-    email: string;
-    description: string;
-    pricingPreference: PricingPreference;
-    attachmentCount: bigint;
-    status: RequestStatus;
-}
-
-export type PricingPreference =
-    | { __kind__: 'flexible' }
-    | { __kind__: 'range'; value: string };
-
-export type RequestStatus =
-    | { __kind__: 'pending' }
-    | { __kind__: 'approved' }
-    | { __kind__: 'declined' };
-
-export interface RequestAction {
+// Phase 5D Order Tracking Types
+export interface TrackingStatusHistoryEntry {
+    status: string;
+    timestamp: bigint;
     admin: Principal;
-    actionType: string;
-    timestamp: bigint;
 }
 
-export interface InboxMessage {
+export interface LocationUpdate {
+    location: string;
+    timestamp: bigint;
+    admin: Principal;
+}
+
+export interface PopUpNote {
+    message: string;
+    timestamp: bigint;
+    admin: Principal;
+}
+
+export interface OrderTracking {
+    currentStatus: string;
+    statusHistory: Array<TrackingStatusHistoryEntry>;
+    locationUpdates: Array<LocationUpdate>;
+    popUpNotes: Array<PopUpNote>;
+    fulfillmentMethod: string;
+}
+
+export interface OrderWithTracking {
     id: bigint;
-    sender: Principal;
-    body: string;
-    attachments: MessageAttachment[];
-    timestamp: bigint;
-}
-
-export interface InboxCoupon {
-    id: bigint;
-    sender: Principal;
-    code: string;
-    discount: bigint;
-    timestamp: bigint;
-}
-
-export type InboxItem =
-    | { __kind__: 'message'; value: InboxMessage }
-    | { __kind__: 'coupon'; value: InboxCoupon };
-
-export interface MessageAttachment {
-    blob: ExternalBlob;
-    filename: string;
-}
-
-export class ExternalBlob {
-    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
-    getDirectURL(): string;
-    static fromURL(url: string): ExternalBlob;
-    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
-    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
+    userId: Principal;
+    productIds: Array<bigint>;
+    totalAmount: bigint;
+    appliedCouponCode: string | null;
+    discountAmount: bigint;
+    tracking: OrderTracking;
 }
 
 export interface backendInterface {
@@ -127,15 +86,8 @@ export interface backendInterface {
     logEvent(message: string, level: string): Promise<void>;
     removeAdminRole(user: Principal): Promise<void>;
     
-    // Phase 5B: Request management (admin)
-    listAllRequests(): Promise<Array<RequestSummary>>;
-    getRequestById(id: bigint): Promise<RequestDetail>;
-    approveRequest(id: bigint): Promise<void>;
-    declineRequest(id: bigint): Promise<void>;
-    sendMessageToCustomer(customerId: Principal, body: string, attachments: MessageAttachment[]): Promise<void>;
-    sendCouponToCustomer(customerId: Principal, couponCode: string): Promise<void>;
-    convertRequestToOrder(requestId: bigint): Promise<bigint>;
-    
-    // Phase 5B: Inbox (authenticated user)
-    listCallerInbox(): Promise<Array<InboxItem>>;
+    // Phase 5D Order Tracking Methods (to be implemented in backend)
+    updateOrderTrackingStatus(orderId: bigint, status: string): Promise<void>;
+    addOrderLocationUpdate(orderId: bigint, location: string): Promise<void>;
+    addOrderPopUpNote(orderId: bigint, message: string): Promise<void>;
 }

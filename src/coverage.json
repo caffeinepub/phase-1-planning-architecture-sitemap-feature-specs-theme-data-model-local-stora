@@ -1,126 +1,88 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T00:15:39.705Z",
+  "generatedAt": "2026-02-11T00:55:50.949Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 8,
-    "implemented": 3,
+    "total": 5,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement canister-backed persistence and APIs for customer Requests, including: create a request with optional media attachments, list requests for admins, and fetch a single request with its attachments and status.",
+        "summary": "Extend the backend order data model to persist order-tracking information per order, including: (a) a tracking status with the allowed values pending, processing, ready for pickup, out for delivery, completed; (b) a status-change history with timestamps for each change; (c) a list of manual admin-entered location updates with timestamps (no GPS); (d) a list of admin-authored pop-up notes/messages with timestamps; and (e) a fulfillment method that can represent delivery vs pickup vs drop-off, with pickup/drop-off intended only for the Ashland/Westwood Kentucky area.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Add request moderation actions for admins: approve and decline requests, each producing an immutable action record stored on the Request (including actor principal, action type, optional note, and a timestamp).",
+        "summary": "Add backend admin-only methods to manage order tracking: admins can (a) set/update an order’s tracking status; (b) add a manual location update to an order; and (c) add a custom pop-up note/message to an order. Each mutation must append an entry with a timestamp to the appropriate history/log so customers can see when changes happened.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Implement a customer inbox in the backend that supports (a) admin-to-customer messages, and (b) admin-to-customer coupon deliveries; both must be retrievable by the customer and scoped to the customer principal.",
+        "summary": "Update backend order read APIs used by the frontend so that the customer order list and admin order list include the tracking data needed for Phase 5D (current status, the computed/derived next status, timestamps/history, location updates, pop-up notes, and fulfillment method). Updates must appear for customers when they refresh (no real-time push).",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-4",
-        "summary": "Support attachments up to 800 MB for admin-to-customer messaging (file attachments on messages), storing the attachment content using the existing blob storage mixin and linking the blob reference from the inbox item.",
+        "summary": "Implement a customer-facing order tracking view inside the existing customer Dashboard (dashboard-only access): for each order, show the current tracking status prominently, show the next status as locked/preview until the admin advances the order, and display timestamps for each status change. Also display the latest admin pop-up note(s) and the list of manual location updates (each with timestamp).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/admin/MessageAttachmentPicker.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/Inbox.tsx"
+          "frontend/src/backend.d.ts",
+          "frontend/src/types/orderTracking.ts",
+          "frontend/src/components/dashboard/OrderTrackingPanel.tsx",
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/admin/MessageAttachmentPicker.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/Inbox.tsx"
+          "frontend/src/backend.d.ts",
+          "frontend/src/types/orderTracking.ts",
+          "frontend/src/components/dashboard/OrderTrackingPanel.tsx",
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
         "id": "REQ-5",
-        "summary": "Implement request-to-order conversion: allow admins to convert an approved Request into an Order, linking the created Order to the originating Request and preventing conversion unless the Request is approved.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Upgrade the Admin Dashboard Requests tab to (a) actually load requests from the backend, (b) show a request detail view with attachment previews/links, (c) allow approve/decline, (d) allow sending a message and/or coupon to the request’s submitter, and (e) allow converting an approved request into an order.",
+        "summary": "Enhance the Admin orders experience so admins can update order tracking from the admin dashboard: provide a per-order detail UI to (a) change the tracking status, (b) add a manual location update, and (c) add a custom pop-up note/message. Ensure the admin UI makes it clear that customers only see progression after admin updates.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/backend.d.ts",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/admin/AdminRequestsTab.tsx",
-          "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-          "frontend/src/backend.d.ts"
+          "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
+          "frontend/src/components/admin/AdminOrdersTab.tsx",
+          "frontend/src/pages/Admin.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/backend.d.ts",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/admin/AdminRequestsTab.tsx",
-          "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-          "frontend/src/backend.d.ts"
+          "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
+          "frontend/src/components/admin/AdminOrdersTab.tsx"
         ]
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Add a customer-facing Inbox UI (accessible to authenticated users) that lists received messages and coupons and includes a manual Refresh control to fetch new items.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/Inbox.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/components/layout/HeaderNav.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/Inbox.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/components/layout/HeaderNav.tsx"
-        ]
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Ensure authorization and future multi-admin support: all admin-only operations (list all requests, request moderation, sending inbox items, converting requests to orders) must be guarded by the existing admin/owner role system and work for any principal in the admin registry (not only the owner).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-    "frontend/src/components/admin/AdminRequestsTab.tsx",
-    "frontend/src/components/admin/MessageAttachmentPicker.tsx",
-    "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-    "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/shop/ProductDetailsModal.tsx",
-    "frontend/src/components/shop/ProductFlipCard.tsx",
-    "frontend/src/components/shop/useShopFilters.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
+    "frontend/src/components/admin/AdminOrdersTab.tsx",
+    "frontend/src/components/dashboard/OrderTrackingPanel.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Inbox.tsx",
-    "frontend/src/pages/Shop.tsx",
-    "frontend/src/types/common.ts",
-    "frontend/src/types/phase5b.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/types/orderTracking.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

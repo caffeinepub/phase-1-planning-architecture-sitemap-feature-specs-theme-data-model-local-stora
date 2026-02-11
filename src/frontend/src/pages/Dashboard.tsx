@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, ShoppingBag } from 'lucide-react';
+import { User, ShoppingBag, RefreshCw } from 'lucide-react';
 import { useGetCallerUserProfile, useGetMyOrders, useGetAllProducts } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import PageLayout from '../components/layout/PageLayout';
@@ -14,6 +14,8 @@ import { useSaveCallerUserProfile } from '../hooks/useQueries';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import ErrorState from '../components/system/ErrorState';
+import OrderTrackingPanel from '../components/dashboard/OrderTrackingPanel';
+import type { OrderWithTracking } from '../types/orderTracking';
 
 export default function Dashboard() {
   const { identity } = useInternetIdentity();
@@ -50,6 +52,11 @@ export default function Dashboard() {
     } catch (error: any) {
       toast.error(error.message || 'Failed to save profile');
     }
+  };
+
+  const handleRefreshOrders = () => {
+    refetchOrders();
+    toast.info('Refreshing orders...');
   };
 
   if (showProfileSetup) {
@@ -164,64 +171,48 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="orders">
-              {ordersError ? (
-                <ErrorState
-                  title="Failed to load orders"
-                  onRetry={refetchOrders}
-                />
-              ) : ordersLoading ? (
-                <Card>
-                  <CardContent className="py-8">
-                    <div className="space-y-4">
-                      {[...Array(3)].map((_, i) => (
-                        <Skeleton key={i} className="h-24 w-full" />
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : orders.length === 0 ? (
-                <Card>
-                  <CardContent className="py-16 text-center">
-                    <p className="text-muted-foreground">You haven't placed any orders yet</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-4">
-                  {orders.map((order) => (
-                    <Card key={order.id.toString()}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">Order #{order.id.toString()}</CardTitle>
-                          <Badge>Completed</Badge>
-                        </div>
-                        <CardDescription>
-                          {order.productIds.length} item{order.productIds.length !== 1 ? 's' : ''}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Total Amount:</span>
-                            <span className="font-medium">${(Number(order.totalAmount) / 100).toFixed(2)}</span>
-                          </div>
-                          {order.appliedCouponCode && (
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Coupon Applied:</span>
-                              <Badge variant="secondary">{order.appliedCouponCode}</Badge>
-                            </div>
-                          )}
-                          {order.discountAmount > 0n && (
-                            <div className="flex justify-between text-sm text-green-600">
-                              <span>Discount:</span>
-                              <span>-${(Number(order.discountAmount) / 100).toFixed(2)}</span>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleRefreshOrders}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Refresh Orders
+                  </Button>
                 </div>
-              )}
+
+                {ordersError ? (
+                  <ErrorState
+                    title="Failed to load orders"
+                    onRetry={refetchOrders}
+                  />
+                ) : ordersLoading ? (
+                  <Card>
+                    <CardContent className="py-8">
+                      <div className="space-y-4">
+                        {[...Array(3)].map((_, i) => (
+                          <Skeleton key={i} className="h-24 w-full" />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : orders.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-16 text-center">
+                      <p className="text-muted-foreground">You haven't placed any orders yet</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {orders.map((order: OrderWithTracking) => (
+                      <OrderTrackingPanel key={order.id.toString()} order={order} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </section>

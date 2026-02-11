@@ -2,12 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-support-attachments-up-to-800-mb-for-admin-to-customer-messaging-file-attachments-on-messages-storing-the-attachment-content-using-the-existing-blob-storage-mixin-and-linking-the-blob-reference-from-the-inbox-item",
-      "featureTitle": "Support attachments up to 800 MB for admin-to-customer messaging (file attachments on messages), storing the attachment content using the existing blob storage mixin and linking the blob reference from the inbox item.",
+      "featureId": "feature-implement-a-customer-facing-order-tracking-view-inside-the-existing-customer-dashboard-dashboard-only-access-for-each-order-show-the-current-tracking-status-prominently-show-the-next-status-as-locked-preview-until-the-admin-advances-the-order-and-display-timestamps-for-each-status-change-also-display-the-latest-admin-pop-up-note-s-and-the-list-of-manual-location-updates-each-with-timestamp",
+      "featureTitle": "Implement a customer-facing order tracking view inside the existing customer Dashboard (dashboard-only access): for each order, show the current tracking status prominently, show the next status as locked/preview until the admin advances the order, and display timestamps for each status change. Also display the latest admin pop-up note(s) and the list of manual location updates (each with timestamp).",
       "files": [
-        "frontend/src/components/admin/MessageAttachmentPicker.tsx",
+        "frontend/src/components/dashboard/OrderTrackingPanel.tsx",
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/Inbox.tsx"
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/types/orderTracking.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -24,11 +25,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-upgrade-the-admin-dashboard-requests-tab-to-a-actually-load-requests-from-the-backend-b-show-a-request-detail-view-with-attachment-previews-links-c-allow-approve-decline-d-allow-sending-a-message-and-or-coupon-to-the-request-s-submitter-and-e-allow-converting-an-approved-request-into-an-order",
-      "featureTitle": "Upgrade the Admin Dashboard Requests tab to (a) actually load requests from the backend, (b) show a request detail view with attachment previews/links, (c) allow approve/decline, (d) allow sending a message and/or coupon to the request’s submitter, and (e) allow converting an approved request into an order.",
+      "featureId": "feature-enhance-the-admin-orders-experience-so-admins-can-update-order-tracking-from-the-admin-dashboard-provide-a-per-order-detail-ui-to-a-change-the-tracking-status-b-add-a-manual-location-update-and-c-add-a-custom-pop-up-note-message-ensure-the-admin-ui-makes-it-clear-that-customers-only-see-progression-after-admin-updates",
+      "featureTitle": "Enhance the Admin orders experience so admins can update order tracking from the admin dashboard: provide a per-order detail UI to (a) change the tracking status, (b) add a manual location update, and (c) add a custom pop-up note/message. Ensure the admin UI makes it clear that customers only see progression after admin updates.",
       "files": [
-        "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-        "frontend/src/components/admin/AdminRequestsTab.tsx",
+        "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
+        "frontend/src/components/admin/AdminOrdersTab.tsx",
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -41,30 +42,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-6"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-customer-facing-inbox-ui-accessible-to-authenticated-users-that-lists-received-messages-and-coupons-and-includes-a-manual-refresh-control-to-fetch-new-items",
-      "featureTitle": "Add a customer-facing Inbox UI (accessible to authenticated users) that lists received messages and coupons and includes a manual Refresh control to fetch new items.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/Inbox.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-7"
+        "REQ-5"
       ],
       "confidence": "high"
     }

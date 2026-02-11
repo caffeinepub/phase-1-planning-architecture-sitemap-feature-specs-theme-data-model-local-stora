@@ -1,18 +1,16 @@
+import Runtime "mo:core/Runtime";
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
-import Text "mo:core/Text";
 import Array "mo:core/Array";
-import Iter "mo:core/Iter";
+import Text "mo:core/Text";
 import Principal "mo:core/Principal";
-import Runtime "mo:core/Runtime";
-import Migration "migration";
+import Iter "mo:core/Iter";
 
-import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import MixinStorage "blob-storage/Mixin";
+import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
+import MixinStorage "blob-storage/Mixin";
 
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);

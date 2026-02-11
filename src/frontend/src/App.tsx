@@ -1,17 +1,11 @@
-import { StrictMode, lazy, Suspense, useState } from 'react';
+import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RouterProvider, createRouter, createRootRoute, createRoute } from '@tanstack/react-router';
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from '@/components/ui/sonner';
+import { lazy, Suspense } from 'react';
 import AppLayout from './components/layout/AppLayout';
-import Homepage from './pages/Homepage';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AppErrorBoundary } from './components/system/AppErrorBoundary';
-import TroubleshootingDialog from './components/system/TroubleshootingDialog';
-import { useGlobalErrorCapture } from './hooks/useGlobalErrorCapture';
-import { initAnalytics } from './lib/analytics';
+import { Skeleton } from './components/ui/skeleton';
 
-// Lazy load secondary routes for code splitting
+// Lazy load pages
+const Homepage = lazy(() => import('./pages/Homepage'));
 const About = lazy(() => import('./pages/About'));
 const Services = lazy(() => import('./pages/Services'));
 const Shop = lazy(() => import('./pages/Shop'));
@@ -25,38 +19,31 @@ const Admin = lazy(() => import('./pages/Admin'));
 const AdminPlus = lazy(() => import('./pages/AdminPlus'));
 const Testimonies = lazy(() => import('./pages/Testimonies'));
 const SubmitRequest = lazy(() => import('./pages/SubmitRequest'));
+const Inbox = lazy(() => import('./pages/Inbox'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
     },
   },
 });
 
-// Initialize analytics on app load
-initAnalytics();
-
-// Loading fallback component
-const PageLoadingFallback = () => (
-  <div className="page-container">
-    <div className="space-y-4">
-      <Skeleton className="h-12 w-3/4 mx-auto" />
-      <Skeleton className="h-6 w-1/2 mx-auto" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-64 w-full" />
-        ))}
-      </div>
-    </div>
+// Loading fallback
+const PageLoader = () => (
+  <div className="container mx-auto px-4 py-8 space-y-4">
+    <Skeleton className="h-12 w-64" />
+    <Skeleton className="h-64 w-full" />
   </div>
 );
 
+// Root route with layout
 const rootRoute = createRootRoute({
   component: AppLayout,
 });
 
+// Define routes
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
@@ -66,133 +53,88 @@ const indexRoute = createRoute({
 const aboutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/about',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <About />
-    </Suspense>
-  ),
+  component: About,
 });
 
 const servicesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/services',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <Services />
-    </Suspense>
-  ),
+  component: Services,
 });
 
 const shopRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/shop',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <Shop />
-    </Suspense>
-  ),
+  component: Shop,
 });
 
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <Dashboard />
-    </Suspense>
-  ),
+  component: Dashboard,
 });
 
 const contactRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/contact',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <Contact />
-    </Suspense>
-  ),
+  component: Contact,
 });
 
 const blogRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/blog',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <BlogLore />
-    </Suspense>
-  ),
+  component: BlogLore,
 });
 
 const faqRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/faq',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <FAQ />
-    </Suspense>
-  ),
+  component: FAQ,
 });
 
 const termsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/terms',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <Terms />
-    </Suspense>
-  ),
+  component: Terms,
 });
 
 const privacyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/privacy',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <Privacy />
-    </Suspense>
-  ),
+  component: Privacy,
 });
 
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <Admin />
-    </Suspense>
-  ),
+  component: Admin,
 });
 
 const adminPlusRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin-plus',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <AdminPlus />
-    </Suspense>
-  ),
+  component: AdminPlus,
 });
 
 const testimoniesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/testimonies',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <Testimonies />
-    </Suspense>
-  ),
+  component: Testimonies,
 });
 
 const submitRequestRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/submit-request',
-  component: () => (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <SubmitRequest />
-    </Suspense>
-  ),
+  component: SubmitRequest,
 });
 
+const inboxRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/inbox',
+  component: Inbox,
+});
+
+// Create route tree
 const routeTree = rootRoute.addChildren([
   indexRoute,
   aboutRoute,
@@ -208,46 +150,19 @@ const routeTree = rootRoute.addChildren([
   adminPlusRoute,
   testimoniesRoute,
   submitRequestRoute,
+  inboxRoute,
 ]);
 
+// Create router
 const router = createRouter({ routeTree });
 
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router;
-  }
-}
-
-function AppContent() {
-  const [showTroubleshooting, setShowTroubleshooting] = useState(false);
-  
-  // Install global error capture
-  useGlobalErrorCapture();
-
-  return (
-    <>
-      <RouterProvider router={router} />
-      <Toaster />
-      <TroubleshootingDialog 
-        open={showTroubleshooting} 
-        onOpenChange={setShowTroubleshooting} 
-      />
-    </>
-  );
-}
-
+// App component
 export default function App() {
-  const [showTroubleshooting, setShowTroubleshooting] = useState(false);
-
   return (
-    <StrictMode>
-      <AppErrorBoundary onShowTroubleshooting={() => setShowTroubleshooting(true)}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <QueryClientProvider client={queryClient}>
-            <AppContent />
-          </QueryClientProvider>
-        </ThemeProvider>
-      </AppErrorBoundary>
-    </StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <Suspense fallback={<PageLoader />}>
+        <RouterProvider router={router} />
+      </Suspense>
+    </QueryClientProvider>
   );
 }

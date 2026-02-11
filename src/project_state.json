@@ -1,36 +1,29 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Phase 5B: Build an Admin Dashboard & Messaging system where admins can view all customer requests, review attachments, approve/decline requests, message customers and send coupons via customer inbox, upload attachments up to 800MB, and convert approved requests into orders. All actions are timestamped, with future support for multiple admins.",
+  "summary": "Project now includes Phase 5D: an order-tracking system for customers via the customer dashboard, with admin-controlled status progression, timestamps, manual location updates, area-specific pickup/drop-off, and admin-authored pop-up notes.",
   "architectural_notes": [
-    "Support admin uploads/attachments up to 800MB per file.",
-    "Audit trail: timestamp all admin actions (approve/decline/messages/coupons/order conversion).",
-    "Design auth/roles with future multi-admin support in mind."
+    "Order tracking is accessible only via the customer dashboard (no public tracking link).",
+    "Real-time GPS is not used; delivery location updates are manually entered by admins.",
+    "Pickup/drop-off availability is restricted to the Ashland/Westwood, Kentucky area.",
+    "Customers see only the current status and the next status becomes visible only after an admin updates the order."
   ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-support-attachments-up-to-800-mb-for-admin-to-customer-messaging-file-attachments-on-messages-storing-the-attachment-content-using-the-existing-blob-storage-mixin-and-linking-the-blob-reference-from-the-inbox-item",
-      "title": "Support attachments up to 800 MB for admin-to-customer messaging (file attachments on messages), storing the attachment content using the existing blob storage mixin and linking the blob reference from the inbox item.",
+      "id": "feature-implement-a-customer-facing-order-tracking-view-inside-the-existing-customer-dashboard-dashboard-only-access-for-each-order-show-the-current-tracking-status-prominently-show-the-next-status-as-locked-preview-until-the-admin-advances-the-order-and-display-timestamps-for-each-status-change-also-display-the-latest-admin-pop-up-note-s-and-the-list-of-manual-location-updates-each-with-timestamp",
+      "title": "Implement a customer-facing order tracking view inside the existing customer Dashboard (dashboard-only access): for each order, show the current tracking status prominently, show the next status as locked/preview until the admin advances the order, and display timestamps for each status change. Also display the latest admin pop-up note(s) and the list of manual location updates (each with timestamp).",
       "reqIds": [
         "REQ-4"
       ],
       "version": 1
     },
     {
-      "id": "feature-upgrade-the-admin-dashboard-requests-tab-to-a-actually-load-requests-from-the-backend-b-show-a-request-detail-view-with-attachment-previews-links-c-allow-approve-decline-d-allow-sending-a-message-and-or-coupon-to-the-request-s-submitter-and-e-allow-converting-an-approved-request-into-an-order",
-      "title": "Upgrade the Admin Dashboard Requests tab to (a) actually load requests from the backend, (b) show a request detail view with attachment previews/links, (c) allow approve/decline, (d) allow sending a message and/or coupon to the request’s submitter, and (e) allow converting an approved request into an order.",
+      "id": "feature-enhance-the-admin-orders-experience-so-admins-can-update-order-tracking-from-the-admin-dashboard-provide-a-per-order-detail-ui-to-a-change-the-tracking-status-b-add-a-manual-location-update-and-c-add-a-custom-pop-up-note-message-ensure-the-admin-ui-makes-it-clear-that-customers-only-see-progression-after-admin-updates",
+      "title": "Enhance the Admin orders experience so admins can update order tracking from the admin dashboard: provide a per-order detail UI to (a) change the tracking status, (b) add a manual location update, and (c) add a custom pop-up note/message. Ensure the admin UI makes it clear that customers only see progression after admin updates.",
       "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-customer-facing-inbox-ui-accessible-to-authenticated-users-that-lists-received-messages-and-coupons-and-includes-a-manual-refresh-control-to-fetch-new-items",
-      "title": "Add a customer-facing Inbox UI (accessible to authenticated users) that lists received messages and coupons and includes a manual Refresh control to fetch new items.",
-      "reqIds": [
-        "REQ-7"
+        "REQ-5"
       ],
       "version": 1
     }
@@ -38,13 +31,13 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Phase 5B Admin Dashboard & Messaging: view all requests, review/upload attachments (<=800MB), approve/decline, message customers/send coupons via inbox (manual refresh), convert approved requests to orders, and timestamp all actions; plan for multi-admin support.",
+      "summary": "Phase 5D — Order Tracking: customer-dashboard-only tracking; admin updates statuses (pending/processing/ready for pickup/out for delivery/completed) and customers only see current + next step after admin update; timestamps per status; manual admin-entered location updates (no GPS); pickup/drop-off only for Ashland/Westwood KY area; admin-created custom pop-up notes/messages per order.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Implement canister-backed persistence and APIs for customer Requests, including: create a request with optional media attachments, list requests for admins, and fetch a single request with its attachments and status.",
+      "summary": "Extend the backend order data model to persist order-tracking information per order, including: (a) a tracking status with the allowed values pending, processing, ready for pickup, out for delivery, completed; (b) a status-change history with timestamps for each change; (c) a list of manual admin-entered location updates with timestamps (no GPS); (d) a list of admin-authored pop-up notes/messages with timestamps; and (e) a fulfillment method that can represent delivery vs pickup vs drop-off, with pickup/drop-off intended only for the Ashland/Westwood Kentucky area.",
       "reqIds": [
         "REQ-1"
       ],
@@ -52,7 +45,7 @@
     },
     {
       "id": "AR-3",
-      "summary": "Add request moderation actions for admins: approve and decline requests, each producing an immutable action record stored on the Request (including actor principal, action type, optional note, and a timestamp).",
+      "summary": "Add backend admin-only methods to manage order tracking: admins can (a) set/update an order’s tracking status; (b) add a manual location update to an order; and (c) add a custom pop-up note/message to an order. Each mutation must append an entry with a timestamp to the appropriate history/log so customers can see when changes happened.",
       "reqIds": [
         "REQ-2"
       ],
@@ -60,30 +53,14 @@
     },
     {
       "id": "AR-4",
-      "summary": "Implement a customer inbox in the backend that supports (a) admin-to-customer messages, and (b) admin-to-customer coupon deliveries; both must be retrievable by the customer and scoped to the customer principal.",
+      "summary": "Update backend order read APIs used by the frontend so that the customer order list and admin order list include the tracking data needed for Phase 5D (current status, the computed/derived next status, timestamps/history, location updates, pop-up notes, and fulfillment method). Updates must appear for customers when they refresh (no real-time push).",
       "reqIds": [
         "REQ-3"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Implement request-to-order conversion: allow admins to convert an approved Request into an Order, linking the created Order to the originating Request and preventing conversion unless the Request is approved.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Ensure authorization and future multi-admin support: all admin-only operations (list all requests, request moderation, sending inbox items, converting requests to orders) must be guarded by the existing admin/owner role system and work for any principal in the admin registry (not only the owner).",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "status": "pending"
     }
   ],
-  "projectName": "Phase 5B: Admin Requests Review, Messaging/Coupons Inbox, and Request-to-Order Conversion",
+  "projectName": "Phase 5D — Customer order tracking in Dashboard with admin-controlled status, timestamps, locations, and pop-up notes",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

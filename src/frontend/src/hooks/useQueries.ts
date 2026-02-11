@@ -446,6 +446,55 @@ export function useValidateCoupon() {
   });
 }
 
+// Phase 5D: Order Tracking Mutations (Admin Only)
+export function useUpdateOrderTrackingStatus() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { orderId: bigint; status: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).updateOrderTrackingStatus(data.orderId, data.status);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+    },
+  });
+}
+
+export function useAddOrderLocationUpdate() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { orderId: bigint; location: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).addOrderLocationUpdate(data.orderId, data.location);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+    },
+  });
+}
+
+export function useAddOrderPopUpNote() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { orderId: bigint; message: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).addOrderPopUpNote(data.orderId, data.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+    },
+  });
+}
+
 // Phase 5B: Admin Request Management
 export function useListAllRequests() {
   const { actor, isFetching: actorFetching } = useActor();

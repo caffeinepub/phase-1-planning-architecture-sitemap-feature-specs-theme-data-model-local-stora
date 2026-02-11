@@ -1,95 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Phase 5B (Frontend): Admin Requests Review + Customer Inbox + Message Attachments",
+  "title": "Phase 5D — Dashboard order tracking UI (customer view + admin controls)",
   "requirements": [
     {
       "id": "REQ-4",
-      "summary": "Add admin UI support for sending inbox messages with file attachments (≤800 MB per file) and allow customers to open/download attachments from their inbox.",
+      "summary": "Add customer-facing order tracking UI inside the existing Dashboard orders tab (current status, locked next status preview, status timestamps/history, pop-up notes, and manual location updates).",
       "acceptanceCriteria": [
-        "Admin UI allows selecting one or more files for a message and enforces a per-file max size of 800 MB before attempting upload.",
-        "Uploaded message attachments are stored via the canister’s blob storage utilities and can be downloaded/opened by the customer from their inbox.",
-        "If an admin attempts to attach a file > 800 MB, the UI blocks submission with a clear English validation error."
+        "Order tracking is accessible only via the existing Dashboard page (no public tracking link is added).",
+        "For each order, the UI shows: current status; the next status (if any) as not-yet-active until the order is advanced by an admin; and a status history with timestamps.",
+        "The UI shows admin-authored pop-up note messages for the order (at minimum the most recent one) and manual location updates with timestamps.",
+        "Data updates are visible after manual refresh/refetch (consistent with current React Query patterns)."
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/components/admin/MessageAttachmentPicker.tsx",
-          "operation": "create",
-          "description": "Create an admin-focused attachment picker for message composition that supports multiple files, enforces 800 MB per-file validation with clear English errors, and converts files to blob-storage ExternalBlob objects with optional upload progress tracking. Use the blob-storage component capability (ExternalBlob.fromBytes / withUploadProgress / getDirectURL). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add React Query mutations for sending an admin-to-customer inbox message that accepts body text and optional attachment blobs, plus shared helpers for mapping attachments into download/openable URLs for the customer UI. Use the blob-storage component capability (ExternalBlob typing + upload progress handling). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Inbox.tsx",
-          "operation": "create",
-          "description": "Implement rendering of inbox message attachments as open/download links using blob-storage ExternalBlob direct URLs, and ensure attachments are visible per item when present. Use the blob-storage component capability (ExternalBlob.getDirectURL). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Upgrade Admin Dashboard Requests tab to load real requests, show details with attachment previews/links, and provide approve/decline, message/coupon send, and approved-only convert-to-order actions with clear feedback.",
-      "acceptanceCriteria": [
-        "The Requests tab no longer uses disabled placeholder hooks; it loads from backend and renders a non-empty list when requests exist.",
-        "Selecting a request shows a detail panel/modal that includes description, submitter principal, and a list of attachments with open/download actions.",
-        "Approve/Decline actions trigger backend mutations and the UI updates status after success (via React Query invalidation/refetch).",
-        "The UI provides controls to send a message/coupon to the request’s customer and shows success/error feedback in English.",
-        "The UI provides a Convert to Order action that is only enabled when the request is approved and shows the created Order id/link after success."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Replace the disabled/throwing request hooks with working React Query hooks for: admin list requests, fetch request detail, approve, decline, send message (with attachments), send coupon, and convert approved request to order. Ensure success invalidates/refetches request list and selected request detail. Use the authorization component capability indirectly via existing role-gated screens (RequireAdmin) to ensure hooks are only invoked from admin UI. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminRequestsTab.tsx",
-          "operation": "modify",
-          "description": "Implement the upgraded Requests tab: load requests, allow selecting a request, show a detail modal/panel with submitter, description, status, action history (if available), and attachment open/download links; include approve/decline actions; include message composer (with MessageAttachmentPicker) and coupon send controls; include Convert to Order button enabled only for approved requests and show resulting Order id/link after success. Use the blob-storage component capability for attachment previews/links and uploads. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-          "operation": "create",
-          "description": "Create a request detail modal/panel component used by AdminRequestsTab to render full request details, attachments list with open/download actions, moderation actions, messaging/coupon actions, and convert-to-order UI in a focused layout. Use the blob-storage component capability (ExternalBlob.getDirectURL) and the authorization component capability via admin-only access patterns (RequireAdmin). Verify the component's usage instructions before implementing."
-        },
         {
           "path": "frontend/src/backend.d.ts",
           "operation": "modify",
-          "description": "Extend the frontend backend interface typings to include the new request/admin/inbox related backend capabilities required by AdminRequestsTab (list requests, get request by id, approve/decline, send message with attachments, send coupon, convert request to order) and the data shapes referenced by the UI (request summary/detail, attachment metadata, order link). Keep this as typing-only alignment for frontend compilation."
-        }
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "summary": "Add an authenticated customer Inbox page that lists messages and coupons from the backend and supports manual refresh via React Query refetch.",
-      "acceptanceCriteria": [
-        "Authenticated users can navigate to an Inbox section/page and see a list of inbox items (messages and coupons) from the backend.",
-        "The Inbox UI includes a Refresh button that triggers a React Query refetch and updates the list without a full page reload.",
-        "Inbox items display at minimum: type (Message/Coupon), sender (admin principal or label), body/code, and timestamp (when available)."
-      ],
-      "file_operations": [
+          "description": "Extend the typed backend interface to include the order-tracking fields returned in order listings and any read methods the Dashboard relies on for: current tracking status, next/derived status preview, status-change history timestamps, manual location updates, and admin pop-up notes. Keep this aligned with backend return shapes so the UI can render tracking without `any`."
+        },
         {
-          "path": "frontend/src/pages/Inbox.tsx",
+          "path": "frontend/src/types/orderTracking.ts",
           "operation": "create",
-          "description": "Create an authenticated Inbox page (wrapped with RequireAuth) that lists inbox items (messages and coupons), displays required fields (type, sender label, body/code, timestamp), supports attachments open/download links for message items, and includes a manual Refresh button calling React Query refetch. Use the authorization component capability (Internet Identity auth gating via RequireAuth). Verify the component's usage instructions before implementing."
+          "description": "Add frontend types/enums for the Phase 5D tracking domain (allowed statuses, history entry shape with timestamps, location update entry, pop-up note entry, fulfillment method label) to ensure the Dashboard UI can render consistently and restrict status labels client-side."
+        },
+        {
+          "path": "frontend/src/components/dashboard/OrderTrackingPanel.tsx",
+          "operation": "create",
+          "description": "Create a Dashboard-only order tracking panel component that renders, per order: prominent current tracking status, a locked/preview next status indicator, a status history list with timestamps, the latest admin pop-up note(s), and manual location updates with timestamps. Use shadcn-ui components (e.g., Card, Badge, Alert, Accordion) for consistent presentation; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Wire the new OrderTrackingPanel into the existing Dashboard 'Orders' tab (no new route). Replace the static 'Completed' badge with tracking-driven rendering, add a manual Refresh/Refetch control that calls the existing `refetchOrders`, and ensure the next status is shown as locked/preview until backend advances it."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a React Query hook for listing the authenticated caller’s inbox items (messages + coupons) in reverse-chronological order as provided by backend, plus any minimal type helpers needed by the Inbox page. Use the authorization component capability by relying on authenticated actor calls (RequireAuth-gated screens) and handling backend authorization failures with clear English errors. Verify the component's usage instructions before implementing."
+          "description": "Update `useGetMyOrders` consumption to use the new typed order tracking fields (while preserving existing query keys and refetch behavior). If helper selectors are needed for deriving the UI-friendly status/next-status display, add them in a frontend-safe way without introducing real-time behavior."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Enhance Admin orders UI with per-order detail controls to update tracking status, add manual location updates, and add pop-up notes, with client validation and React Query invalidation.",
+      "acceptanceCriteria": [
+        "From the Admin page orders tab, an admin can select an order and submit tracking updates (status, location update, pop-up note).",
+        "After a successful admin mutation, relevant React Query caches are invalidated/refetched so both admin and customer views reflect the change on refresh.",
+        "Admin inputs are validated client-side for empty strings where applicable (e.g., note body/location text)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Add typed backend function signatures needed by the admin UI for order tracking mutations (set/update tracking status, add manual location update, add pop-up note) so admin components can call these safely from React Query mutations."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Register a new route for the Inbox page (e.g., /inbox) using the existing TanStack Router setup and lazy-load pattern, ensuring it is navigable and not an orphan view."
+          "description": "Add React Query mutations for admin order tracking management (set status, add location update, add pop-up note). On success, invalidate/refetch `['allOrders']` and `['myOrders']` (and any order-detail keys introduced) so changes appear after refresh. Handle authorization failures gracefully in the UI by surfacing error messages."
         },
         {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "path": "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
+          "operation": "create",
+          "description": "Implement a per-order detail modal that shows current tracking info and provides admin controls to: change tracking status (restricted to allowed values), add a manual location update (text + submit), and add a custom pop-up note/message (text + submit). Include copy that clarifies customers only see progression after admin updates. Use shadcn-ui components (Dialog, Select, Textarea, Button, Alert) to build the modal; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminOrdersTab.tsx",
           "operation": "modify",
-          "description": "Add an Inbox navigation entry for authenticated users (desktop and mobile sections) so users can reach the new Inbox page."
+          "description": "Wire the per-order detail UI into the Admin Orders tab by adding a 'View/Update Tracking' action per order that opens AdminOrderTrackingDetailModal, passing the selected order data. Ensure client-side validation blocks empty location/note submissions and disables submit while mutations are pending."
+        },
+        {
+          "path": "frontend/src/pages/Admin.tsx",
+          "operation": "modify",
+          "description": "Ensure the enhanced orders experience remains within the existing admin dashboard (already gated by RequireAdmin). If any explanatory UI text is added at the page/tab level, keep it within the existing Admin Orders tab content (no new routes). Use the existing authorization/role gating approach (RequireAdmin) to keep admin-only controls restricted; verify the component's usage instructions before implementing."
         }
       ]
     }

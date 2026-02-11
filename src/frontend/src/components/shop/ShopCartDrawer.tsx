@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useLocalCart } from '../../hooks/useLocalCart';
-import { useGetAllProducts, useCreateOrder, useValidateCoupon, useGetShopActiveState } from '../../hooks/useQueries';
+import { useGetAllProducts, useCreateOrder, useValidateCoupon, useGetShopActiveState, useGetCouponsActiveState } from '../../hooks/useQueries';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import {
   Sheet,
@@ -30,12 +30,22 @@ export default function ShopCartDrawer({ open, onOpenChange }: ShopCartDrawerPro
   const { items, updateQuantity, removeFromCart, clearCart } = useLocalCart();
   const { data: products = [] } = useGetAllProducts();
   const { data: shopActive = true } = useGetShopActiveState();
+  const { data: couponsEnabled = true, isLoading: couponsLoading } = useGetCouponsActiveState();
   const createOrder = useCreateOrder();
   const validateCoupon = useValidateCoupon();
 
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+
+  // Clear applied coupon if coupons become disabled
+  useEffect(() => {
+    if (!couponsEnabled && appliedCoupon) {
+      setAppliedCoupon(null);
+      setCouponCode('');
+      toast.info('Coupons have been disabled. Your applied coupon has been removed.');
+    }
+  }, [couponsEnabled, appliedCoupon]);
 
   const cartProducts = items.map(item => {
     const product = products.find(p => p.id.toString() === item.productId);
@@ -57,6 +67,11 @@ export default function ShopCartDrawer({ open, onOpenChange }: ShopCartDrawerPro
       return;
     }
 
+    if (!couponsEnabled) {
+      toast.error('Coupons are currently disabled');
+      return;
+    }
+
     setValidatingCoupon(true);
     try {
       const result = await validateCoupon.mutateAsync(couponCode.trim());
@@ -75,6 +90,13 @@ export default function ShopCartDrawer({ open, onOpenChange }: ShopCartDrawerPro
       setAppliedCoupon(null);
     } finally {
       setValidatingCoupon(false);
+    }
+  };
+
+  const handleCouponKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !appliedCoupon && !validatingCoupon && couponsEnabled) {
+      e.preventDefault();
+      handleValidateCoupon();
     }
   };
 
@@ -206,46 +228,56 @@ export default function ShopCartDrawer({ open, onOpenChange }: ShopCartDrawerPro
 
         {cartProducts.length > 0 && (
           <div className="space-y-4 pt-4 border-t">
-            <div className="space-y-2">
-              <Label htmlFor="coupon">Coupon Code</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="coupon"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  placeholder="Enter code"
-                  disabled={!!appliedCoupon || validatingCoupon}
-                />
-                {appliedCoupon ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setAppliedCoupon(null);
-                      setCouponCode('');
-                    }}
-                  >
-                    Remove
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={handleValidateCoupon}
-                    disabled={validatingCoupon}
-                  >
-                    {validatingCoupon ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      'Apply'
-                    )}
-                  </Button>
+            {couponsEnabled ? (
+              <div className="space-y-2">
+                <Label htmlFor="coupon">Coupon Code</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="coupon"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    onKeyDown={handleCouponKeyDown}
+                    placeholder="Enter code"
+                    disabled={!!appliedCoupon || validatingCoupon}
+                  />
+                  {appliedCoupon ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setAppliedCoupon(null);
+                        setCouponCode('');
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={handleValidateCoupon}
+                      disabled={validatingCoupon}
+                    >
+                      {validatingCoupon ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Apply'
+                      )}
+                    </Button>
+                  )}
+                </div>
+                {appliedCoupon && (
+                  <Badge variant="default" className="mt-2">
+                    {appliedCoupon.code} applied
+                  </Badge>
                 )}
               </div>
-              {appliedCoupon && (
-                <Badge variant="default" className="mt-2">
-                  {appliedCoupon.code} applied
-                </Badge>
-              )}
-            </div>
+            ) : (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Coupons are currently disabled. Customers cannot apply coupon codes at checkout, and existing coupon codes will not provide discounts.
+                </AlertDescription>
+              </Alert>
+            )}
 
             <Separator />
 

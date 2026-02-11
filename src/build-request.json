@@ -1,179 +1,130 @@
 {
   "kind": "build_request",
-  "title": "Phase 5B: Admin Requests Review, Messaging/Coupons Inbox, and Request-to-Order Conversion",
+  "title": "Phase 5D — Customer order tracking in Dashboard with admin-controlled status, timestamps, locations, and pop-up notes",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement canister-backed persistence and APIs for customer Requests, including: create a request with optional media attachments, list requests for admins, and fetch a single request with its attachments and status.",
+      "text": "Extend the backend order data model to persist order-tracking information per order, including: (a) a tracking status with the allowed values pending, processing, ready for pickup, out for delivery, completed; (b) a status-change history with timestamps for each change; (c) a list of manual admin-entered location updates with timestamps (no GPS); (d) a list of admin-authored pop-up notes/messages with timestamps; and (e) a fulfillment method that can represent delivery vs pickup vs drop-off, with pickup/drop-off intended only for the Ashland/Westwood Kentucky area.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "recent-7",
+          "recent-10",
+          "recent-12"
         ],
         "quotes": [
-          "Admins see all requests, review attachments, approve/decline... attach files ≤800 MB... convert approved requests into orders."
+          "Status: pending, processing, ready for pickup, out for delivery, completed.",
+          "Replace it with manual admin entered location updates instead!",
+          "pick up and drop off is only available for the Ashland Westwood Kentucky area,  we should be pop up messages that admins custom make!"
         ]
       },
       "acceptanceCriteria": [
-        "A logged-in user can create a Request via a new backend method (no frontend placeholder throws) and the Request is persisted across reloads.",
-        "An admin can list all Requests via a new backend query method and receives a stable array of Request records with ids, submitter principal, status, and attachment metadata.",
-        "An admin can fetch a single Request by id and receive the full Request including attachment references/metadata."
+        "Backend can store and return tracking status, status-change history (with timestamps), location updates, and pop-up notes for every order.",
+        "Tracking status is restricted to exactly the specified set of statuses.",
+        "Location updates are purely manual text entries (no GPS, no external APIs).",
+        "Fulfillment method supports delivery/pickup/drop-off; pickup/drop-off can be recorded for an order and is labeled as Ashland/Westwood Kentucky area-specific in returned data."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add request moderation actions for admins: approve and decline requests, each producing an immutable action record stored on the Request (including actor principal, action type, optional note, and a timestamp).",
+      "text": "Add backend admin-only methods to manage order tracking: admins can (a) set/update an order’s tracking status; (b) add a manual location update to an order; and (c) add a custom pop-up note/message to an order. Each mutation must append an entry with a timestamp to the appropriate history/log so customers can see when changes happened.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "recent-7",
+          "recent-10",
+          "recent-12"
         ],
         "quotes": [
-          "approve/decline",
-          "All actions are timestamped."
+          "admins should be able to change these automatically whenever they want",
+          "Replace it with manual admin entered location updates instead!",
+          "we should be pop up messages that admins custom make!"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes admin-only methods to approve and decline a request by id.",
-        "Each approve/decline call appends an action-history entry to the Request that includes: admin principal, action type, and a non-zero timestamp value (when supported).",
-        "Non-admin callers are rejected for moderation methods."
+        "Non-admin callers are rejected when attempting to update any order’s tracking status, location updates, or pop-up notes.",
+        "Each admin change creates an immutable history entry with a timestamp (for status changes, location updates, and pop-up notes).",
+        "A customer can only read tracking information for their own orders; admins can read tracking information for all orders."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Implement a customer inbox in the backend that supports (a) admin-to-customer messages, and (b) admin-to-customer coupon deliveries; both must be retrievable by the customer and scoped to the customer principal.",
+      "text": "Update backend order read APIs used by the frontend so that the customer order list and admin order list include the tracking data needed for Phase 5D (current status, the computed/derived next status, timestamps/history, location updates, pop-up notes, and fulfillment method). Updates must appear for customers when they refresh (no real-time push).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "recent-5",
+          "recent-7"
         ],
         "quotes": [
-          "send messages or coupons to the customer inbox (refresh to see)"
+          "Updates appear on refresh.",
+          "Customers track orders via dashboard or link."
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes an authenticated user method to list the caller’s inbox items (messages and coupons).",
-        "Backend exposes admin-only methods to send a message to a target customer principal and to send a coupon to a target customer principal.",
-        "Inbox items are persisted and returned in reverse-chronological order (newest first) based on stored timestamps."
+        "Refreshing the Dashboard orders query after an admin update returns the updated tracking status and histories.",
+        "No real-time mechanism is added (no websockets, no GPS, no push updates).",
+        "Existing order listing queries remain functional and now return tracking information needed by the UI."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Support attachments up to 800 MB for admin-to-customer messaging (file attachments on messages), storing the attachment content using the existing blob storage mixin and linking the blob reference from the inbox item.",
-      "target": "both",
+      "text": "Implement a customer-facing order tracking view inside the existing customer Dashboard (dashboard-only access): for each order, show the current tracking status prominently, show the next status as locked/preview until the admin advances the order, and display timestamps for each status change. Also display the latest admin pop-up note(s) and the list of manual location updates (each with timestamp).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "recent-7",
+          "recent-12"
         ],
         "quotes": [
-          "attach files ≤800 MB"
+          "Through the customer dashboard only",
+          "Customers see the current status and then the next one only after admins update it. ... Timestamps will be recorded for each status change.",
+          "we should be pop up messages that admins custom make!"
         ]
       },
       "acceptanceCriteria": [
-        "Admin UI allows selecting one or more files for a message and enforces a per-file max size of 800 MB before attempting upload.",
-        "Uploaded message attachments are stored via the canister’s blob storage utilities and can be downloaded/opened by the customer from their inbox.",
-        "If an admin attempts to attach a file > 800 MB, the UI blocks submission with a clear English validation error."
+        "Order tracking is accessible only via the existing Dashboard page (no public tracking link is added).",
+        "For each order, the UI shows: current status; the next status (if any) as not-yet-active until the order is advanced by an admin; and a status history with timestamps.",
+        "The UI shows admin-authored pop-up note messages for the order (at minimum the most recent one) and manual location updates with timestamps.",
+        "Data updates are visible after manual refresh/refetch (consistent with current React Query patterns)."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Implement request-to-order conversion: allow admins to convert an approved Request into an Order, linking the created Order to the originating Request and preventing conversion unless the Request is approved.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "convert approved requests into orders"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes an admin-only method to convert a Request id into an Order.",
-        "Conversion fails with a clear error if the Request is not in an approved state.",
-        "After conversion, the Request record indicates it has been converted and includes the created Order id (or an equivalent link)."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Upgrade the Admin Dashboard Requests tab to (a) actually load requests from the backend, (b) show a request detail view with attachment previews/links, (c) allow approve/decline, (d) allow sending a message and/or coupon to the request’s submitter, and (e) allow converting an approved request into an order.",
+      "text": "Enhance the Admin orders experience so admins can update order tracking from the admin dashboard: provide a per-order detail UI to (a) change the tracking status, (b) add a manual location update, and (c) add a custom pop-up note/message. Ensure the admin UI makes it clear that customers only see progression after admin updates.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "recent-7",
+          "recent-12"
         ],
         "quotes": [
-          "Admins see all requests, review attachments, approve/decline, send messages or coupons... and convert approved requests into orders."
+          "admins should be able to change these automatically whenever they want",
+          "we should be pop up messages that admins custom make!"
         ]
       },
       "acceptanceCriteria": [
-        "The Requests tab no longer uses disabled placeholder hooks; it loads from backend and renders a non-empty list when requests exist.",
-        "Selecting a request shows a detail panel/modal that includes description, submitter principal, and a list of attachments with open/download actions.",
-        "Approve/Decline actions trigger backend mutations and the UI updates status after success (via React Query invalidation/refetch).",
-        "The UI provides controls to send a message/coupon to the request’s customer and shows success/error feedback in English.",
-        "The UI provides a Convert to Order action that is only enabled when the request is approved and shows the created Order id/link after success."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Add a customer-facing Inbox UI (accessible to authenticated users) that lists received messages and coupons and includes a manual Refresh control to fetch new items.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "customer inbox (refresh to see)"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Authenticated users can navigate to an Inbox section/page and see a list of inbox items (messages and coupons) from the backend.",
-        "The Inbox UI includes a Refresh button that triggers a React Query refetch and updates the list without a full page reload.",
-        "Inbox items display at minimum: type (Message/Coupon), sender (admin principal or label), body/code, and timestamp (when available)."
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Ensure authorization and future multi-admin support: all admin-only operations (list all requests, request moderation, sending inbox items, converting requests to orders) must be guarded by the existing admin/owner role system and work for any principal in the admin registry (not only the owner).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "Multiple admins possible in the future."
-        ]
-      },
-      "acceptanceCriteria": [
-        "All admin-only backend methods reject non-admin callers.",
-        "All admin-only backend methods allow both the owner and any promoted admin in the admin registry to execute successfully.",
-        "No logic relies on a single hard-coded admin principal."
+        "From the Admin page orders tab, an admin can select an order and submit tracking updates (status, location update, pop-up note).",
+        "After a successful admin mutation, relevant React Query caches are invalidated/refetched so both admin and customer views reflect the change on refresh.",
+        "Admin inputs are validated client-side for empty strings where applicable (e.g., note body/location text)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor (all logic in backend/main.mo).",
-    "Do not edit any files under frontend/src/components/ui or other immutable frontend paths specified by SYSTEM_CONTEXT.",
-    "Use English for all user-facing text.",
-    "Do not introduce external databases or third-party auth; use existing Internet Identity + canister storage patterns."
+    "Do not add GPS, geolocation, maps, or any real-time location tracking; location updates must be manual admin-entered text.",
+    "Do not integrate any weather API; pickup/drop-off area handling must be represented without external services.",
+    "Keep all Motoko logic in the single backend actor (backend/main.mo).",
+    "Do not edit files under frontend immutablePaths (including frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and frontend/src/components/ui)."
   ],
   "nonGoals": [
-    "Real-time inbox updates (no websockets/push); manual refresh only as requested.",
-    "Building a full coupon creation workflow in the admin dashboard beyond sending existing coupons (unless already required by current backend capabilities).",
-    "Implementing a multi-canister architecture or external file hosting/CDN."
+    "Public order-tracking links outside the customer Dashboard.",
+    "Real-time updates (WebSockets/push notifications/live driver tracking).",
+    "Automatic status progression based on external delivery systems or GPS.",
+    "Weather display or weather-based logic."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

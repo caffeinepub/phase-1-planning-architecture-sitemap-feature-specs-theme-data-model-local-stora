@@ -1,121 +1,50 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T00:15:39.701Z",
-  "summary": "Frontend adds Admin Requests UI (list + detail modal), customer Inbox page with manual refresh, and a message attachment picker enforcing an 800MB per-file limit and uploading via ExternalBlob. Backend main.mo shows a new inbox store and migration wiring, but the diff summary does not provide evidence that the requested Request persistence/moderation APIs, inbox send/list APIs, request-to-order conversion, or complete admin-authorization guards were implemented.",
+  "generatedAt": "2026-02-11T00:55:50.945Z",
+  "summary": "Frontend UI for Phase 5D appears largely added (customer tracking panel in Dashboard; admin per-order tracking detail modal with status/location/note mutations and client-side validation). However, the diff summary does not provide clear evidence that the backend data model and backend APIs/methods were extended to persist/serve/mutate tracking data as required.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Implement canister-backed persistence and APIs for customer Requests: create request (optional attachments), list requests for admins, fetch single request with attachments/status.",
-      "reason": "Diff summary for backend/main.mo shows new inbox storage but does not show any new Request types/stores/ID counters or public methods for creating/listing/fetching Requests. Frontend relies on hooks, but corresponding backend methods are not evidenced.",
+      "requirement": "Extend the backend order data model to persist per-order tracking status (restricted set), status-change history w/ timestamps, manual location updates w/ timestamps, pop-up notes w/ timestamps, and a fulfillment method (delivery/pickup/drop-off with Ashland/Westwood KY labeling).",
+      "reason": "The backend diff excerpt for backend/main.mo does not show any new/updated Order types or storage fields for tracking, nor any logic restricting statuses or storing histories/updates/notes/fulfillment method.",
       "evidence": [
         "backend/main.mo",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/components/admin/AdminRequestsTab.tsx"
+        "frontend/src/types/orderTracking.ts (comment: \"until backend interface is updated\")"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Add admin moderation actions for Requests: approve/decline, append immutable action history entries with actor principal, action type, optional note, and non-zero timestamp (when supported); reject non-admin.",
-      "reason": "Frontend includes approve/decline mutations, but diff summary provides no backend evidence of approve/decline methods, action-history storage on Requests, or admin-only enforcement for those methods.",
+      "requirement": "Add backend admin-only methods to set tracking status, add location updates, and add pop-up notes; each mutation appends an immutable history entry with a timestamp; enforce admin-only mutation and proper read access rules (customer sees only own orders; admin sees all).",
+      "reason": "No backend methods or authorization checks related to order tracking mutations are shown in the backend/main.mo diff excerpt. Frontend adds hooks that call mutations, but the corresponding backend endpoints are not evidenced in the provided backend diff summary.",
       "evidence": [
-        "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "backend/main.mo"
+        "backend/main.mo",
+        "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx (calls useUpdateOrderTrackingStatus/useAddOrderLocationUpdate/useAddOrderPopUpNote)"
       ]
     },
     {
       "id": "REQ-3",
-      "requirement": "Implement customer inbox in backend: admin-to-customer messages and coupon deliveries; customer can list own inbox items; persisted and reverse-chronological by timestamp; admin-only send methods.",
-      "reason": "backend/main.mo adds an inbox Map and nextInboxItemId, but diff summary does not show the required public methods (list caller inbox, send message, send coupon), nor timestamp sorting behavior.",
+      "requirement": "Update backend order read APIs used by the frontend so customer/admin order lists include tracking data (current status, derived next status, timestamps/history, location updates, pop-up notes, fulfillment method), and remain functional with refresh-based updates (no real-time push).",
+      "reason": "The diff summary does not show updates to backend order listing/query APIs to return the new tracking structure. Frontend introduces OrderWithTracking and UI that expects order.tracking, but there is no clear evidence the backend now returns this data.",
       "evidence": [
         "backend/main.mo",
-        "frontend/src/pages/Inbox.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "requirement": "Support attachments up to 800MB for admin-to-customer messaging, storing attachment content using existing blob storage mixin and linking blob reference from inbox item; UI blocks >800MB with clear English error; customer can download/open.",
-      "reason": "UI size validation and upload picker are present, but diff summary does not show backend inbox message item schema including attachment references, nor backend logic linking stored blobs to inbox items / downloadability from inbox.",
-      "evidence": [
-        "frontend/src/components/admin/MessageAttachmentPicker.tsx",
-        "frontend/src/pages/Inbox.tsx",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "requirement": "Implement request-to-order conversion: admin-only convert approved Request into an Order; fail if not approved; Request indicates converted + created Order id/link.",
-      "reason": "Frontend includes a convert-to-order mutation and UI, but diff summary does not show any backend method that creates an Order from a Request, checks approved status, or persists convertedOrderId on Request.",
-      "evidence": [
-        "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "requirement": "Ensure authorization and future multi-admin support: all admin-only operations (list requests, moderation, sending inbox items, conversion) guarded by existing admin/owner role system and work for any principal in admin registry.",
-      "reason": "backend/main.mo shows adminRegistry exists, but diff summary does not show admin-guard checks applied to the new Phase 5B admin-only methods (which are not evidenced themselves). Therefore cannot confirm the required authorization behavior.",
-      "evidence": [
-        "backend/main.mo"
+        "frontend/src/types/orderTracking.ts",
+        "frontend/src/pages/Dashboard.tsx (uses OrderWithTracking and OrderTrackingPanel)",
+        "frontend/src/components/admin/AdminOrdersTab.tsx (treats orders as OrderWithTracking)"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Advanced shop controls updates (shop active toggle, price overrides, forced visibility/out-of-stock states) unrelated to Phase 5B requests/inbox workflow.",
-      "reason": "Not requested in BuildRequest; Phase 5B focuses on Requests review, messaging/coupons inbox, and request-to-order conversion.",
-      "evidence": [
-        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx"
-      ]
-    },
-    {
-      "description": "Refactors/changes to shop UI components (ProductDetailsModal, ProductFlipCard) and new client-side shop filtering/sorting hook.",
-      "reason": "Not requested in BuildRequest.",
-      "evidence": [
-        "frontend/src/components/shop/ProductDetailsModal.tsx",
-        "frontend/src/components/shop/ProductFlipCard.tsx",
-        "frontend/src/components/shop/useShopFilters.ts",
-        "frontend/src/pages/Shop.tsx"
-      ]
-    },
-    {
-      "description": "Addition of frontend common product type definitions (types/common.ts).",
-      "reason": "Not requested in BuildRequest; requirements are focused on requests/inbox/conversion.",
-      "evidence": [
-        "frontend/src/types/common.ts"
-      ]
-    },
-    {
-      "description": "Added backend migration module with identity migration stub.",
-      "reason": "BuildRequest did not explicitly request adding a migration module/file; persistence could be implemented without introducing a new migration file (though it may be a reasonable internal change).",
-      "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo"
-      ]
-    }
-  ],
+  "hallucinated_features": [],
   "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-    "frontend/src/components/admin/AdminRequestsTab.tsx",
-    "frontend/src/components/admin/MessageAttachmentPicker.tsx",
-    "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-    "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/shop/ProductDetailsModal.tsx",
-    "frontend/src/components/shop/ProductFlipCard.tsx",
-    "frontend/src/components/shop/useShopFilters.ts",
+    "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
+    "frontend/src/components/admin/AdminOrdersTab.tsx",
+    "frontend/src/components/dashboard/OrderTrackingPanel.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Inbox.tsx",
-    "frontend/src/pages/Shop.tsx",
-    "frontend/src/types/common.ts",
-    "frontend/src/types/phase5b.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/types/orderTracking.ts",
     "project_state.json"
   ]
 }
