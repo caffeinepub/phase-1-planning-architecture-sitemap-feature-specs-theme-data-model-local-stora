@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingCart, Grid3x3, List, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Grid3x3, List, AlertCircle, Sparkles } from 'lucide-react';
 import { useGetAllProducts, useGetShopActiveState } from '../hooks/useQueries';
 import { useLocalCart } from '../hooks/useLocalCart';
 import PageLayout from '../components/layout/PageLayout';
@@ -86,6 +86,24 @@ export default function Shop() {
     <PageLayout title="Shop" description="Browse our mystical collection">
       <FadeInSection>
         <section className="section-spacing px-4 sm:px-6">
+          {/* Shop Awakening Announcement */}
+          <Card className="mb-8 border-arcane-gold/40 bg-gradient-to-br from-accent/30 to-accent/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-arcane-gold">
+                <Sparkles className="h-5 w-5" />
+                The Shop is Awakening…
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-foreground/90 leading-relaxed whitespace-pre-line">
+                Our enchanted marketplace is still gathering its magic, and online purchases are not quite available yet. But worry not—your quests and creations need not wait. You may request a custom quote or personalized quest directly through our website, or send a message through Facebook Messenger, Instagram, or TikTok, where we happily discuss custom items, handcrafted products, and unique freelance creations made just for you.
+              </p>
+              <p className="text-foreground/90 leading-relaxed">
+                Until the shop fully opens its doors, these pathways remain open—so step forward, share your vision, and together we will craft something extraordinary while the marketplace prepares to come to life. ✨
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Shop Controls */}
           <div className="mb-8 space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

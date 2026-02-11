@@ -149,7 +149,6 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'changeAdminAccessCode' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
   'confirmNewCode' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
   'getAdminAccessLog' : IDL.Func([], [IDL.Vec(AdminAccessLogEntry)], ['query']),
   'getAdminAttempts' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
@@ -188,8 +187,6 @@ export const idlService = IDL.Service({
     ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getCurrentAdminAccessCode' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
-  'getCurrentAdminAccessCodeUnmasked' : IDL.Func([], [IDL.Text], ['query']),
   'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getFeatureSpecification' : IDL.Func([], [IDL.Vec(PageFeatures)], ['query']),
   'getLoginAttempts' : IDL.Func([], [IDL.Vec(AdminLoginAttempt)], ['query']),
@@ -206,6 +203,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getTestimony' : IDL.Func([IDL.Nat], [IDL.Opt(Testimony)], ['query']),
+  'getUnmaskedAdminAccessCode' : IDL.Func([], [IDL.Text], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -224,8 +222,7 @@ export const idlService = IDL.Service({
       [IDL.Text],
       [],
     ),
-  'updateAdminAccessCode' : IDL.Func([IDL.Text], [], []),
-  'verifyAccessCode' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+  'updateAdminAccessCode' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'verifyAdminAccess' : IDL.Func(
       [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
       [IDL.Bool],
@@ -374,7 +371,6 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'changeAdminAccessCode' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
     'confirmNewCode' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
     'getAdminAccessLog' : IDL.Func(
         [],
@@ -421,8 +417,6 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getCurrentAdminAccessCode' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
-    'getCurrentAdminAccessCodeUnmasked' : IDL.Func([], [IDL.Text], ['query']),
     'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getFeatureSpecification' : IDL.Func(
         [],
@@ -447,6 +441,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getTestimony' : IDL.Func([IDL.Nat], [IDL.Opt(Testimony)], ['query']),
+    'getUnmaskedAdminAccessCode' : IDL.Func([], [IDL.Text], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -465,8 +460,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Text],
         [],
       ),
-    'updateAdminAccessCode' : IDL.Func([IDL.Text], [], []),
-    'verifyAccessCode' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+    'updateAdminAccessCode' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'verifyAdminAccess' : IDL.Func(
         [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
         [IDL.Bool],

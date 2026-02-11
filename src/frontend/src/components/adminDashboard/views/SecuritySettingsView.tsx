@@ -6,42 +6,52 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Shield, Eye, EyeOff, Clock, CheckCircle, XCircle, AlertCircle, Loader2, Info } from 'lucide-react';
-import { useGetMaskedAdminAccessCode, useUpdateMasterAdminAccessCode, useGetAdminAccessLog, useGetLoginAttempts } from '../../../hooks/useQueries';
+import { Shield, Eye, EyeOff, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useGetMaskedAdminAccessCode, useUpdateAdminAccessCode, useGetAdminAccessLog, useGetLoginAttempts } from '../../../hooks/useQueries';
 import { toast } from 'sonner';
 import ErrorState from '../../system/ErrorState';
 
 export default function SecuritySettingsView() {
   const [newCode, setNewCode] = useState('');
+  const [currentCode, setCurrentCode] = useState('');
   const [confirmCode, setConfirmCode] = useState('');
   const [showNewCode, setShowNewCode] = useState(false);
+  const [showCurrentCode, setShowCurrentCode] = useState(false);
   const [showConfirmCode, setShowConfirmCode] = useState(false);
 
   const { data: maskedCode, isLoading: codeLoading } = useGetMaskedAdminAccessCode();
   const { data: accessLog = [], isLoading: logLoading, error: logError, refetch: refetchLog } = useGetAdminAccessLog();
   const { data: loginAttempts = [], isLoading: attemptsLoading, refetch: refetchAttempts } = useGetLoginAttempts();
-  const updateCodeMutation = useUpdateMasterAdminAccessCode();
+  const updateCodeMutation = useUpdateAdminAccessCode();
 
   const handleUpdateCode = async () => {
+    if (currentCode.length !== 5) {
+      toast.error('Current access code must be exactly 5 characters');
+      return;
+    }
+
     if (newCode.length !== 5) {
-      toast.error('Access code must be exactly 5 characters');
+      toast.error('New access code must be exactly 5 characters');
       return;
     }
 
     if (newCode !== confirmCode) {
-      toast.error('Codes do not match');
+      toast.error('New codes do not match');
       return;
     }
 
     try {
-      const result = await updateCodeMutation.mutateAsync(newCode);
-      if (result === 'Master Access Code Updated Successfully') {
-        toast.success('Configurable Admin Access Code Updated Successfully');
-        setNewCode('');
-        setConfirmCode('');
-      }
+      await updateCodeMutation.mutateAsync({ newCode: newCode.trim().toUpperCase(), currentCode: currentCode.trim().toUpperCase() });
+      toast.success('Admin Access Code Updated Successfully');
+      setNewCode('');
+      setCurrentCode('');
+      setConfirmCode('');
     } catch (error: any) {
-      toast.error('Failed to update access code');
+      if (error.message && error.message.includes('invalid')) {
+        toast.error('Current access code is invalid');
+      } else {
+        toast.error('Failed to update access code');
+      }
     }
   };
 
@@ -57,29 +67,20 @@ export default function SecuritySettingsView() {
         <p className="text-muted-foreground">Manage admin access and security</p>
       </div>
 
-      {/* Change Configurable Access Code */}
+      {/* Change Admin Access Code */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Change Configurable Admin Access Code
+            Change Admin Access Code
           </CardTitle>
           <CardDescription>
-            Update the configurable secondary admin access code (5 characters)
+            Update the admin access code for dashboard entry (5 characters)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Important notice about permanent master code */}
-          <Alert className="border-primary/50 bg-primary/5">
-            <Info className="h-4 w-4 text-primary" />
-            <AlertDescription className="text-sm">
-              <strong>Note:</strong> The permanent master admin code <span className="font-mono font-semibold">7583A</span> cannot be changed and will always grant access. 
-              This form updates only the configurable secondary admin access code.
-            </AlertDescription>
-          </Alert>
-
           <div className="space-y-2">
-            <Label>Current Configurable Access Code</Label>
+            <Label>Current Access Code</Label>
             {codeLoading ? (
               <Skeleton className="h-10 w-full" />
             ) : (
@@ -88,7 +89,31 @@ export default function SecuritySettingsView() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-code">New Configurable Code (5 characters)</Label>
+            <Label htmlFor="current-code">Current Code (5 characters)</Label>
+            <div className="relative">
+              <Input
+                id="current-code"
+                type={showCurrentCode ? 'text' : 'password'}
+                value={currentCode}
+                onChange={(e) => setCurrentCode(e.target.value.toUpperCase())}
+                maxLength={5}
+                className="font-mono text-center tracking-widest pr-10"
+                placeholder="*****"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3"
+                onClick={() => setShowCurrentCode(!showCurrentCode)}
+              >
+                {showCurrentCode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="new-code">New Code (5 characters)</Label>
             <div className="relative">
               <Input
                 id="new-code"
@@ -137,7 +162,7 @@ export default function SecuritySettingsView() {
 
           <Button
             onClick={handleUpdateCode}
-            disabled={newCode.length !== 5 || confirmCode.length !== 5 || updateCodeMutation.isPending}
+            disabled={currentCode.length !== 5 || newCode.length !== 5 || confirmCode.length !== 5 || updateCodeMutation.isPending}
             className="w-full"
           >
             {updateCodeMutation.isPending ? (
@@ -146,7 +171,7 @@ export default function SecuritySettingsView() {
                 Updating...
               </>
             ) : (
-              'Update Configurable Code'
+              'Update Access Code'
             )}
           </Button>
         </CardContent>

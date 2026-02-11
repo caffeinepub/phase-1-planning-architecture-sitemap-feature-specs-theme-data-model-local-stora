@@ -3,7 +3,7 @@ import { useGetCallerUserRole } from '../../hooks/useQueries';
 import { useActor } from '../../hooks/useActor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldAlert, ShieldX } from 'lucide-react';
+import { ShieldAlert, ShieldX, Loader2 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 interface RequireAdminProps {
@@ -15,13 +15,15 @@ export default function RequireAdmin({ children }: RequireAdminProps) {
   const { isFetching: actorFetching } = useActor();
   const { data: userRole, isLoading: roleLoading, isFetched: roleFetched } = useGetCallerUserRole();
 
-  const isLoading = isInitializing || actorFetching || roleLoading;
+  // Treat actor/identity initialization as loading, not denial
+  const isLoading = isInitializing || actorFetching || (roleLoading && !roleFetched);
 
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[60vh]">
         <Card className="max-w-md w-full">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-center text-muted-foreground">Loading...</p>
           </CardContent>
         </Card>

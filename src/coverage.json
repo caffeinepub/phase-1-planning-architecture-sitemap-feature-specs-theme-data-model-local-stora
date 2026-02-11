@@ -1,64 +1,34 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T08:29:27.783Z",
+  "generatedAt": "2026-02-11T09:12:16.717Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Ensure the backend permanently recognizes the master admin access code \"7583A\" and always returns \"Access Granted\" when the caller submits exactly that code, regardless of any prior lockout state or configurable code changes.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Normalize admin access code validation on the backend so that the permanent master code check for \"7583A\" is robust to common user input variations (leading/trailing spaces and case differences), while still treating the code as exactly five characters after trimming.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Update the Admin Access page so that when the user enters \"7583A\" it immediately shows the success message \"Access Granted\" and automatically redirects to \"/admin\" without ever displaying an access-denied state for that exact input.",
+        "summary": "Add the provided \"Shop is Awakening\" announcement message to the existing public Shop page/tab (frontend/src/pages/Shop.tsx) and render it near the top of the page content, above the current shop controls/products content, styled consistently with the rest of the site using existing layout/components (e.g., PageLayout, FadeInSection, shadcn Card/Alert, existing theme classes). The announcement text must be displayed exactly as provided (including punctuation and the ✨).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/AdminAccess.tsx"
+          "frontend/src/pages/Shop.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/AdminAccess.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Update admin settings UI copy so it does not imply that the permanent master code can be changed; clearly present 7583A as the permanent master code and treat the existing update form as changing only the configurable admin access code.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-          "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-          "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx"
+          "frontend/src/pages/Shop.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-    "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx",
-    "frontend/src/pages/AdminAccess.tsx",
+    "frontend/src/pages/Shop.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

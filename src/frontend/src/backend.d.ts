@@ -115,7 +115,6 @@ export enum Variant_later_phase1 {
 export interface backendInterface {
     adminLogin(adminCode: string, codeConfirmed: boolean, browserInfo: string, deviceInfo: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    changeAdminAccessCode(newCodeConfirmed: string, currentAccessCode: string): Promise<boolean>;
     confirmNewCode(newCode: string, currentCode: string): Promise<boolean>;
     getAdminAccessLog(): Promise<Array<AdminAccessLogEntry>>;
     getAdminAttempts(principal: Principal): Promise<bigint>;
@@ -140,8 +139,6 @@ export interface backendInterface {
     }>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getCurrentAdminAccessCode(): Promise<string | null>;
-    getCurrentAdminAccessCodeUnmasked(): Promise<string>;
     getEvents(): Promise<Array<Event>>;
     getFeatureSpecification(): Promise<Array<PageFeatures>>;
     getLoginAttempts(): Promise<Array<AdminLoginAttempt>>;
@@ -150,6 +147,7 @@ export interface backendInterface {
     getPermissions(principal: Principal): Promise<AdminPermissions | null>;
     getRecentAuditLogEntries(count: bigint): Promise<Array<AuditLogEntry>>;
     getTestimony(id: bigint): Promise<Testimony | null>;
+    getUnmaskedAdminAccessCode(): Promise<string>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     healthCheck(): Promise<HealthStatus>;
     isCallerAdmin(): Promise<boolean>;
@@ -160,7 +158,6 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setOwner(owner: Principal): Promise<void>;
     submitAdminAccessAttempt(accessCode: string, browserInfo: string | null, deviceType: string | null): Promise<string>;
-    updateAdminAccessCode(newAccessCode: string): Promise<void>;
-    verifyAccessCode(adminAttemptedCode: string): Promise<boolean>;
+    updateAdminAccessCode(newAccessCode: string, currentAccessCode: string): Promise<void>;
     verifyAdminAccess(adminAttemptedCode: string, browserInfo: string | null, deviceType: string | null): Promise<boolean>;
 }

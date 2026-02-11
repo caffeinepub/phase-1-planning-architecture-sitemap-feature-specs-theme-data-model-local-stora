@@ -126,7 +126,6 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'adminLogin' : ActorMethod<[string, boolean, string, string], boolean>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'changeAdminAccessCode' : ActorMethod<[string, string], boolean>,
   'confirmNewCode' : ActorMethod<[string, string], boolean>,
   'getAdminAccessLog' : ActorMethod<[], Array<AdminAccessLogEntry>>,
   'getAdminAttempts' : ActorMethod<[Principal], bigint>,
@@ -157,8 +156,6 @@ export interface _SERVICE {
   >,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getCurrentAdminAccessCode' : ActorMethod<[], [] | [string]>,
-  'getCurrentAdminAccessCodeUnmasked' : ActorMethod<[], string>,
   'getEvents' : ActorMethod<[], Array<Event>>,
   'getFeatureSpecification' : ActorMethod<[], Array<PageFeatures>>,
   'getLoginAttempts' : ActorMethod<[], Array<AdminLoginAttempt>>,
@@ -167,6 +164,7 @@ export interface _SERVICE {
   'getPermissions' : ActorMethod<[Principal], [] | [AdminPermissions]>,
   'getRecentAuditLogEntries' : ActorMethod<[bigint], Array<AuditLogEntry>>,
   'getTestimony' : ActorMethod<[bigint], [] | [Testimony]>,
+  'getUnmaskedAdminAccessCode' : ActorMethod<[], string>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'healthCheck' : ActorMethod<[], HealthStatus>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
@@ -180,8 +178,7 @@ export interface _SERVICE {
     [string, [] | [string], [] | [string]],
     string
   >,
-  'updateAdminAccessCode' : ActorMethod<[string], undefined>,
-  'verifyAccessCode' : ActorMethod<[string], boolean>,
+  'updateAdminAccessCode' : ActorMethod<[string, string], undefined>,
   'verifyAdminAccess' : ActorMethod<
     [string, [] | [string], [] | [string]],
     boolean

@@ -14,12 +14,11 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
-actor {
-  // PERMANENT master admin access code - cannot be changed
-  let PERMANENT_MASTER_CODE : Text = "7583A";
 
-  // Configurable admin access code - can be changed by admins
-  var configurableAdminAccessCode : Text = "7583A";
+
+actor {
+  // Persistent admin access code (initially "7583A")
+  var adminAccessCode : Text = "7583A";
 
   let ADMIN_LOCKOUT_THRESHOLD = 3;
 
@@ -201,7 +200,7 @@ actor {
   };
 
   private func isValidAdminCode(code : Text) : Bool {
-    code == PERMANENT_MASTER_CODE or code == configurableAdminAccessCode;
+    code == adminAccessCode;
   };
 
   // Admin-only: Reset lockouts
@@ -250,21 +249,13 @@ actor {
       Runtime.trap("Account permanently locked out due to repeated code attempts. Contact administrator.");
     };
 
-    if (isValidAdminCode(accessCode)) {
+    recordAdminAttemptInternal(caller);
+    if (accessCode == adminAccessCode) {
       ignore await verifyAdminAccess(accessCode, browserInfo, deviceType);
       return "Access Granted";
     } else {
-      recordAdminAttemptInternal(caller);
       return "Access Denied";
     };
-  };
-
-  // Admin-only: View current configurable access code
-  public query ({ caller }) func getCurrentAdminAccessCode() : async ?Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can view access codes");
-    };
-    ?configurableAdminAccessCode;
   };
 
   // Admin-only: View masked access code
@@ -275,12 +266,15 @@ actor {
     "*****";
   };
 
-  // Admin-only: View unmasked configurable access code
-  public query ({ caller }) func getCurrentAdminAccessCodeUnmasked() : async Text {
+  // Admin-only: View unmasked access code (security risk - consider removing in production)
+  public query ({ caller }) func getUnmaskedAdminAccessCode() : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view the unmasked access code");
     };
-    configurableAdminAccessCode;
+    if (not isOwner(caller)) {
+      Runtime.trap("Unauthorized: Only the owner can view the unmasked access code");
+    };
+    adminAccessCode;
   };
 
   // Public endpoint - accessible to all including guests (admin login entry point)
@@ -328,16 +322,10 @@ actor {
 
       AccessControl.assignRole(accessControlState, caller, caller, #admin);
 
-      let codeType = if (adminAttemptedCode == PERMANENT_MASTER_CODE) {
-        "permanent master code";
-      } else {
-        "configurable admin code";
-      };
-
       recordAuditLogInternal(
         caller,
         #adminLogin,
-        "Admin access granted via " # codeType,
+        "Admin access granted",
         null,
       );
 
@@ -348,53 +336,42 @@ actor {
     };
   };
 
-  // Admin-only: Verify access code
-  public query ({ caller }) func verifyAccessCode(adminAttemptedCode : Text) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can verify access codes");
-    };
-    isValidAdminCode(adminAttemptedCode);
-  };
-
-  // Admin-only: Update configurable access code (does NOT affect permanent master code)
-  public shared ({ caller }) func updateAdminAccessCode(newAccessCode : Text) : async () {
+  // Admin-only: Update access code
+  public shared ({ caller }) func updateAdminAccessCode(newAccessCode : Text, currentAccessCode : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can update access codes");
     };
-    configurableAdminAccessCode := newAccessCode;
+
+    if (not isValidAdminCode(currentAccessCode)) {
+      Runtime.trap("Current access code is invalid");
+    };
+
+    adminAccessCode := newAccessCode;
 
     recordAuditLogInternal(
       caller,
       #adminEdit,
-      "Configurable admin access code updated",
+      "Admin access code updated",
       null,
     );
   };
 
-  // Admin-only: Change configurable access code (does NOT affect permanent master code)
-  public shared ({ caller }) func changeAdminAccessCode(newCodeConfirmed : Text, currentAccessCode : Text) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can change access codes");
-    };
-    await confirmNewCode(newCodeConfirmed, currentAccessCode);
-  };
-
-  // Admin-only: Confirm new configurable code (does NOT affect permanent master code)
+  // Admin-only: Confirm new code
   public shared ({ caller }) func confirmNewCode(newCode : Text, currentCode : Text) : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can confirm new codes");
     };
 
-    let isValid = await verifyAccessCode(currentCode);
-    if (not isValid) {
+    if (not isValidAdminCode(currentCode)) {
       Runtime.trap("Current access code is invalid");
     };
-    configurableAdminAccessCode := newCode;
+    
+    adminAccessCode := newCode;
 
     recordAuditLogInternal(
       caller,
       #adminEdit,
-      "Configurable admin access code changed",
+      "Admin access code changed",
       null,
     );
 
@@ -982,8 +959,4 @@ actor {
   public query ({ caller }) func isCallerLockedOut() : async Bool {
     isCallerLockedOutInternal(caller);
   };
-
-  // REMOVED: updateMasterAdminAccessCode function
-  // The permanent master code "7583A" cannot be changed
-  // Admins can only update the configurable code via updateAdminAccessCode
 };

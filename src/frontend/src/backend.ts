@@ -208,7 +208,6 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     adminLogin(adminCode: string, codeConfirmed: boolean, browserInfo: string, deviceInfo: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    changeAdminAccessCode(newCodeConfirmed: string, currentAccessCode: string): Promise<boolean>;
     confirmNewCode(newCode: string, currentCode: string): Promise<boolean>;
     getAdminAccessLog(): Promise<Array<AdminAccessLogEntry>>;
     getAdminAttempts(principal: Principal): Promise<bigint>;
@@ -233,8 +232,6 @@ export interface backendInterface {
     }>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getCurrentAdminAccessCode(): Promise<string | null>;
-    getCurrentAdminAccessCodeUnmasked(): Promise<string>;
     getEvents(): Promise<Array<Event>>;
     getFeatureSpecification(): Promise<Array<PageFeatures>>;
     getLoginAttempts(): Promise<Array<AdminLoginAttempt>>;
@@ -243,6 +240,7 @@ export interface backendInterface {
     getPermissions(principal: Principal): Promise<AdminPermissions | null>;
     getRecentAuditLogEntries(count: bigint): Promise<Array<AuditLogEntry>>;
     getTestimony(id: bigint): Promise<Testimony | null>;
+    getUnmaskedAdminAccessCode(): Promise<string>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     healthCheck(): Promise<HealthStatus>;
     isCallerAdmin(): Promise<boolean>;
@@ -253,8 +251,7 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setOwner(owner: Principal): Promise<void>;
     submitAdminAccessAttempt(accessCode: string, browserInfo: string | null, deviceType: string | null): Promise<string>;
-    updateAdminAccessCode(newAccessCode: string): Promise<void>;
-    verifyAccessCode(adminAttemptedCode: string): Promise<boolean>;
+    updateAdminAccessCode(newAccessCode: string, currentAccessCode: string): Promise<void>;
     verifyAdminAccess(adminAttemptedCode: string, browserInfo: string | null, deviceType: string | null): Promise<boolean>;
 }
 import type { AdminAccessLogEntry as _AdminAccessLogEntry, AdminPermissions as _AdminPermissions, AuditActionType as _AuditActionType, AuditLogEntry as _AuditLogEntry, ExternalBlob as _ExternalBlob, Feature as _Feature, PageFeatures as _PageFeatures, Testimony as _Testimony, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
@@ -383,20 +380,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n8(this._uploadFile, this._downloadFile, arg1));
-            return result;
-        }
-    }
-    async changeAdminAccessCode(arg0: string, arg1: string): Promise<boolean> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.changeAdminAccessCode(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.changeAdminAccessCode(arg0, arg1);
             return result;
         }
     }
@@ -606,34 +589,6 @@ export class Backend implements backendInterface {
             return from_candid_UserRole_n30(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getCurrentAdminAccessCode(): Promise<string | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getCurrentAdminAccessCode();
-                return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getCurrentAdminAccessCode();
-            return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getCurrentAdminAccessCodeUnmasked(): Promise<string> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getCurrentAdminAccessCodeUnmasked();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getCurrentAdminAccessCodeUnmasked();
-            return result;
-        }
-    }
     async getEvents(): Promise<Array<Event>> {
         if (this.processError) {
             try {
@@ -744,6 +699,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getTestimony(arg0);
             return from_candid_opt_n40(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getUnmaskedAdminAccessCode(): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUnmaskedAdminAccessCode();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUnmaskedAdminAccessCode();
+            return result;
         }
     }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
@@ -886,31 +855,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateAdminAccessCode(arg0: string): Promise<void> {
+    async updateAdminAccessCode(arg0: string, arg1: string): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateAdminAccessCode(arg0);
+                const result = await this.actor.updateAdminAccessCode(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateAdminAccessCode(arg0);
-            return result;
-        }
-    }
-    async verifyAccessCode(arg0: string): Promise<boolean> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.verifyAccessCode(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.verifyAccessCode(arg0);
+            const result = await this.actor.updateAdminAccessCode(arg0, arg1);
             return result;
         }
     }

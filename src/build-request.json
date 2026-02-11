@@ -1,102 +1,42 @@
 {
   "kind": "build_request",
-  "title": "Make 7583A a permanent master admin code that always grants access and redirects to Admin Dashboard",
-  "priority": "high",
+  "title": "Add 'Shop is Awakening' announcement to top of public Shop page",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Ensure the backend permanently recognizes the master admin access code \"7583A\" and always returns \"Access Granted\" when the caller submits exactly that code, regardless of any prior lockout state or configurable code changes.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "The Admin Access system must permanently recognize 7583A as the correct five-character master access code... ensuring the code is always validated correctly and never returns an access-denied message when entered exactly as 7583A."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Calling submitAdminAccessAttempt with \"7583A\" returns exactly \"Access Granted\" even if the caller is currently locked out.",
-        "Calling verifyAdminAccess/adminLogin with \"7583A\" succeeds even if the caller is currently locked out.",
-        "Any lockout/attempt counters for the caller are cleared/reset on successful use of the permanent master code."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Normalize admin access code validation on the backend so that the permanent master code check for \"7583A\" is robust to common user input variations (leading/trailing spaces and case differences), while still treating the code as exactly five characters after trimming.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "...correct five-character master access code... whenever this code is entered..."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Submitting \" 7583a \" (or other case variants with surrounding whitespace) is treated as the permanent master code and grants access.",
-        "Backend validation trims whitespace and performs a case-insensitive comparison for the permanent master code path.",
-        "Non-matching codes still follow the existing lockout/attempt behavior."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Update the Admin Access page so that when the user enters \"7583A\" it immediately shows the success message \"Access Granted\" and automatically redirects to \"/admin\" without ever displaying an access-denied state for that exact input.",
+      "text": "Add the provided \"Shop is Awakening\" announcement message to the existing public Shop page/tab (frontend/src/pages/Shop.tsx) and render it near the top of the page content, above the current shop controls/products content, styled consistently with the rest of the site using existing layout/components (e.g., PageLayout, FadeInSection, shadcn Card/Alert, existing theme classes). The announcement text must be displayed exactly as provided (including punctuation and the ✨).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "recent-5",
+          "recent-7",
+          "recent-9"
         ],
         "quotes": [
-          "Whenever this code is entered on the Administrative Access page, the system should immediately display “Access Granted” and automatically redirect the user to the full Admin Dashboard..."
+          "The Shop is Awakening…\n\nOur enchanted marketplace is still gathering its magic, and online purchases are not quite available yet. But worry not—your quests and creations need not wait. You may request a custom quote or personalized quest directly through our website, or send a message through Facebook Messenger, Instagram, or TikTok, where we happily discuss custom items, handcrafted products, and unique freelance creations made just for you.\n\nUntil the shop fully opens its doors, these pathways remain open—so step forward, share your vision, and together we will craft something extraordinary while the marketplace prepares to come to life. ✨ Make sure this displays within the shop tab, the public shop.",
+          "Make sure that is displayed on the shop page slash tab somewhere at the top! Number three, I want it to be styled exactly like the rest of the website.",
+          "Build it."
         ]
       },
       "acceptanceCriteria": [
-        "Entering 7583A on /admin-access shows \"Access Granted\" and navigates to /admin automatically.",
-        "No \"Access Denied\" message is shown when the user enters 7583A (including case/whitespace variants that normalize to 7583A).",
-        "Redirect happens automatically after success without requiring additional user interaction."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Update admin settings UI copy so it does not imply that the permanent master code can be changed; clearly present 7583A as the permanent master code and treat the existing update form as changing only the configurable admin access code.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "...permanently recognize 7583A as the correct five-character master access code."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin access code settings section labeling/descriptions clearly state that \"7583A\" is permanent and cannot be changed.",
-        "The update form is described as changing a configurable/secondary admin access code (while 7583A always remains valid).",
-        "All user-facing text remains in English."
+        "Visiting the Shop page shows the full provided announcement message at the top of the page content area (above the existing Shop controls/products grid).",
+        "The announcement styling matches the site’s established dark-fantasy theme and uses existing UI components/classes (no new design system introduced).",
+        "The announcement text matches the user-provided wording exactly, including the ending ✨ character.",
+        "The Shop page remains functional (controls, product list, cart drawer) and layout does not break on mobile and desktop."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
-    "Do not edit files under frontend/src/components/ui or any frontend immutablePaths listed in SYSTEM_CONTEXT."
+    "Frontend immutable paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui) must not be modified.",
+    "Do not add any new backend/canister APIs or schema changes for this announcement; it is a static UI addition on the Shop page."
   ],
   "nonGoals": [
-    "Implementing new admin features/tools beyond ensuring admin access is granted and the dashboard becomes reachable.",
-    "Adding third-party authentication or any non-Internet-Identity auth mechanisms.",
-    "Changing unrelated role/permission models outside what is required to ensure 7583A always grants access."
+    "Implementing e-commerce checkout or enabling online purchases.",
+    "Adding new social links/integrations beyond displaying the provided static message."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

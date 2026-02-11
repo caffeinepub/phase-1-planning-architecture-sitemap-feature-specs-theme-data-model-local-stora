@@ -3,24 +3,27 @@ import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Shield, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Shield, Loader2, CheckCircle, AlertCircle, LogIn } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
-import RequireAuth from '../components/auth/RequireAuth';
 import { useSubmitAdminAccessAttempt, useGetAdminEntryLockoutStatus } from '../hooks/useQueries';
 import { setAdminAccessUnlocked } from '../lib/adminAccessSession';
 import { getClientDetails } from '../lib/clientDetails';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useActor } from '../hooks/useActor';
 import { isAdminEntryLockedOut, setAdminEntryLockedOut } from '../lib/adminEntryLockout';
+import { useQueryClient } from '@tanstack/react-query';
 
-function AdminAccessContent() {
+export default function AdminAccess() {
   const [accessCode, setAccessCode] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const submitMutation = useSubmitAdminAccessAttempt();
-  const { identity } = useInternetIdentity();
+  const { identity, login, isInitializing, loginStatus } = useInternetIdentity();
+  const { actor, isFetching: actorFetching } = useActor();
   const { data: backendLockedOut, isFetched: lockoutFetched } = useGetAdminEntryLockoutStatus();
+  const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
   const principalString = identity?.getPrincipal().toString() || '';
@@ -34,24 +37,29 @@ function AdminAccessContent() {
   }, [isAuthenticated, lockoutFetched, backendLockedOut, principalString]);
 
   const isLockedOut = localLockedOut || (lockoutFetched && backendLockedOut);
+  const isLoggingIn = loginStatus === 'logging-in';
+  const isSessionLoading = isInitializing || actorFetching;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
 
+    // Prevent submission if actor is not ready
+    if (!actor) {
+      setError('Loading your session...');
+      return;
+    }
+
     const trimmedCode = accessCode.trim().toUpperCase();
 
     if (trimmedCode.length !== 5) {
-      setError('Access Denied');
+      setError('Access code must be exactly 5 characters');
       setAccessCode('');
       return;
     }
 
-    // Check if this is the permanent master code - if so, bypass lockout checks
-    const isPermanentMasterCode = trimmedCode === '7583A';
-
-    if (!isPermanentMasterCode && isLockedOut) {
+    if (isLockedOut) {
       setError('Account permanently locked out due to repeated code attempts. Contact administrator.');
       return;
     }
@@ -70,16 +78,26 @@ function AdminAccessContent() {
         setSuccess(true);
         setAdminAccessUnlocked();
         
-        // Auto-redirect to admin dashboard
+        // Invalidate and refetch role/permission queries before redirect
+        await queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
+        await queryClient.invalidateQueries({ queryKey: ['callerPermissions'] });
+        
+        // Wait for queries to refetch
+        await queryClient.refetchQueries({ queryKey: ['currentUserRole'] });
+        
+        // Auto-redirect to admin dashboard after queries are refreshed
         setTimeout(() => {
           navigate({ to: '/admin' });
-        }, 1000);
+        }, 1500);
       } else {
         setError('Access Denied');
         setAccessCode('');
       }
     } catch (err: any) {
-      if (err.message && err.message.includes('locked')) {
+      // Differentiate between initialization errors and backend denial
+      if (err.message === 'Actor not available') {
+        setError('Loading your session...');
+      } else if (err.message && err.message.includes('locked')) {
         if (isAuthenticated && principalString) {
           setAdminEntryLockedOut(principalString);
         }
@@ -88,6 +106,14 @@ function AdminAccessContent() {
         setError('Access Denied');
       }
       setAccessCode('');
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error: any) {
+      console.error('Login error:', error);
     }
   };
 
@@ -105,6 +131,8 @@ function AdminAccessContent() {
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 ) : isLockedOut ? (
                   <AlertCircle className="h-8 w-8 text-destructive" />
+                ) : !isAuthenticated ? (
+                  <LogIn className="h-8 w-8 text-primary" />
                 ) : (
                   <Shield className="h-8 w-8 text-primary" />
                 )}
@@ -112,12 +140,44 @@ function AdminAccessContent() {
               <CardTitle className="text-2xl">Administrative Access</CardTitle>
             </CardHeader>
             <CardContent>
-              {success ? (
+              {/* Not authenticated - show login required */}
+              {!isAuthenticated ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    You must be logged in with Internet Identity to access the admin dashboard.
+                  </p>
+                  <Button
+                    onClick={handleLogin}
+                    className="w-full"
+                    disabled={isLoggingIn}
+                  >
+                    {isLoggingIn ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="h-4 w-4 mr-2" />
+                        Login with Internet Identity
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : isSessionLoading ? (
+                /* Session loading - show loading state */
+                <div className="text-center space-y-4">
+                  <Loader2 className="h-8 w-8 mx-auto animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">Loading your session...</p>
+                </div>
+              ) : success ? (
+                /* Success - show access granted */
                 <div className="text-center space-y-4">
                   <p className="text-lg font-semibold text-green-600">Access Granted</p>
                   <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
                 </div>
               ) : isLockedOut ? (
+                /* Locked out - show lockout message */
                 <div className="text-center space-y-4">
                   <p className="text-sm text-destructive font-semibold">
                     Account permanently locked out due to repeated code attempts. Contact administrator.
@@ -127,6 +187,7 @@ function AdminAccessContent() {
                   </p>
                 </div>
               ) : (
+                /* Authenticated and ready - show code entry form */
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <label htmlFor="accessCode" className="text-sm font-medium">
@@ -140,7 +201,7 @@ function AdminAccessContent() {
                       placeholder="Enter code"
                       maxLength={5}
                       className="text-center text-lg tracking-widest font-mono"
-                      disabled={submitMutation.isPending}
+                      disabled={submitMutation.isPending || !actor}
                       autoFocus
                     />
                   </div>
@@ -152,7 +213,7 @@ function AdminAccessContent() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={submitMutation.isPending || accessCode.trim().length !== 5}
+                    disabled={submitMutation.isPending || accessCode.trim().length !== 5 || !actor}
                   >
                     {submitMutation.isPending ? (
                       <>
@@ -173,13 +234,5 @@ function AdminAccessContent() {
         </div>
       </FadeInSection>
     </PageLayout>
-  );
-}
-
-export default function AdminAccess() {
-  return (
-    <RequireAuth>
-      <AdminAccessContent />
-    </RequireAuth>
   );
 }

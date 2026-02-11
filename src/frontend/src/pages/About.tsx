@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Heart, Target } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
@@ -7,7 +7,7 @@ export default function About() {
   return (
     <PageLayout
       title="About The Creator of Side Quests"
-      description="Built from curiosity, chaos, and creativity. Discover the story, mission, and vision behind The Creator of Side Quests."
+      description="Forged from curiosity, chaos, and quiet magic. Discover the story, mission, and vision behind The Creator of Side Quests."
     >
       {/* Intro Section */}
       <FadeInSection>
@@ -15,28 +15,32 @@ export default function About() {
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-2 mb-6">
               <Sparkles className="h-8 w-8 text-primary" />
-              <h2 className="text-3xl md:text-4xl font-display font-bold">Built from curiosity, chaos, and creativity ✨</h2>
+              <h2 className="text-3xl md:text-4xl font-display font-bold">About the Creator of Side Quests</h2>
             </div>
             
             <div className="prose prose-lg max-w-none space-y-6 text-foreground/90">
-              <p>
-                I'm Joseph Fitchpatrick—most call me Joe in real life, and I go by Willow online. I'm a multi-disciplinary creative, writer, organizer, and content creator with years of hands-on experience across art, digital media, and practical craftsmanship. I specialize in turning chaotic energy, obsessive focus, and hyperfixations into tangible results that are as beautiful as they are functional.
+              <p className="text-lg font-semibold text-primary">
+                Forged from curiosity, chaos, and quiet magic.
               </p>
               
               <p>
-                What started as hobbies, experiments, and curiosity has grown into a dream job fueled by ADHD energy, OCD attention to detail, and autistic neurodivergent creativity. My brain doesn't move in straight lines, and neither does my work—but that's exactly how I bring something special to every project. Every side quest I take on is approached with patience, passion, and integrity.
+                I am Joseph Fitchpatrick—Joe in the waking world, Willow in the digital wilds—a multi-disciplinary creator, writer, organizer, and builder of curious things. My path has never followed a straight road; instead, it winds through art, digital craft, storytelling, and hands-on creation, gathering knowledge like lanterns along the way. From these collected sparks, I shape ideas into works that are both functional and enchanted.
               </p>
               
               <p>
-                I focus on creative problem-solving, digital-first services, custom small-batch projects, and ADHD-friendly workflows. I believe creativity should be accessible, ethical, and human—not intimidating or gatekept. Whether it's a digital design, handmade craft, organizational system, or a one-of-a-kind idea, I approach every task with empathy, energy, and care.
+                What began as experiments, hobbies, and late-night bursts of inspiration slowly transformed into a calling. Guided by ADHD momentum, OCD precision, and the expansive perspective of autistic creativity, my work thrives where structure meets beautiful chaos. My mind moves like a constellation rather than a line—and every project I touch carries that same layered brilliance. Each "side quest" is approached with patience, intention, and a deep respect for the magic hidden in small details.
+              </p>
+              
+              <p>
+                My focus lies in creative problem-solving, digital-first services, custom small-batch creations, and workflows designed to empower minds that think differently. I believe creativity should feel welcoming, ethical, and human—never locked behind gates or complicated rituals. Whether crafting a digital design, building a handmade piece, organizing a system from disorder, or bringing an unusual idea to life, I approach every endeavor with empathy, energy, and care.
               </p>
               
               <p className="text-sm text-muted-foreground">
-                I do not claim professional licensing in regulated fields. Everything offered falls within legal, unregulated creative services in Kentucky, with the exception of my CNA work, which is licensed and regulated.
+                I do not claim professional licensing in regulated fields. All offerings remain within legal, unregulated creative services in Kentucky, with the exception of my CNA work, which is fully licensed and regulated.
               </p>
               
               <p className="text-lg font-semibold text-primary">
-                Side quests accepted, main quests optional. Your ideas are welcome here, no matter how chaotic or magical they may be. If you can dream it, I'll do my best to make it real. 🌪️💜
+                Side quests are always open; main quests are optional. Bring your strange ideas, your half-formed dreams, your impossible-sounding concepts. If you can imagine it, I will do everything within my power to help bring it into the world—one spark of magic at a time. 🌙✨
               </p>
             </div>
           </div>

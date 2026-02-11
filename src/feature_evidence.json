@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-admin-access-page-so-that-when-the-user-enters-7583a-it-immediately-shows-the-success-message-access-granted-and-automatically-redirects-to-admin-without-ever-displaying-an-access-denied-state-for-that-exact-input",
-      "featureTitle": "Update the Admin Access page so that when the user enters \"7583A\" it immediately shows the success message \"Access Granted\" and automatically redirects to \"/admin\" without ever displaying an access-denied state for that exact input.",
+      "featureId": "feature-add-the-provided-shop-is-awakening-announcement-message-to-the-existing-public-shop-page-tab-frontend-src-pages-shop-tsx-and-render-it-near-the-top-of-the-page-content-above-the-current-shop-controls-products-content-styled-consistently-with-the-rest-of-the-site-using-existing-layout-components-e-g-pagelayout-fadeinsection-shadcn-card-alert-existing-theme-classes-the-announcement-text-must-be-displayed-exactly-as-provided-including-punctuation-and-the",
+      "featureTitle": "Add the provided \"Shop is Awakening\" announcement message to the existing public Shop page/tab (frontend/src/pages/Shop.tsx) and render it near the top of the page content, above the current shop controls/products content, styled consistently with the rest of the site using existing layout/components (e.g., PageLayout, FadeInSection, shadcn Card/Alert, existing theme classes). The announcement text must be displayed exactly as provided (including punctuation and the ✨).",
       "files": [
-        "frontend/src/pages/AdminAccess.tsx"
+        "frontend/src/pages/Shop.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,28 +17,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-admin-settings-ui-copy-so-it-does-not-imply-that-the-permanent-master-code-can-be-changed-clearly-present-7583a-as-the-permanent-master-code-and-treat-the-existing-update-form-as-changing-only-the-configurable-admin-access-code",
-      "featureTitle": "Update admin settings UI copy so it does not imply that the permanent master code can be changed; clearly present 7583A as the permanent master code and treat the existing update form as changing only the configurable admin access code.",
-      "files": [
-        "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-        "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "confidence": "high"
     }

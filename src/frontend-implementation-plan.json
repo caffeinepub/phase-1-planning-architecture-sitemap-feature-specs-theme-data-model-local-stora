@@ -1,42 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend updates: permanent master admin code UX + admin settings copy",
+  "title": "Add 'Shop is Awakening' announcement banner to Shop page",
   "requirements": [
     {
-      "id": "REQ-3",
-      "summary": "On /admin-access, treat 7583A (case/whitespace normalized) as an immediate success that redirects to /admin without showing access-denied.",
+      "id": "REQ-1",
+      "summary": "Render the provided static 'Shop is Awakening' announcement near the top of the public Shop page, styled with existing layout and shadcn/ui components.",
       "acceptanceCriteria": [
-        "Entering 7583A on /admin-access shows \"Access Granted\" and navigates to /admin automatically.",
-        "No \"Access Denied\" message is shown when the user enters 7583A (including case/whitespace variants that normalize to 7583A).",
-        "Redirect happens automatically after success without requiring additional user interaction."
+        "Visiting the Shop page shows the full provided announcement message at the top of the page content area (above the existing Shop controls/products grid).",
+        "The announcement styling matches the site’s established dark-fantasy theme and uses existing UI components/classes (no new design system introduced).",
+        "The announcement text matches the user-provided wording exactly, including the ending ✨ character.",
+        "The Shop page remains functional (controls, product list, cart drawer) and layout does not break on mobile and desktop."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminAccess.tsx",
+          "path": "frontend/src/pages/Shop.tsx",
           "operation": "modify",
-          "description": "Update admin access submission and UI gating so normalized input (trim + uppercase) equal to \"7583A\" short-circuits all lockout/denied paths: immediately set success UI state (showing exactly \"Access Granted\"), call setAdminAccessUnlocked(), and auto-navigate to \"/admin\". Ensure the lockout UI does not prevent entering the code (e.g., do not fully replace the form with a lockout-only screen), while keeping existing lockout behavior for all non-master codes."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Revise admin settings UI text to clearly state 7583A is a permanent master code and the editable form only changes a configurable secondary code.",
-      "acceptanceCriteria": [
-        "Admin access code settings section labeling/descriptions clearly state that \"7583A\" is permanent and cannot be changed.",
-        "The update form is described as changing a configurable/secondary admin access code (while 7583A always remains valid).",
-        "All user-facing text remains in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-          "operation": "modify",
-          "description": "Update headings/descriptions/labels/button text and any success/error copy so the page explicitly states \"7583A\" is the permanent master admin code (cannot be changed) and the form updates only the configurable/secondary admin access code used for normal access. Ensure all user-facing text remains English and no copy implies 7583A is editable."
-        },
-        {
-          "path": "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx",
-          "operation": "modify",
-          "description": "Update Security Settings copy (card title/description, labels, and toast messages where applicable) to present \"7583A\" as the permanent master admin code that cannot be changed, and clarify the form changes only the configurable/secondary admin access code while 7583A always remains valid. Keep all user-facing text in English."
+          "description": "Add a static announcement block above the existing shop controls within the main content section. Use existing layout/components already in use on this page (PageLayout, FadeInSection) and a shadcn/ui container (e.g., Card and/or Alert) to match the established theme. Ensure the announcement text is inserted exactly as provided (including punctuation, line breaks, and the ✨) and rendered with appropriate Tailwind utility classes (e.g., whitespace-preserving) so formatting remains readable on mobile/desktop. Verify the component's usage instructions before implementing."
         }
       ]
     }
