@@ -1,10 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the Services page content with the provided “Enchanted Services of The Creator of Side Quests” copy and ensure all major sections use the site’s consistent bordered styling.
+**Goal:** Allow users to unlock and use the full admin dashboard via a backend-verified 5-character admin code, without requiring Internet Identity login.
 
 **Planned changes:**
-- Remove the current artifact-focused Services page content (including any existing services list/accordion) and replace it entirely with the provided “Enchanted Services of The Creator of Side Quests” text (including all headings, emoji, bullets, and closing invitation), preserving exact wording/punctuation aside from necessary layout formatting.
-- Wrap the intro/title area, each service category section (🌿, 👑, 📜, 🎁, 🌈, 🎉, 🛠️, 🎨), and the closing invitation paragraph in the existing bordered styling pattern (MysticalBorder) so each block is individually enclosed and remains visually consistent across responsive breakpoints.
+- Fix backend admin-code verification so that a case-insensitive “Access Granted” result also grants admin privileges to the same caller principal for subsequent admin-protected calls.
+- Update `/admin-access` to remove any Internet Identity login requirement, enforce exactly 5-character input, submit the code to the backend, show “Access Granted” on success, and auto-redirect to the admin dashboard route.
+- Update `/admin` route gating to rely on successful admin-code unlock (not Internet Identity): redirect locked users to `/admin-access`, and render the existing AdminDashboardShell and all current sections/tools once unlocked for the session.
 
-**User-visible outcome:** Visiting `/services` shows the new “Enchanted Services of The Creator of Side Quests” content only, with each major section presented inside consistent bordered containers across mobile, tablet, and desktop.
+**User-visible outcome:** A user can visit `/admin-access`, enter the 5-character code (e.g., `7583a`), see “Access Granted,” and be taken into the full admin dashboard at `/admin` with all existing features available—without any Internet Identity login.

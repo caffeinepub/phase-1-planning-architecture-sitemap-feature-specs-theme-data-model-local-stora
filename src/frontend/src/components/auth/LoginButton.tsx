@@ -14,6 +14,7 @@ export default function LoginButton() {
 
   const handleAuth = async () => {
     if (isAuthenticated) {
+      // Clear all state on logout
       await clear();
       queryClient.clear();
       clearSessionStorage();

@@ -1,26 +1,28 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Website update for The Creator of Side Quests: replace the entire Services page with new 'Enchanted Services' content and ensure all sections use the site's consistent bordered styling.",
+  "summary": "Implement an admin access flow that bypasses Internet Identity by using a backend-canister verified 5-character admin code, showing “Access Granted,” then redirecting users into the full admin dashboard UI with all tools enabled.",
   "architectural_notes": [
-    "Services page should reuse the site's existing border/styling system so all sections consistently render with borders (avoid one-off CSS)."
+    "Admin access code must be verified in the backend canister (not frontend-only) and grant access to the full admin dashboard without Internet Identity authentication."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "User reports they have never been able to access/enter the admin dashboard UI."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-replace-all-existing-content-on-the-services-page-with-the-user-provided-enchanted-services-of-the-creator-of-side-quests-copy-removing-the-current-artifact-focused-services-list-accordion-content",
-      "title": "Replace all existing content on the Services page with the user-provided “Enchanted Services of The Creator of Side Quests” copy, removing the current artifact-focused services list/accordion content.",
+      "id": "feature-update-the-admin-access-page-admin-access-so-it-does-not-require-an-internet-identity-login-users-should-be-able-to-type-the-5-character-access-code-submit-it-see-access-granted-and-be-automatically-redirected-into-the-full-admin-dashboard-ui",
+      "title": "Update the Admin Access page (/admin-access) so it does NOT require an Internet Identity login. Users should be able to type the 5-character access code, submit it, see “Access Granted,” and be automatically redirected into the full admin dashboard UI.",
       "reqIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-every-major-part-of-the-new-services-page-content-is-visually-enclosed-with-the-site-s-consistent-bordered-styling-use-the-existing-mysticalborder-styling-pattern-used-across-the-site-so-that-each-section-of-content-has-borders-like-the-rest-of-the-website",
-      "title": "Ensure every major part of the new Services page content is visually enclosed with the site’s consistent bordered styling (use the existing MysticalBorder styling pattern used across the site), so that each section of content has borders like the rest of the website.",
+      "id": "feature-update-the-admin-dashboard-route-admin-gating-so-that-entering-the-correct-admin-access-code-is-sufficient-to-render-the-full-admin-dashboard-ui-with-all-existing-tools-features-without-requiring-internet-identity-login",
+      "title": "Update the Admin Dashboard route (/admin) gating so that entering the correct admin access code is sufficient to render the full admin dashboard UI with all existing tools/features, without requiring Internet Identity login.",
       "reqIds": [
-        "REQ-2"
+        "REQ-3"
       ],
       "version": 1
     }
@@ -28,18 +30,20 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Replace entire Services page content with provided 'Enchanted Services of The Creator of Side Quests' copy",
+      "summary": "Admin page: show 5-character access code form; verify code (7583A) in backend canister; on success display “Access Granted” and auto-redirect to full admin dashboard with no Internet Identity login required",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Apply the site's existing bordered style to every part/section of the Services page content (consistent borders like rest of website)",
-      "reqIds": [],
+      "summary": "Fix backend admin-code verification so that a case-insensitive match that returns “Access Granted” also grants admin privileges for the same caller principal (so the user can actually enter the admin dashboard after a successful code entry).",
+      "reqIds": [
+        "REQ-1"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "The Creator of Side Quests",
+  "projectName": "Fix admin access flow to bypass Internet Identity and unlock full admin dashboard via backend-verified code",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

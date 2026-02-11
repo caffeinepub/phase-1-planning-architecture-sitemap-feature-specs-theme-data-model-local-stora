@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Shield, Loader2, CheckCircle, AlertCircle, LogIn } from 'lucide-react';
+import { Shield, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
 import AdminAccessIntro from '../components/intro/AdminAccessIntro';
@@ -14,6 +14,7 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useActor } from '../hooks/useActor';
 import { isAdminEntryLockedOut, setAdminEntryLockedOut } from '../lib/adminEntryLockout';
 import { useQueryClient } from '@tanstack/react-query';
+import { normalizeAccessCode, isValidCodeFormat } from '../lib/adminAccessCode';
 
 export default function AdminAccess() {
   const [accessCode, setAccessCode] = useState('');
@@ -21,51 +22,37 @@ export default function AdminAccess() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const submitMutation = useSubmitAdminAccessAttempt();
-  const { identity, login, isInitializing, loginStatus } = useInternetIdentity();
+  const { identity } = useInternetIdentity();
   const { actor, isFetching: actorFetching } = useActor();
   const { data: backendLockedOut, isFetched: lockoutFetched } = useGetAdminEntryLockoutStatus();
   const queryClient = useQueryClient();
 
-  const isAuthenticated = !!identity;
   const principalString = identity?.getPrincipal().toString() || '';
   
-  const localLockedOut = isAuthenticated ? isAdminEntryLockedOut(principalString) : false;
+  // Check lockout status (only relevant if we have an identity)
+  const localLockedOut = principalString ? isAdminEntryLockedOut(principalString) : false;
   
   useEffect(() => {
-    if (isAuthenticated && lockoutFetched && backendLockedOut && principalString) {
+    if (principalString && lockoutFetched && backendLockedOut) {
       setAdminEntryLockedOut(principalString);
     }
-  }, [isAuthenticated, lockoutFetched, backendLockedOut, principalString]);
+  }, [lockoutFetched, backendLockedOut, principalString]);
 
   const isLockedOut = localLockedOut || backendLockedOut;
-
-  const handleLogin = async () => {
-    try {
-      await login();
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || 'Failed to log in');
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
 
-    if (!isAuthenticated) {
-      setError('Please log in first');
-      return;
-    }
-
     if (isLockedOut) {
       setError('Account permanently locked out. Contact administrator.');
       return;
     }
 
-    const normalizedCode = accessCode.trim().toUpperCase();
+    const normalizedCode = normalizeAccessCode(accessCode);
 
-    if (normalizedCode.length !== 5) {
+    if (!isValidCodeFormat(normalizedCode)) {
       setError('Access code must be exactly 5 characters');
       return;
     }
@@ -82,9 +69,15 @@ export default function AdminAccess() {
         setSuccess(true);
         setAdminAccessUnlocked();
         
-        queryClient.setQueryData(['isAdmin'], true);
+        // Invalidate role and permission queries to refresh admin status
+        await queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
+        await queryClient.invalidateQueries({ queryKey: ['callerPermissions'] });
+        await queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
         
-        navigate({ to: '/admin', search: { granted: 1 } });
+        // Small delay to show success message, then redirect
+        setTimeout(() => {
+          navigate({ to: '/admin', search: { granted: '1' } });
+        }, 1500);
       } else {
         setError('Invalid access code. Please try again.');
       }
@@ -101,7 +94,7 @@ export default function AdminAccess() {
     }
   };
 
-  const isLoading = isInitializing || actorFetching || submitMutation.isPending;
+  const isLoading = actorFetching || submitMutation.isPending;
 
   return (
     <PageLayout
@@ -124,34 +117,13 @@ export default function AdminAccess() {
                   <Shield className="h-8 w-8 text-primary" />
                 </div>
               </div>
-              <CardTitle className="text-center text-2xl">Admin Access</CardTitle>
+              <CardTitle className="text-center text-2xl">Administrative Access</CardTitle>
+              <p className="text-center text-sm text-muted-foreground mt-2">
+                5-Character Access Code
+              </p>
             </CardHeader>
             <CardContent className="space-y-6">
-              {!isAuthenticated ? (
-                <div className="text-center space-y-4">
-                  <p className="text-muted-foreground">
-                    Please log in with Internet Identity to access the admin panel
-                  </p>
-                  <Button
-                    onClick={handleLogin}
-                    disabled={loginStatus === 'logging-in'}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {loginStatus === 'logging-in' ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Logging in...
-                      </>
-                    ) : (
-                      <>
-                        <LogIn className="mr-2 h-5 w-5" />
-                        Login with Internet Identity
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : isLockedOut ? (
+              {isLockedOut ? (
                 <div className="text-center space-y-4">
                   <div className="flex items-center justify-center">
                     <AlertCircle className="h-12 w-12 text-destructive" />
@@ -168,30 +140,33 @@ export default function AdminAccess() {
                   <div className="flex items-center justify-center">
                     <CheckCircle className="h-12 w-12 text-success" />
                   </div>
-                  <p className="text-success font-semibold">Access Granted</p>
-                  <p className="text-sm text-muted-foreground">Redirecting to admin panel...</p>
+                  <p className="text-success font-semibold text-lg">Access Granted</p>
+                  <p className="text-sm text-muted-foreground">Redirecting to admin dashboard...</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <label htmlFor="accessCode" className="text-sm font-medium">
-                      Access Code
+                      Enter code
                     </label>
                     <Input
                       id="accessCode"
                       type="text"
                       value={accessCode}
                       onChange={(e) => setAccessCode(e.target.value)}
-                      placeholder="Enter 5-character code"
+                      placeholder="Enter code"
                       maxLength={5}
                       className="text-center text-lg tracking-widest uppercase"
                       disabled={isLoading}
                       autoComplete="off"
                     />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Code is case-insensitive
+                    </p>
                   </div>
 
                   {error && (
-                    <div className="flex items-center gap-2 text-destructive text-sm">
+                    <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-md">
                       <AlertCircle className="h-4 w-4 flex-shrink-0" />
                       <span>{error}</span>
                     </div>
@@ -209,7 +184,7 @@ export default function AdminAccess() {
                         Verifying...
                       </>
                     ) : (
-                      'Verify Access'
+                      'Enter Dashboard'
                     )}
                   </Button>
                 </form>

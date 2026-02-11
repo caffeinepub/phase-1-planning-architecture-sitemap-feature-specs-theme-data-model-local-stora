@@ -2,30 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-all-existing-content-on-the-services-page-with-the-user-provided-enchanted-services-of-the-creator-of-side-quests-copy-removing-the-current-artifact-focused-services-list-accordion-content",
-      "featureTitle": "Replace all existing content on the Services page with the user-provided “Enchanted Services of The Creator of Side Quests” copy, removing the current artifact-focused services list/accordion content.",
+      "featureId": "feature-update-the-admin-access-page-admin-access-so-it-does-not-require-an-internet-identity-login-users-should-be-able-to-type-the-5-character-access-code-submit-it-see-access-granted-and-be-automatically-redirected-into-the-full-admin-dashboard-ui",
+      "featureTitle": "Update the Admin Access page (/admin-access) so it does NOT require an Internet Identity login. Users should be able to type the 5-character access code, submit it, see “Access Granted,” and be automatically redirected into the full admin dashboard UI.",
       "files": [
-        "frontend/src/pages/Services.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-every-major-part-of-the-new-services-page-content-is-visually-enclosed-with-the-site-s-consistent-bordered-styling-use-the-existing-mysticalborder-styling-pattern-used-across-the-site-so-that-each-section-of-content-has-borders-like-the-rest-of-the-website",
-      "featureTitle": "Ensure every major part of the new Services page content is visually enclosed with the site’s consistent bordered styling (use the existing MysticalBorder styling pattern used across the site), so that each section of content has borders like the rest of the website.",
-      "files": [
-        "frontend/src/pages/Services.tsx"
+        "frontend/src/components/layout/HeaderNav.tsx",
+        "frontend/src/lib/adminAccessCode.ts",
+        "frontend/src/pages/AdminAccess.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -38,6 +20,28 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-admin-dashboard-route-admin-gating-so-that-entering-the-correct-admin-access-code-is-sufficient-to-render-the-full-admin-dashboard-ui-with-all-existing-tools-features-without-requiring-internet-identity-login",
+      "featureTitle": "Update the Admin Dashboard route (/admin) gating so that entering the correct admin access code is sufficient to render the full admin dashboard UI with all existing tools/features, without requiring Internet Identity login.",
+      "files": [
+        "frontend/src/components/auth/RequireAdminAccessGate.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/Admin.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

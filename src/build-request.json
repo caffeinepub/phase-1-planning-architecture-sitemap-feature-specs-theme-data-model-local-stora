@@ -1,53 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Replace Services page with Enchanted Services content and ensure bordered styling throughout",
-  "priority": "normal",
+  "title": "Fix admin access flow to bypass Internet Identity and unlock full admin dashboard via backend-verified code",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Replace all existing content on the Services page with the user-provided “Enchanted Services of The Creator of Side Quests” copy, removing the current artifact-focused services list/accordion content.",
-      "target": "frontend",
+      "text": "Fix backend admin-code verification so that a case-insensitive match that returns “Access Granted” also grants admin privileges for the same caller principal (so the user can actually enter the admin dashboard after a successful code entry).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages-user-1"
+          "msg-user-1"
         ],
         "quotes": [
-          "This should replace everything on the services page"
+          "Stored in the back end canister! ... The five digit code to get into the dashboard is this 7583A"
         ]
       },
       "acceptanceCriteria": [
-        "Navigating to /services no longer shows the old service offerings (e.g., “Artifact Restoration”, “Professional Appraisal”, etc.).",
-        "The Services page displays the full provided copy including: opening welcome paragraph, the “Dive in…” line, all category headings (🌿, 👑, 📜, 🎁, 🌈, 🎉, 🛠️, 🎨), all bullet lines under each category, and the final closing paragraph inviting custom requests/quotes.",
-        "All user-facing text on the Services page matches the provided English copy exactly (including punctuation and emoji), except for minor formatting needed for layout (e.g., line breaks / list formatting)."
+        "Calling submitAdminAccessAttempt with accessCode=\"7583a\" (or any mixed/lowercase variant) returns exactly \"Access Granted\" and also results in the caller being granted admin privileges (i.e., subsequent admin-protected calls from the same caller principal succeed).",
+        "Calling submitAdminAccessAttempt with an incorrect code returns exactly \"Access Denied\" and does not grant admin privileges.",
+        "The master admin access code remains stored/verified in the backend canister as 7583A (no frontend hardcoding required for verification)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure every major part of the new Services page content is visually enclosed with the site’s consistent bordered styling (use the existing MysticalBorder styling pattern used across the site), so that each section of content has borders like the rest of the website.",
+      "text": "Update the Admin Access page (/admin-access) so it does NOT require an Internet Identity login. Users should be able to type the 5-character access code, submit it, see “Access Granted,” and be automatically redirected into the full admin dashboard UI.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-user-1"
+          "msg-user-1"
         ],
         "quotes": [
-          "make sure every part of this has borders around it like the rest of the website"
+          "Administrative access should not require an Internet Identity login.",
+          "...clicking the admin page button it should take you to where it says administrative access, it says five character access code you should be able to type in the code hit submit it's a access granted and it take you to the full UI admin dashboard with all of the features and the tools..."
         ]
       },
       "acceptanceCriteria": [
-        "The intro/title block is wrapped in the site’s bordered styling (consistent with existing MysticalBorder appearance).",
-        "Each service category block (🌿 Mystical Home & Enchanted Decor, 👑 Fashion & Enchanted Accessories, 📜 Office & Workshop Wonders, 🎁 Gifts & Keepsakes from the Arcane, 🌈 Kids & Whimsical Learning, 🎉 Celebrations & Seasonal Magic, 🛠️ Niche & Hobby Charms, 🎨 DIY & Enchanted Craft Kits) is individually enclosed in a bordered container consistent with the site’s bordered theme.",
-        "The closing paragraph/invitation to submit a custom request or quote is enclosed in a bordered container consistent with the site’s bordered theme.",
-        "Borders remain consistent across responsive breakpoints (mobile/tablet/desktop) without overflow or clipped content."
+        "Visiting /admin-access shows the “Administrative Access” UI and a 5-character code input without any Internet Identity login prompt or login requirement.",
+        "Submitting the correct code results in visible success text \"Access Granted\" and an automatic redirect to /admin (or equivalent admin dashboard route) without any additional authentication steps.",
+        "Submitting an invalid code displays an English error message and does not redirect.",
+        "The page continues to enforce that the access code must be exactly 5 characters before submission."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update the Admin Dashboard route (/admin) gating so that entering the correct admin access code is sufficient to render the full admin dashboard UI with all existing tools/features, without requiring Internet Identity login.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "...it should take you to the full UI admin dashboard with all of the features and the tools, and full access to the admin dashboard with all of those tools and features included... I just have never been able to get into the dashboard yet!"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After a successful code entry on /admin-access, navigating to /admin renders the existing AdminDashboardShell and its sections (home/shop/coupons/portfolio/testimonies/requests/inbox/security) without requiring Internet Identity login.",
+        "Directly visiting /admin while the session is not unlocked redirects the user to /admin-access.",
+        "After successful entry, /admin shows the existing “Access Granted” toast/confirmation behavior (or equivalent) and the dashboard remains usable for the session."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (compose existing components instead).",
-    "Do not modify immutable paths listed in SYSTEM_CONTEXT."
+    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or anything in frontend/src/components/ui (compose instead).",
+    "Backend must remain single-actor; implement changes in backend/main.mo only. Create backend/migration.mo only if state schema changes are required (avoid if not needed).",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "No backend/canister changes are required.",
-    "No changes to routing, authentication, or request/quote submission functionality beyond updating the Services page content and styling."
+    "Implementing a new authentication provider or third-party auth (only code-based admin access change is in scope).",
+    "Adding new admin dashboard tools/features beyond making the existing dashboard accessible.",
+    "Changing the master admin code value (must remain 7583A)."
   ],
   "imageRequirements": {
     "required": [],
