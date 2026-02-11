@@ -1,133 +1,160 @@
 {
   "kind": "build_request",
-  "title": "Testimony approval/verification workflow + Search Artifacts indexing with controlled discoverability",
+  "title": "Regenerate admin access system with persistent master code + full admin dashboard tools (styled to match site)",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement a testimony verification workflow where testimonies are publicly visible on the Testimonies page immediately after submission but are clearly labeled as \"Awaiting Admin Verification\" until an admin approves them; once approved in the admin dashboard, the testimony becomes verified (status changes) and is treated as approved/verified in the UI.",
-      "target": "both",
+      "text": "Persist the master admin access code in the backend canister (defaulting to \"7583A\") and use it for all admin access validation so the correct code is consistently recognized across future logins and deployments.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-1"
         ],
         "quotes": [
-          "Once they are approved in the admin dashboard, they are verified and they get pushed out to the testimonies page.Number two, yes. Awaiting admin verification on the public testimonies page, yes."
+          "Update the Admin Access system so the website permanently recognizes the master admin access code 7583A as valid.",
+          "Should the master admin code be stored persistently in the backend canister so it survives redeployments and restarts?",
+          "Number two yes yes yes",
+          "Number one yes, number two yes"
         ]
       },
       "acceptanceCriteria": [
-        "Submitting a testimony results in it appearing on the public Testimonies page with a visible \"Awaiting Admin Verification\" label/badge.",
-        "After an admin approves a testimony, the public Testimonies page updates to show that testimony as verified/approved (no longer labeled \"Awaiting Admin Verification\").",
-        "Admin approval action is available in the admin dashboard and persists in the backend so the status survives refresh/redeploy."
+        "On a fresh deployment, the master admin access code defaults to \"7583A\".",
+        "Backend admin-access validation compares against the persisted master admin code, not a hardcoded string.",
+        "After canister upgrade/redeploy (with state preserved), the master admin access code remains whatever it was last set to.",
+        "Entering the correct current master code does not intermittently return an invalid/denied result."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add backend APIs and storage updates to support testimony approval and verified status changes by admins, including audit logging for the approval action (using the existing audit log system).",
+      "text": "Add backend admin settings APIs to securely change the master admin access code from within the Admin Dashboard; the new code must immediately replace the previous one for all future validations.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-1"
         ],
         "quotes": [
-          "Once they are approved in the admin dashboard, they are verified"
+          "Additionally, include a secure Admin Settings option within the Admin Dashboard that allows authorized administrators to change the master admin access code at any time, with the updated code automatically replacing the previous one for all future logins.",
+          "Also we can change the admin access code within the dashboard too!"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes an admin-only method to approve/verify a testimony by id.",
-        "Calling the approve/verify method updates stored testimony state so subsequent list calls return the updated status.",
-        "An audit log entry is recorded for the approval action type when an admin approves/verifies a testimony.",
-        "Non-admin callers cannot approve/verify testimonies (backend rejects/traps)."
+        "There is a backend method to update the master admin access code.",
+        "Only authorized administrators can update the master admin access code; unauthorized calls trap or return an authorization error.",
+        "After updating the code, the old code is rejected and the new code is accepted.",
+        "The update is persisted in canister state."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update the Admin Testimonies UI to support reviewing and approving/verifying testimonies: show clear status (Pending vs Verified/Approved) and provide an action to approve pending testimonies, with React Query invalidation so both admin and public views refresh.",
+      "text": "Ensure the Admin entry points in the site navigation (top header and mobile hamburger menu) route to the Administrative Access page (\"/admin-access\") and match the existing website UI styling.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-1"
         ],
         "quotes": [
-          "approved in the admin dashboard"
+          "When the Admin button at the top of the website or in the mobile hamburger menu is clicked, users should be taken to the Administrative Access page",
+          "Number one follow the same style as the website and create everything that needs to be created!",
+          "Number three as long as everything matches the existing website UI and the existing website style and look go ahead!"
         ]
       },
       "acceptanceCriteria": [
-        "Admin testimonies tab shows each testimony’s current status.",
-        "Pending testimonies have an \"Approve\" (or equivalent) control.",
-        "Approving from the admin UI updates the item status without requiring a hard refresh (queries invalidate/refetch).",
-        "Error states are handled using existing patterns (inline error + retry)."
+        "Desktop/header navigation contains an \"Admin\" entry that routes to \"/admin-access\".",
+        "Mobile hamburger menu contains an \"Admin\" entry that routes to \"/admin-access\".",
+        "Navigation styling is consistent with the existing header/mobile menu patterns (typography, spacing, hover states)."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Create a Search Artifacts system from scratch that supports keyword search and filtered/categorized results (including a \"Testimonies\" category), and automatically indexes each testimony’s title/description and media descriptions so testimonies can be discovered via Search Artifacts search.",
+      "text": "Implement the Admin Access flow so that entering the correct master code shows the text \"Access Granted\" and then immediately redirects the user to the full Admin Dashboard with all existing admin tools enabled; entering an incorrect code shows an access denied/invalid message without redirect.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-1"
         ],
         "quotes": [
-          "create a whole full search artifact system from scratch! With testimonies as artifact type!"
+          "If 7583A is entered, the system must display “Access Granted” and immediately redirect the user to the full Admin Dashboard with all existing administrative tools, controls, and features enabled.",
+          "The system must securely store and consistently validate this code so that future logins do not incorrectly display “Access Denied” when the correct code is entered."
         ]
       },
       "acceptanceCriteria": [
-        "A new Search Artifacts UI exists where users can enter a keyword query and see results.",
-        "Search results support filtering by category, including \"Testimonies\".",
-        "Newly submitted testimonies become searchable via Search Artifacts without manual re-entry.",
-        "Search indexing includes testimony textual fields and per-media description text (photos/videos).",
-        "The backend provides query methods needed for search and category filtering."
+        "When a user submits the correct master code on the Administrative Access page, the UI displays \"Access Granted\" and navigates to \"/admin\" without requiring manual refresh.",
+        "When a user submits an incorrect code, the UI displays an invalid/denied message and does not navigate to \"/admin\".",
+        "The backend records successful/failed attempts consistently, and successful attempts reset attempt count as currently designed.",
+        "After a successful admin code entry, the user can access the Admin Dashboard gated routes according to the existing admin-role and admin-access gate logic."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Enforce controlled discoverability for testimonies: testimonies must not appear on any other pages or global listings besides (1) the public Testimonies page and (2) Search Artifacts search results.",
+      "text": "Provide an Admin Settings section within the Admin Dashboard UI that allows authorized administrators to change the master admin access code, using the backend settings API, and keep all UI text in English.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-1"
         ],
         "quotes": [
-          "They shouldn't be found anywhere else besides the testimonies page or by searching in search artifacts section."
+          "include a secure Admin Settings option within the Admin Dashboard",
+          "Number three as long as everything matches the existing website UI and the existing website style and look go ahead!"
         ]
       },
       "acceptanceCriteria": [
-        "No other existing pages/components display testimony lists/cards/teasers by default.",
-        "Only the Testimonies route and the Search Artifacts route surface testimonies to non-admin users.",
-        "Admin dashboard may list testimonies for review, but public discovery outside Testimonies and Search Artifacts does not occur."
+        "Admin Dashboard contains a clearly labeled settings area for updating the master admin access code.",
+        "The settings UI requires the current admin to be authorized (respect existing permission gating patterns used in the dashboard settings tab).",
+        "On successful update, the UI confirms success and subsequent admin-access attempts require the new code.",
+        "All user-visible strings in this flow are in English."
       ]
     },
     {
       "id": "REQ-6",
-      "text": "Implement responsive layout support across the entire website so all pages/forms/dashboards/navigation/testimonies/media upload components scale correctly on mobile, tablet, desktop, and large screens, with readable spacing, properly scaled images/videos, and touch-friendly menus/buttons.",
-      "target": "frontend",
+      "text": "Regenerate and ensure the full Admin Dashboard tools are functional end-to-end (frontend tabs wired to backend) for: coupon creation/management, testimonies management/verification, portfolio photo/video uploads, and shop product management, all matching the existing site’s style.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-user-phase6i"
+          "msg-1"
         ],
         "quotes": [
-          "Build responsive layout support across the entire website so all pages, forms, dashboards, testimonies, media uploads, and navigation elements display correctly on mobile phones, tablets, desktop monitors, and large screens. Layouts must automatically scale, maintain readable spacing, resize images and videos properly, and ensure all menus and buttons function for both touch and mouse users."
+          "create an admin dashboard generated a full admin dashboard UI from scratch that matches the rest of my website! In that dashboard people should be able to create custom coupons manage and verify testimonies upload photos and videos to the portfolio page and, add custom products to the shop page! Through the dashboard!",
+          "Try regenerating everything again a different way.",
+          "Number two yes will I change this to the features within the admin dashboard later!"
         ]
       },
       "acceptanceCriteria": [
-        "Key pages (Homepage, Shop, Submit Request, Admin, AdminPlus, Testimonies, Inbox, FAQ, Contact) render without horizontal overflow at common breakpoints.",
-        "Header navigation works on touch devices (mobile menu opens/closes and is usable).",
-        "Media grids (including testimony media) adapt columns appropriately and videos/images keep correct aspect ratios using responsive sizing classes.",
-        "Forms and dialogs remain usable on small screens (no clipped content; scroll within dialogs where needed)."
+        "Coupons: an admin can create a coupon and see it listed/managed from the dashboard, with changes persisted in the backend.",
+        "Testimonies: an admin can review and approve/unapprove testimonies from the dashboard, with changes persisted in the backend.",
+        "Portfolio: an admin can upload at least one image/video item to the portfolio via the dashboard, with backend persistence using the existing blob storage mixin (no external services).",
+        "Products: an admin can create/update products via the dashboard and see the changes reflected on the Shop page data source.",
+        "All admin tools are accessible only after successful admin access and according to existing admin permission gating."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Keep the regenerated admin pages and components visually consistent with the existing website’s dark fantasy theme (colors, typography, spacing, and component styling) as documented in the project’s existing design direction.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "as long as everything matches the existing website UI and the existing website style and look go ahead!"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin Access page and Admin Dashboard reuse existing UI components (cards, buttons, inputs, tabs) and follow the established theme variables and typography.",
+        "No new, conflicting visual theme is introduced; the admin experience looks like part of the same site."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files under frontend/src/components/ui; compose using existing components instead.",
-    "All user-facing text must be in English.",
-    "If backend state schema changes require an upgrade path, add backend/migration.mo using the platform's conditional migration policy; otherwise do not create migration.mo."
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
+    "Do not edit files under frontend/src/components/ui (read-only UI component sources); compose them instead.",
+    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Implementing third-party search providers or external databases for indexing/search.",
-    "Adding WebSocket/real-time updates; use existing polling/invalidation via React Query.",
-    "Adding third-party authentication beyond Internet Identity.",
-    "Changing the existing design theme beyond what is necessary to achieve responsiveness and the new testimony/search features."
+    "Implementing third-party authentication providers (only Internet Identity is supported).",
+    "Adding real-time features (WebSockets) or external databases/storage providers.",
+    "Expanding admin dashboard tools beyond coupons, testimonies, portfolio uploads, and product management in this iteration (user indicated these may change later)."
   ],
   "imageRequirements": {
     "required": [],

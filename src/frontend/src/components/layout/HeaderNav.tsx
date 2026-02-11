@@ -59,14 +59,12 @@ export default function HeaderNav() {
               {link.label}
             </Link>
           ))}
-          {isAdmin && (
-            <Link
-              to="/admin-access"
-              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors whitespace-nowrap"
-            >
-              Admin
-            </Link>
-          )}
+          <Link
+            to="/admin-access"
+            className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors whitespace-nowrap"
+          >
+            Admin
+          </Link>
         </div>
 
         {/* Desktop & Tablet Actions */}
@@ -158,16 +156,14 @@ export default function HeaderNav() {
               </>
             )}
             
-            {isAdmin && (
-              <Link
-                to="/admin-access"
-                className="flex items-center gap-2 px-3 py-3 text-sm font-medium rounded-md hover:bg-accent transition-colors touch-manipulation"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Shield className="h-5 w-5" />
-                Admin
-              </Link>
-            )}
+            <Link
+              to="/admin-access"
+              className="flex items-center gap-2 px-3 py-3 text-sm font-medium rounded-md hover:bg-accent transition-colors touch-manipulation"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Shield className="h-5 w-5" />
+              Admin
+            </Link>
             
             <div className="pt-2">
               <LoginButton />

@@ -2,76 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-a-testimony-verification-workflow-where-testimonies-are-publicly-visible-on-the-testimonies-page-immediately-after-submission-but-are-clearly-labeled-as-awaiting-admin-verification-until-an-admin-approves-them-once-approved-in-the-admin-dashboard-the-testimony-becomes-verified-status-changes-and-is-treated-as-approved-verified-in-the-ui",
-      "featureTitle": "Implement a testimony verification workflow where testimonies are publicly visible on the Testimonies page immediately after submission but are clearly labeled as \"Awaiting Admin Verification\" until an admin approves them; once approved in the admin dashboard, the testimony becomes verified (status changes) and is treated as approved/verified in the UI.",
+      "featureId": "feature-provide-an-admin-settings-section-within-the-admin-dashboard-ui-that-allows-authorized-administrators-to-change-the-master-admin-access-code-using-the-backend-settings-api-and-keep-all-ui-text-in-english",
+      "featureTitle": "Provide an Admin Settings section within the Admin Dashboard UI that allows authorized administrators to change the master admin access code, using the backend settings API, and keep all UI text in English.",
       "files": [
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-        "frontend/src/pages/Testimonies.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-admin-testimonies-ui-to-support-reviewing-and-approving-verifying-testimonies-show-clear-status-pending-vs-verified-approved-and-provide-an-action-to-approve-pending-testimonies-with-react-query-invalidation-so-both-admin-and-public-views-refresh",
-      "featureTitle": "Update the Admin Testimonies UI to support reviewing and approving/verifying testimonies: show clear status (Pending vs Verified/Approved) and provide an action to approve pending testimonies, with React Query invalidation so both admin and public views refresh.",
-      "files": [
-        "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-a-search-artifacts-system-from-scratch-that-supports-keyword-search-and-filtered-categorized-results-including-a-testimonies-category-and-automatically-indexes-each-testimony-s-title-description-and-media-descriptions-so-testimonies-can-be-discovered-via-search-artifacts-search",
-      "featureTitle": "Create a Search Artifacts system from scratch that supports keyword search and filtered/categorized results (including a \"Testimonies\" category), and automatically indexes each testimony’s title/description and media descriptions so testimonies can be discovered via Search Artifacts search.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/hooks/useSearchArtifacts.ts",
-        "frontend/src/pages/SearchArtifacts.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-enforce-controlled-discoverability-for-testimonies-testimonies-must-not-appear-on-any-other-pages-or-global-listings-besides-1-the-public-testimonies-page-and-2-search-artifacts-search-results",
-      "featureTitle": "Enforce controlled discoverability for testimonies: testimonies must not appear on any other pages or global listings besides (1) the public Testimonies page and (2) Search Artifacts search results.",
-      "files": [
-        "frontend/src/App.tsx"
+        "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
+        "frontend/src/components/admin/AdminSystemSettingsTab.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -84,30 +19,6 @@
       ],
       "testIds": [
         "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-responsive-layout-support-across-the-entire-website-so-all-pages-forms-dashboards-navigation-testimonies-media-upload-components-scale-correctly-on-mobile-tablet-desktop-and-large-screens-with-readable-spacing-properly-scaled-images-videos-and-touch-friendly-menus-buttons",
-      "featureTitle": "Implement responsive layout support across the entire website so all pages/forms/dashboards/navigation/testimonies/media upload components scale correctly on mobile, tablet, desktop, and large screens, with readable spacing, properly scaled images/videos, and touch-friendly menus/buttons.",
-      "files": [
-        "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-        "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/Testimonies.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-6"
       ],
       "confidence": "high"
     }

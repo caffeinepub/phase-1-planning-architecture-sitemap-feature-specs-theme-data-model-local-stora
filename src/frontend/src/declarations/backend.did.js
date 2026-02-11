@@ -143,7 +143,14 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'adminLogin' : IDL.Func(
+      [IDL.Text, IDL.Bool, IDL.Text, IDL.Text],
+      [IDL.Bool],
+      [],
+    ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'changeAdminAccessCode' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+  'confirmNewCode' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
   'getAdminAccessLog' : IDL.Func([], [IDL.Vec(AdminAccessLogEntry)], ['query']),
   'getAdminAttempts' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
   'getAdminNotifications' : IDL.Func([], [NotificationCounts], ['query']),
@@ -181,6 +188,7 @@ export const idlService = IDL.Service({
     ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getCurrentAdminAccessCode' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
   'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getFeatureSpecification' : IDL.Func([], [IDL.Vec(PageFeatures)], ['query']),
   'getLoginAttempts' : IDL.Func([], [IDL.Vec(AdminLoginAttempt)], ['query']),
@@ -208,6 +216,13 @@ export const idlService = IDL.Service({
   'resetAdminAttempts' : IDL.Func([IDL.Principal], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'setOwner' : IDL.Func([IDL.Principal], [], []),
+  'submitAdminAccessAttempt' : IDL.Func(
+      [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+      [IDL.Text],
+      [],
+    ),
+  'updateAdminAccessCode' : IDL.Func([IDL.Text], [], []),
+  'verifyAccessCode' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   'verifyAdminAccess' : IDL.Func(
       [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
       [IDL.Bool],
@@ -350,7 +365,14 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'adminLogin' : IDL.Func(
+        [IDL.Text, IDL.Bool, IDL.Text, IDL.Text],
+        [IDL.Bool],
+        [],
+      ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'changeAdminAccessCode' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+    'confirmNewCode' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
     'getAdminAccessLog' : IDL.Func(
         [],
         [IDL.Vec(AdminAccessLogEntry)],
@@ -396,6 +418,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getCurrentAdminAccessCode' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
     'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getFeatureSpecification' : IDL.Func(
         [],
@@ -431,6 +454,13 @@ export const idlFactory = ({ IDL }) => {
     'resetAdminAttempts' : IDL.Func([IDL.Principal], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'setOwner' : IDL.Func([IDL.Principal], [], []),
+    'submitAdminAccessAttempt' : IDL.Func(
+        [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+        [IDL.Text],
+        [],
+      ),
+    'updateAdminAccessCode' : IDL.Func([IDL.Text], [], []),
+    'verifyAccessCode' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
     'verifyAdminAccess' : IDL.Func(
         [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
         [IDL.Bool],

@@ -63,8 +63,8 @@ export default function TestimonyMediaCard({ mediaUrl, description, isVideo }: T
 
   const back = (
     <Card className="h-full">
-      <CardContent className="p-6 h-full flex items-center justify-center">
-        <p className="text-sm text-center overflow-y-auto max-h-full">
+      <CardContent className="p-4 sm:p-6 h-full flex items-center justify-center overflow-hidden">
+        <p className="text-xs sm:text-sm text-center overflow-y-auto max-h-full break-words">
           {description}
         </p>
       </CardContent>
@@ -73,7 +73,7 @@ export default function TestimonyMediaCard({ mediaUrl, description, isVideo }: T
 
   return (
     <div
-      className="h-80"
+      className="h-64 sm:h-80"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleFlip}

@@ -1,123 +1,94 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T05:18:30.371Z",
-  "summary": "Diff implements parts of the testimony approval UI (pending/approved badge + approve button) and adds a new Search Artifacts route/UI scaffold, along with several responsive/layout tweaks (header mobile menu, overflow lock, responsive dialog sizing). However, backend support for testimony approval/audit logging and Search Artifacts indexing/search APIs is not evidenced, and the Search Artifacts hook is explicitly stubbed to return empty results. Several additional admin/coupon/messaging features appear to be added beyond the BuildRequest.",
+  "generatedAt": "2026-02-11T06:18:16.428Z",
+  "summary": "Diff implements a persisted-looking adminAccessCode default via migration and adds a frontend Admin Access Code settings section wired to a React Query mutation, but the diff summary does not provide evidence for navigation routing changes, the Admin Access page redirect flow, or end-to-end wiring for the specified admin tools. It also introduces multiple extra admin/system sections and broad styling/docs/features beyond the BuildRequest scope.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Public testimonies are immediately visible but clearly labeled \"Awaiting Admin Verification\" until admin approval; after approval, public page updates to verified/approved state.",
-      "reason": "Diff shows CreateTestimonyDialog messaging and AdminTestimoniesTab status/approve UI, but does not show changes to the public Testimonies page rendering the required \"Awaiting Admin Verification\" label/badge or updating it after approval.",
-      "evidence": [
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-        "frontend/src/components/admin/AdminTestimoniesTab.tsx"
-      ]
-    },
-    {
       "id": "REQ-2",
-      "requirement": "Backend admin-only approve/verify testimony API persists status, rejects non-admins, and writes an audit log entry for approval action.",
-      "reason": "backend/main.mo changes shown include new Artifact/Search-related types, but the diff summary provides no evidence of an admin-only testimony approval method implementation, persistence update, or audit log write for the approval action.",
+      "requirement": "Add backend admin settings APIs to securely change the master admin access code from within the Admin Dashboard; new code immediately replaces previous for future validations; only authorized admins can update; persisted.",
+      "reason": "Frontend adds an update UI and hook usage, but the diff summary does not show any backend main.mo method that updates adminAccessCode nor its authorization checks/persistence behavior.",
       "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "requirement": "Admin Testimonies UI supports reviewing status + approving pending testimonies with React Query invalidation so admin/public views refresh; error states handled with existing inline error + retry patterns.",
-      "reason": "AdminTestimoniesTab adds status badges and an Approve button, but there is no evidence in the shown diff that the approve mutation invalidates/refetches relevant queries, nor that approval errors are shown via the existing inline error + retry pattern (it uses toast messaging).",
-      "evidence": [
-        "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+        "backend/main.mo",
+        "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
         "frontend/src/hooks/useQueries.ts"
       ]
     },
     {
-      "id": "REQ-4",
-      "requirement": "Search Artifacts system with backend indexing and query methods; keyword search + category filters (including Testimonies); auto-index testimonies (title/description and per-media descriptions) so new testimonies become searchable without re-entry.",
-      "reason": "The Search Artifacts UI and hook are added, but the hook explicitly states backend search is not implemented and returns an empty array; backend query/indexing methods and automatic testimony indexing are not evidenced in the diff summary.",
+      "id": "REQ-3",
+      "requirement": "Admin entry points in desktop header and mobile hamburger menu route to /admin-access and match existing styling.",
+      "reason": "No diff evidence of header/mobile navigation components being modified to add/update an Admin link to /admin-access.",
       "evidence": [
-        "frontend/src/hooks/useSearchArtifacts.ts",
-        "frontend/src/pages/SearchArtifacts.tsx",
-        "backend/main.mo"
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Admin Access flow: correct master code shows text \"Access Granted\" then immediately redirects to /admin; incorrect code shows denied/invalid message without redirect; backend logs attempts and resets attempt count on success; access gates work.",
+      "reason": "No diff evidence of an \"/admin-access\" page implementation, the \"Access Granted\" message, or redirect logic. Backend attempt logging/reset behavior for this flow is also not evidenced in the provided backend snippet.",
+      "evidence": [
+        "backend/main.mo",
+        "frontend-file-summaries.txt",
+        "frontend/src/hooks/useQueries.ts"
       ]
     },
     {
       "id": "REQ-6",
-      "requirement": "Responsive layout support across the entire site (key pages listed) with no horizontal overflow, touch-friendly navigation, responsive media grids/aspect ratios, and usable forms/dialogs on small screens.",
-      "reason": "There are responsive improvements (e.g., HeaderNav mobile menu handling, some responsive classes, dialog max-height/scroll), but the diff summary does not provide evidence of comprehensive responsive updates across all the specified pages/components (Homepage, Shop, Submit Request, Admin, AdminPlus, Testimonies, Inbox, FAQ, Contact, media upload components).",
+      "requirement": "Ensure full Admin Dashboard tools are functional end-to-end for coupons, testimonies management/verification, portfolio photo/video uploads, and shop product management (frontend wired to backend), accessible only after admin access and permission gating.",
+      "reason": "The diff summary doesn’t provide evidence that the specific tools (coupons/testimonies/portfolio/products) were regenerated and wired end-to-end. Admin.tsx is mentioned in a summary file but the relevant implementations and backend endpoints aren’t shown in the provided diffs.",
       "evidence": [
-        "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/Shop.tsx",
-        "frontend/src/pages/SubmitRequest.tsx",
-        "frontend/src/pages/Inbox.tsx",
-        "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx"
+        "frontend-file-summaries.txt",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "Admin Access page and Admin Dashboard visually consistent with existing dark fantasy theme; reuse existing UI components; no conflicting theme introduced.",
+      "reason": "Admin Access page changes aren’t evidenced, so visual consistency for that page cannot be verified from the diff summary. Global theme changes are extensive, but the requirement specifically calls out admin pages; their final styling cannot be confirmed from provided snippets.",
+      "evidence": [
+        "frontend-file-summaries.txt"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Admin messaging/inbox features (admin messaging tab + hooks) unrelated to testimony approval or Search Artifacts requirements.",
-      "reason": "BuildRequest does not ask for new admin messaging capabilities; these changes introduce new UI and hooks beyond scope.",
+      "description": "Added/expanded admin system settings beyond requested master code setting (e.g., admin registry, password reset, advanced shop controls, backup/recovery, health/activity logs).",
+      "reason": "BuildRequest explicitly limits this iteration to coupons, testimonies, portfolio uploads, product management, plus an admin setting to change the master code; these additional admin tools are out of scope.",
       "evidence": [
-        "frontend/src/components/admin/AdminMessagingTab.tsx",
-        "frontend/src/hooks/useAdminMessaging.ts"
+        "frontend/src/components/admin/AdminSystemSettingsTab.tsx"
       ]
     },
     {
-      "description": "AdminPlus password reset section for admin passwords.",
-      "reason": "BuildRequest does not request password reset/admin credential management features.",
+      "description": "Implemented/modified admin request handling UI (approve/decline/send message/send coupon/convert to order) that is not part of the requested admin tool set.",
+      "reason": "Requests/orders conversion and customer messaging are not listed in the allowed admin tools for this iteration.",
       "evidence": [
-        "frontend/src/components/adminplus/AdminPasswordResetSection.tsx"
+        "frontend/src/components/admin/AdminRequestDetailModal.tsx"
       ]
     },
     {
-      "description": "Admin registry management UI updates (promote/demote/update permissions UI changes).",
-      "reason": "BuildRequest focuses on testimony workflow, search artifacts, controlled discoverability, and responsiveness; admin registry enhancements are not requested.",
+      "description": "Broad, site-wide styling/theming and UI/UX feature additions (OKLCH color system, new responsive utilities, multiple animation/effects components like FadeInSection/FlipCard/ParallaxLayer, homepage/about/services component additions).",
+      "reason": "Not requested by the BuildRequest (which focuses on admin access + admin dashboard/tools); these are unrelated feature additions.",
       "evidence": [
-        "frontend/src/components/adminplus/AdminRegistrySection.tsx"
+        "frontend-file-summaries.txt"
       ]
     },
     {
-      "description": "Global coupon master switch UI and related explanatory content.",
-      "reason": "BuildRequest does not request new coupon management features.",
+      "description": "Added documentation and local/offline storage strategy features (offline mutation queue, feedback persistence strategy docs).",
+      "reason": "Not requested; BuildRequest does not ask for new offline queue/storage strategy documentation or implementation.",
       "evidence": [
-        "frontend/src/components/adminplus/CouponManagerSection.tsx"
-      ]
-    },
-    {
-      "description": "Expanded admin order tracking management modal functionality.",
-      "reason": "BuildRequest does not request order tracking admin tooling; this appears to be additional functionality outside requested scope.",
-      "evidence": [
-        "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx"
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.68,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/admin/AdminMessagingTab.tsx",
-    "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
+    "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
     "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-    "frontend/src/components/admin/AdminRequestsTab.tsx",
-    "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-    "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
-    "frontend/src/components/adminplus/AdminRegistrySection.tsx",
-    "frontend/src/components/adminplus/CouponManagerSection.tsx",
-    "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/shop/ShopCartDrawer.tsx",
-    "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-    "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-    "frontend/src/hooks/useAdminMessaging.ts",
+    "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useSearchArtifacts.ts",
-    "frontend/src/index.css",
-    "frontend/src/pages/Inbox.tsx",
-    "frontend/src/pages/SearchArtifacts.tsx",
-    "frontend/src/pages/Shop.tsx",
-    "frontend/src/pages/SubmitRequest.tsx",
-    "frontend/src/pages/Testimonies.tsx",
     "project_state.json"
   ]
 }

@@ -6,27 +6,24 @@ import { Button } from '@/components/ui/button';
 import { Shield, Loader2, CheckCircle } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
-import RequireAdmin from '../components/auth/RequireAdmin';
-import { useVerifyAdminAccess } from '../hooks/useQueries';
+import { useSubmitAdminAccessAttempt } from '../hooks/useQueries';
 import { setAdminAccessUnlocked } from '../lib/adminAccessSession';
 import { getClientDetails } from '../lib/clientDetails';
 
-function AdminAccessContent() {
+export default function AdminAccess() {
   const [accessCode, setAccessCode] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const verifyMutation = useVerifyAdminAccess();
+  const submitMutation = useSubmitAdminAccessAttempt();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
 
-    // Allow submission regardless of length for client-side validation
-    if (accessCode.length !== 5) {
-      setError('Access Denied');
-      setAccessCode('');
+    if (!accessCode.trim()) {
+      setError('Invalid Access Code');
       return;
     }
 
@@ -34,13 +31,13 @@ function AdminAccessContent() {
       // Capture client details at submission time
       const clientDetails = getClientDetails();
       
-      const isValid = await verifyMutation.mutateAsync({
-        code: accessCode,
+      const result = await submitMutation.mutateAsync({
+        accessCode: accessCode.trim(),
         browserInfo: clientDetails.browserInfo,
         deviceType: clientDetails.deviceType,
       });
       
-      if (isValid) {
+      if (result === 'AdminAccessGranted') {
         setSuccess(true);
         setAdminAccessUnlocked();
         
@@ -49,11 +46,17 @@ function AdminAccessContent() {
           navigate({ to: '/admin' });
         }, 1000);
       } else {
-        setError('Access Denied');
+        // Backend returns "Invalid Access Code" on failure
+        setError(result);
         setAccessCode('');
       }
     } catch (err: any) {
-      setError('Access Denied');
+      // Handle any errors (including lockout)
+      if (err.message && err.message.includes('locked')) {
+        setError(err.message);
+      } else {
+        setError('Invalid Access Code');
+      }
       setAccessCode('');
     }
   };
@@ -96,7 +99,7 @@ function AdminAccessContent() {
                       placeholder="Enter code"
                       maxLength={5}
                       className="text-center text-lg tracking-widest font-mono"
-                      disabled={verifyMutation.isPending}
+                      disabled={submitMutation.isPending}
                       autoFocus
                     />
                   </div>
@@ -108,9 +111,9 @@ function AdminAccessContent() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={verifyMutation.isPending}
+                    disabled={submitMutation.isPending}
                   >
-                    {verifyMutation.isPending ? (
+                    {submitMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Verifying...
@@ -129,13 +132,5 @@ function AdminAccessContent() {
         </div>
       </FadeInSection>
     </PageLayout>
-  );
-}
-
-export default function AdminAccess() {
-  return (
-    <RequireAdmin>
-      <AdminAccessContent />
-    </RequireAdmin>
   );
 }

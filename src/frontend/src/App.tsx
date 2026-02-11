@@ -16,10 +16,12 @@ const FAQ = lazy(() => import('./pages/FAQ'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Admin = lazy(() => import('./pages/Admin'));
+const AdminAccess = lazy(() => import('./pages/AdminAccess'));
 const AdminPlus = lazy(() => import('./pages/AdminPlus'));
 const Testimonies = lazy(() => import('./pages/Testimonies'));
 const SubmitRequest = lazy(() => import('./pages/SubmitRequest'));
 const Inbox = lazy(() => import('./pages/Inbox'));
+const SearchArtifacts = lazy(() => import('./pages/SearchArtifacts'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,6 +112,12 @@ const adminRoute = createRoute({
   component: Admin,
 });
 
+const adminAccessRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin-access',
+  component: AdminAccess,
+});
+
 const adminPlusRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin-plus',
@@ -134,6 +142,12 @@ const inboxRoute = createRoute({
   component: Inbox,
 });
 
+const searchArtifactsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/search-artifacts',
+  component: SearchArtifacts,
+});
+
 // Create route tree
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -147,10 +161,12 @@ const routeTree = rootRoute.addChildren([
   termsRoute,
   privacyRoute,
   adminRoute,
+  adminAccessRoute,
   adminPlusRoute,
   testimoniesRoute,
   submitRequestRoute,
   inboxRoute,
+  searchArtifactsRoute,
 ]);
 
 // Create router

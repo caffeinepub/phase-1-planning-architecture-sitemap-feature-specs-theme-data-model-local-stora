@@ -10,6 +10,7 @@ import AdminRegistrySection from '../adminplus/AdminRegistrySection';
 import AdminPasswordResetSection from '../adminplus/AdminPasswordResetSection';
 import AdvancedShopControlsSection from '../adminplus/AdvancedShopControlsSection';
 import BackupRecoverySection from './BackupRecoverySection';
+import AdminAccessCodeSettingsSection from './AdminAccessCodeSettingsSection';
 import type { AuditLogEntry, AuditActionType } from '../../backend';
 
 // Helper function to convert action type to human-readable label
@@ -153,6 +154,9 @@ export default function AdminSystemSettingsTab() {
 
       {/* Backup & Recovery Section */}
       <BackupRecoverySection />
+
+      {/* Admin Access Code Settings */}
+      <AdminAccessCodeSettingsSection />
 
       {/* Admin Activity Log */}
       <Card>
@@ -448,27 +452,7 @@ export default function AdminSystemSettingsTab() {
           <AdminPasswordResetSection />
           <AdvancedShopControlsSection />
         </>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              Owner-Only Controls
-            </CardTitle>
-            <CardDescription>
-              Additional system controls are available to the owner
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert>
-              <Shield className="h-4 w-4" />
-              <AlertDescription>
-                You do not have owner permissions. Contact the system owner for access to advanced controls.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
-      )}
+      ) : null}
     </div>
   );
 }

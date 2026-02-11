@@ -113,7 +113,13 @@ export enum Variant_later_phase1 {
     phase1 = "phase1"
 }
 export interface backendInterface {
+    /**
+     * / Entry point for admin authentication - allows guest/anonymous access
+     */
+    adminLogin(adminCode: string, codeConfirmed: boolean, browserInfo: string, deviceInfo: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    changeAdminAccessCode(newCodeConfirmed: string, currentAccessCode: string): Promise<boolean>;
+    confirmNewCode(newCode: string, currentCode: string): Promise<boolean>;
     getAdminAccessLog(): Promise<Array<AdminAccessLogEntry>>;
     getAdminAttempts(principal: Principal): Promise<bigint>;
     getAdminNotifications(): Promise<NotificationCounts>;
@@ -137,6 +143,7 @@ export interface backendInterface {
     }>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getCurrentAdminAccessCode(): Promise<string | null>;
     getEvents(): Promise<Array<Event>>;
     getFeatureSpecification(): Promise<Array<PageFeatures>>;
     getLoginAttempts(): Promise<Array<AdminLoginAttempt>>;
@@ -152,5 +159,16 @@ export interface backendInterface {
     resetAdminAttempts(principal: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setOwner(owner: Principal): Promise<void>;
-    verifyAdminAccess(inputCode: string, browserInfo: string | null, deviceType: string | null): Promise<boolean>;
+    /**
+     * / If returns "Invalid Access Code" an error message has to be presented in the app
+     * / Only on successful returns, the full admin dashboard should become accessible.
+     */
+    submitAdminAccessAttempt(accessCode: string, browserInfo: string | null, deviceType: string | null): Promise<string>;
+    updateAdminAccessCode(newAccessCode: string): Promise<void>;
+    verifyAccessCode(adminAttemptedCode: string): Promise<boolean>;
+    /**
+     * / Verifies admin access code and grants admin role on success
+     * / Allows any caller (including guests) to attempt verification
+     */
+    verifyAdminAccess(adminAttemptedCode: string, browserInfo: string | null, deviceType: string | null): Promise<boolean>;
 }

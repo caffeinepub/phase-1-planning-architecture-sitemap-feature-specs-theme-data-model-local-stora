@@ -89,6 +89,21 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface UserProfile {
+    name: string;
+    email: string;
+}
+export interface Testimony {
+    id: bigint;
+    shortReview?: string;
+    starRating?: number;
+    content: string;
+    video?: ExternalBlob;
+    author: string;
+    approved: boolean;
+    rating?: bigint;
+    photo?: ExternalBlob;
+}
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
@@ -98,6 +113,14 @@ export interface Event {
     level: string;
     message: string;
     timestamp: bigint;
+}
+export interface AuditLogEntry {
+    id: bigint;
+    actionType: AuditActionType;
+    target?: Principal;
+    timestamp: bigint;
+    details: string;
+    actorPrincipal: Principal;
 }
 export interface PageFeatures {
     features: Array<Feature>;
@@ -117,9 +140,54 @@ export interface Feature {
     description: string;
     phase: Variant_later_phase1;
 }
+export interface AdminLoginAttempt {
+    id: bigint;
+    principal: Principal;
+    timestamp: bigint;
+    successful: boolean;
+}
+export interface AdminAccessLogEntry {
+    id: bigint;
+    principal: Principal;
+    timestamp: bigint;
+    deviceType?: string;
+    browserInfo?: string;
+}
+export interface NotificationCounts {
+    newOrders: bigint;
+    newMessagesCount: bigint;
+    newTestimonies: bigint;
+    newQuotes: bigint;
+}
+export interface AdminPermissions {
+    canDeactivateStore: boolean;
+    canApplyDiscounts: boolean;
+    principal: Principal;
+    canCreateOrder: boolean;
+    canManageUsers: boolean;
+    canCreateProduct: boolean;
+    canManageInventory: boolean;
+    canProcessRefunds: boolean;
+    fullPermissions: boolean;
+    canRemoveUsers: boolean;
+    canDeleteProduct: boolean;
+    isOwner: boolean;
+    canViewMetrics: boolean;
+    canEditProduct: boolean;
+}
 export interface _CaffeineStorageRefillResult {
     success?: boolean;
     topped_up_amount?: bigint;
+}
+export enum AuditActionType {
+    adminEdit = "adminEdit",
+    adminMessage = "adminMessage",
+    adminLogin = "adminLogin",
+    orderUpdate = "orderUpdate",
+    couponCreate = "couponCreate",
+    couponToggle = "couponToggle",
+    adminApproval = "adminApproval",
+    adminDecline = "adminDecline"
 }
 export enum UserRole {
     admin = "admin",
@@ -138,17 +206,66 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    assignAdminRole(user: Principal): Promise<void>;
+    /**
+     * / Entry point for admin authentication - allows guest/anonymous access
+     */
+    adminLogin(adminCode: string, codeConfirmed: boolean, browserInfo: string, deviceInfo: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    changeAdminAccessCode(newCodeConfirmed: string, currentAccessCode: string): Promise<boolean>;
+    confirmNewCode(newCode: string, currentCode: string): Promise<boolean>;
+    getAdminAccessLog(): Promise<Array<AdminAccessLogEntry>>;
+    getAdminAttempts(principal: Principal): Promise<bigint>;
+    getAdminNotifications(): Promise<NotificationCounts>;
+    getAllAdmins(): Promise<Array<AdminPermissions>>;
+    getAllAuditLogEntries(): Promise<Array<AuditLogEntry>>;
+    getAllTestimonies(): Promise<Array<Testimony>>;
+    getAttemptCount(principal: Principal): Promise<bigint>;
+    getAuditLogEntriesByType(actionType: AuditActionType): Promise<Array<AuditLogEntry>>;
+    getAuditLogEntriesForActor(actorPrincipal: Principal): Promise<Array<AuditLogEntry>>;
+    getAuditLogEntry(id: bigint): Promise<AuditLogEntry | null>;
+    getAuditLogStats(): Promise<{
+        total: bigint;
+        orderUpdateCounts: bigint;
+        couponCreateCounts: bigint;
+        approvalCounts: bigint;
+        messageCounts: bigint;
+        editCounts: bigint;
+        declineCounts: bigint;
+        couponToggleCounts: bigint;
+        loginCounts: bigint;
+    }>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getCurrentAdminAccessCode(): Promise<string | null>;
     getEvents(): Promise<Array<Event>>;
     getFeatureSpecification(): Promise<Array<PageFeatures>>;
+    getLoginAttempts(): Promise<Array<AdminLoginAttempt>>;
+    getOnlyVerifiedTestimonies(): Promise<Array<Testimony>>;
+    getPermissions(principal: Principal): Promise<AdminPermissions | null>;
+    getRecentAuditLogEntries(count: bigint): Promise<Array<AuditLogEntry>>;
+    getTestimony(id: bigint): Promise<Testimony | null>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     healthCheck(): Promise<HealthStatus>;
     isCallerAdmin(): Promise<boolean>;
+    listAdmins(): Promise<Array<AdminPermissions>>;
     logEvent(message: string, level: string): Promise<void>;
-    removeAdminRole(user: Principal): Promise<void>;
+    resetAdminAttempts(principal: Principal): Promise<void>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setOwner(owner: Principal): Promise<void>;
+    /**
+     * / If returns "Invalid Access Code" an error message has to be presented in the app
+     * / Only on successful returns, the full admin dashboard should become accessible.
+     */
+    submitAdminAccessAttempt(accessCode: string, browserInfo: string | null, deviceType: string | null): Promise<string>;
+    updateAdminAccessCode(newAccessCode: string): Promise<void>;
+    verifyAccessCode(adminAttemptedCode: string): Promise<boolean>;
+    /**
+     * / Verifies admin access code and grants admin role on success
+     * / Allows any caller (including guests) to attempt verification
+     */
+    verifyAdminAccess(adminAttemptedCode: string, browserInfo: string | null, deviceType: string | null): Promise<boolean>;
 }
-import type { Feature as _Feature, PageFeatures as _PageFeatures, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { AdminAccessLogEntry as _AdminAccessLogEntry, AdminPermissions as _AdminPermissions, AuditActionType as _AuditActionType, AuditLogEntry as _AuditLogEntry, ExternalBlob as _ExternalBlob, Feature as _Feature, PageFeatures as _PageFeatures, Testimony as _Testimony, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -249,17 +366,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async assignAdminRole(arg0: Principal): Promise<void> {
+    async adminLogin(arg0: string, arg1: boolean, arg2: string, arg3: string): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.assignAdminRole(arg0);
+                const result = await this.actor.adminLogin(arg0, arg1, arg2, arg3);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.assignAdminRole(arg0);
+            const result = await this.actor.adminLogin(arg0, arg1, arg2, arg3);
             return result;
         }
     }
@@ -277,18 +394,238 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async changeAdminAccessCode(arg0: string, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.changeAdminAccessCode(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.changeAdminAccessCode(arg0, arg1);
+            return result;
+        }
+    }
+    async confirmNewCode(arg0: string, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.confirmNewCode(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.confirmNewCode(arg0, arg1);
+            return result;
+        }
+    }
+    async getAdminAccessLog(): Promise<Array<AdminAccessLogEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAdminAccessLog();
+                return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAdminAccessLog();
+            return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAdminAttempts(arg0: Principal): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAdminAttempts(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAdminAttempts(arg0);
+            return result;
+        }
+    }
+    async getAdminNotifications(): Promise<NotificationCounts> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAdminNotifications();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAdminNotifications();
+            return result;
+        }
+    }
+    async getAllAdmins(): Promise<Array<AdminPermissions>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllAdmins();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllAdmins();
+            return result;
+        }
+    }
+    async getAllAuditLogEntries(): Promise<Array<AuditLogEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllAuditLogEntries();
+                return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllAuditLogEntries();
+            return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllTestimonies(): Promise<Array<Testimony>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllTestimonies();
+                return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllTestimonies();
+            return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAttemptCount(arg0: Principal): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAttemptCount(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAttemptCount(arg0);
+            return result;
+        }
+    }
+    async getAuditLogEntriesByType(arg0: AuditActionType): Promise<Array<AuditLogEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAuditLogEntriesByType(to_candid_AuditActionType_n26(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAuditLogEntriesByType(to_candid_AuditActionType_n26(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAuditLogEntriesForActor(arg0: Principal): Promise<Array<AuditLogEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAuditLogEntriesForActor(arg0);
+                return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAuditLogEntriesForActor(arg0);
+            return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAuditLogEntry(arg0: bigint): Promise<AuditLogEntry | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAuditLogEntry(arg0);
+                return from_candid_opt_n28(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAuditLogEntry(arg0);
+            return from_candid_opt_n28(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAuditLogStats(): Promise<{
+        total: bigint;
+        orderUpdateCounts: bigint;
+        couponCreateCounts: bigint;
+        approvalCounts: bigint;
+        messageCounts: bigint;
+        editCounts: bigint;
+        declineCounts: bigint;
+        couponToggleCounts: bigint;
+        loginCounts: bigint;
+    }> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAuditLogStats();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAuditLogStats();
+            return result;
+        }
+    }
+    async getCallerUserProfile(): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCallerUserProfile();
+                return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCallerUserProfile();
+            return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n10(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n30(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n10(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n30(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getCurrentAdminAccessCode(): Promise<string | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCurrentAdminAccessCode();
+                return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCurrentAdminAccessCode();
+            return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
         }
     }
     async getEvents(): Promise<Array<Event>> {
@@ -309,14 +646,98 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getFeatureSpecification();
-                return from_candid_vec_n12(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n32(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getFeatureSpecification();
-            return from_candid_vec_n12(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n32(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getLoginAttempts(): Promise<Array<AdminLoginAttempt>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getLoginAttempts();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getLoginAttempts();
+            return result;
+        }
+    }
+    async getOnlyVerifiedTestimonies(): Promise<Array<Testimony>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getOnlyVerifiedTestimonies();
+                return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getOnlyVerifiedTestimonies();
+            return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getPermissions(arg0: Principal): Promise<AdminPermissions | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getPermissions(arg0);
+                return from_candid_opt_n39(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getPermissions(arg0);
+            return from_candid_opt_n39(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getRecentAuditLogEntries(arg0: bigint): Promise<Array<AuditLogEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getRecentAuditLogEntries(arg0);
+                return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getRecentAuditLogEntries(arg0);
+            return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getTestimony(arg0: bigint): Promise<Testimony | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTestimony(arg0);
+                return from_candid_opt_n40(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTestimony(arg0);
+            return from_candid_opt_n40(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUserProfile(arg0);
+                return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUserProfile(arg0);
+            return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
         }
     }
     async healthCheck(): Promise<HealthStatus> {
@@ -347,6 +768,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async listAdmins(): Promise<Array<AdminPermissions>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.listAdmins();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.listAdmins();
+            return result;
+        }
+    }
     async logEvent(arg0: string, arg1: string): Promise<void> {
         if (this.processError) {
             try {
@@ -361,32 +796,155 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async removeAdminRole(arg0: Principal): Promise<void> {
+    async resetAdminAttempts(arg0: Principal): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.removeAdminRole(arg0);
+                const result = await this.actor.resetAdminAttempts(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.removeAdminRole(arg0);
+            const result = await this.actor.resetAdminAttempts(arg0);
+            return result;
+        }
+    }
+    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveCallerUserProfile(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveCallerUserProfile(arg0);
+            return result;
+        }
+    }
+    async setOwner(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setOwner(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setOwner(arg0);
+            return result;
+        }
+    }
+    async submitAdminAccessAttempt(arg0: string, arg1: string | null, arg2: string | null): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.submitAdminAccessAttempt(arg0, to_candid_opt_n41(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n41(this._uploadFile, this._downloadFile, arg2));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.submitAdminAccessAttempt(arg0, to_candid_opt_n41(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n41(this._uploadFile, this._downloadFile, arg2));
+            return result;
+        }
+    }
+    async updateAdminAccessCode(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateAdminAccessCode(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateAdminAccessCode(arg0);
+            return result;
+        }
+    }
+    async verifyAccessCode(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.verifyAccessCode(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.verifyAccessCode(arg0);
+            return result;
+        }
+    }
+    async verifyAdminAccess(arg0: string, arg1: string | null, arg2: string | null): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.verifyAdminAccess(arg0, to_candid_opt_n41(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n41(this._uploadFile, this._downloadFile, arg2));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.verifyAdminAccess(arg0, to_candid_opt_n41(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n41(this._uploadFile, this._downloadFile, arg2));
             return result;
         }
     }
 }
-function from_candid_Feature_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Feature): Feature {
-    return from_candid_record_n17(_uploadFile, _downloadFile, value);
+function from_candid_AdminAccessLogEntry_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AdminAccessLogEntry): AdminAccessLogEntry {
+    return from_candid_record_n12(_uploadFile, _downloadFile, value);
 }
-function from_candid_PageFeatures_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PageFeatures): PageFeatures {
-    return from_candid_record_n14(_uploadFile, _downloadFile, value);
+function from_candid_AuditActionType_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AuditActionType): AuditActionType {
+    return from_candid_variant_n18(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n11(_uploadFile, _downloadFile, value);
+function from_candid_AuditLogEntry_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AuditLogEntry): AuditLogEntry {
+    return from_candid_record_n16(_uploadFile, _downloadFile, value);
+}
+async function from_candid_ExternalBlob_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
+    return await _downloadFile(value);
+}
+function from_candid_Feature_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Feature): Feature {
+    return from_candid_record_n37(_uploadFile, _downloadFile, value);
+}
+function from_candid_PageFeatures_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PageFeatures): PageFeatures {
+    return from_candid_record_n34(_uploadFile, _downloadFile, value);
+}
+async function from_candid_Testimony_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Testimony): Promise<Testimony> {
+    return await from_candid_record_n22(_uploadFile, _downloadFile, value);
+}
+function from_candid_UserRole_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n31(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [Principal]): Principal | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [number]): number | null {
+    return value.length === 0 ? null : value[0];
+}
+async function from_candid_opt_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ExternalBlob]): Promise<ExternalBlob | null> {
+    return value.length === 0 ? null : await from_candid_ExternalBlob_n25(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_AuditLogEntry]): AuditLogEntry | null {
+    return value.length === 0 ? null : from_candid_AuditLogEntry_n15(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_AdminPermissions]): AdminPermissions | null {
+    return value.length === 0 ? null : value[0];
+}
+async function from_candid_opt_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Testimony]): Promise<Testimony | null> {
+    return value.length === 0 ? null : await from_candid_Testimony_n21(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
     return value.length === 0 ? null : value[0];
@@ -394,7 +952,85 @@ function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    principal: Principal;
+    timestamp: bigint;
+    deviceType: [] | [string];
+    browserInfo: [] | [string];
+}): {
+    id: bigint;
+    principal: Principal;
+    timestamp: bigint;
+    deviceType?: string;
+    browserInfo?: string;
+} {
+    return {
+        id: value.id,
+        principal: value.principal,
+        timestamp: value.timestamp,
+        deviceType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.deviceType)),
+        browserInfo: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.browserInfo))
+    };
+}
+function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    actionType: _AuditActionType;
+    target: [] | [Principal];
+    timestamp: bigint;
+    details: string;
+    actorPrincipal: Principal;
+}): {
+    id: bigint;
+    actionType: AuditActionType;
+    target?: Principal;
+    timestamp: bigint;
+    details: string;
+    actorPrincipal: Principal;
+} {
+    return {
+        id: value.id,
+        actionType: from_candid_AuditActionType_n17(_uploadFile, _downloadFile, value.actionType),
+        target: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.target)),
+        timestamp: value.timestamp,
+        details: value.details,
+        actorPrincipal: value.actorPrincipal
+    };
+}
+async function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    shortReview: [] | [string];
+    starRating: [] | [number];
+    content: string;
+    video: [] | [_ExternalBlob];
+    author: string;
+    approved: boolean;
+    rating: [] | [bigint];
+    photo: [] | [_ExternalBlob];
+}): Promise<{
+    id: bigint;
+    shortReview?: string;
+    starRating?: number;
+    content: string;
+    video?: ExternalBlob;
+    author: string;
+    approved: boolean;
+    rating?: bigint;
+    photo?: ExternalBlob;
+}> {
+    return {
+        id: value.id,
+        shortReview: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.shortReview)),
+        starRating: record_opt_to_undefined(from_candid_opt_n23(_uploadFile, _downloadFile, value.starRating)),
+        content: value.content,
+        video: record_opt_to_undefined(await from_candid_opt_n24(_uploadFile, _downloadFile, value.video)),
+        author: value.author,
+        approved: value.approved,
+        rating: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.rating)),
+        photo: record_opt_to_undefined(await from_candid_opt_n24(_uploadFile, _downloadFile, value.photo))
+    };
+}
+function from_candid_record_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     features: Array<_Feature>;
     page: string;
 }): {
@@ -402,11 +1038,11 @@ function from_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uin
     page: string;
 } {
     return {
-        features: from_candid_vec_n15(_uploadFile, _downloadFile, value.features),
+        features: from_candid_vec_n35(_uploadFile, _downloadFile, value.features),
         page: value.page
     };
 }
-function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     description: string;
     phase: {
         later: null;
@@ -419,7 +1055,7 @@ function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } {
     return {
         description: value.description,
-        phase: from_candid_variant_n18(_uploadFile, _downloadFile, value.phase)
+        phase: from_candid_variant_n38(_uploadFile, _downloadFile, value.phase)
     };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -434,7 +1070,26 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
     };
 }
-function from_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    adminEdit: null;
+} | {
+    adminMessage: null;
+} | {
+    adminLogin: null;
+} | {
+    orderUpdate: null;
+} | {
+    couponCreate: null;
+} | {
+    couponToggle: null;
+} | {
+    adminApproval: null;
+} | {
+    adminDecline: null;
+}): AuditActionType {
+    return "adminEdit" in value ? AuditActionType.adminEdit : "adminMessage" in value ? AuditActionType.adminMessage : "adminLogin" in value ? AuditActionType.adminLogin : "orderUpdate" in value ? AuditActionType.orderUpdate : "couponCreate" in value ? AuditActionType.couponCreate : "couponToggle" in value ? AuditActionType.couponToggle : "adminApproval" in value ? AuditActionType.adminApproval : "adminDecline" in value ? AuditActionType.adminDecline : value;
+}
+function from_candid_variant_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -443,18 +1098,30 @@ function from_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     later: null;
 } | {
     phase1: null;
 }): Variant_later_phase1 {
     return "later" in value ? Variant_later_phase1.later : "phase1" in value ? Variant_later_phase1.phase1 : value;
 }
-function from_candid_vec_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_PageFeatures>): Array<PageFeatures> {
-    return value.map((x)=>from_candid_PageFeatures_n13(_uploadFile, _downloadFile, x));
+function from_candid_vec_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AdminAccessLogEntry>): Array<AdminAccessLogEntry> {
+    return value.map((x)=>from_candid_AdminAccessLogEntry_n11(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Feature>): Array<Feature> {
-    return value.map((x)=>from_candid_Feature_n16(_uploadFile, _downloadFile, x));
+function from_candid_vec_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AuditLogEntry>): Array<AuditLogEntry> {
+    return value.map((x)=>from_candid_AuditLogEntry_n15(_uploadFile, _downloadFile, x));
+}
+async function from_candid_vec_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Testimony>): Promise<Array<Testimony>> {
+    return await Promise.all(value.map(async (x)=>await from_candid_Testimony_n21(_uploadFile, _downloadFile, x)));
+}
+function from_candid_vec_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_PageFeatures>): Array<PageFeatures> {
+    return value.map((x)=>from_candid_PageFeatures_n33(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Feature>): Array<Feature> {
+    return value.map((x)=>from_candid_Feature_n36(_uploadFile, _downloadFile, x));
+}
+function to_candid_AuditActionType_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AuditActionType): _AuditActionType {
+    return to_candid_variant_n27(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n9(_uploadFile, _downloadFile, value);
@@ -465,6 +1132,9 @@ function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: Exte
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
 }
+function to_candid_opt_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
+    return value === null ? candid_none() : candid_some(value);
+}
 function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     proposed_top_up_amount?: bigint;
 }): {
@@ -473,6 +1143,41 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
     return {
         proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
     };
+}
+function to_candid_variant_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AuditActionType): {
+    adminEdit: null;
+} | {
+    adminMessage: null;
+} | {
+    adminLogin: null;
+} | {
+    orderUpdate: null;
+} | {
+    couponCreate: null;
+} | {
+    couponToggle: null;
+} | {
+    adminApproval: null;
+} | {
+    adminDecline: null;
+} {
+    return value == AuditActionType.adminEdit ? {
+        adminEdit: null
+    } : value == AuditActionType.adminMessage ? {
+        adminMessage: null
+    } : value == AuditActionType.adminLogin ? {
+        adminLogin: null
+    } : value == AuditActionType.orderUpdate ? {
+        orderUpdate: null
+    } : value == AuditActionType.couponCreate ? {
+        couponCreate: null
+    } : value == AuditActionType.couponToggle ? {
+        couponToggle: null
+    } : value == AuditActionType.adminApproval ? {
+        adminApproval: null
+    } : value == AuditActionType.adminDecline ? {
+        adminDecline: null
+    } : value;
 }
 function to_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;

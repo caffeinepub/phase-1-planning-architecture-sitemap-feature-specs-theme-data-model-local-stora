@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Mail, MapPin, Clock } from 'lucide-react';
+import { SiFacebook, SiInstagram, SiTiktok, SiYoutube } from 'react-icons/si';
 import { toast } from 'sonner';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
@@ -118,38 +119,99 @@ export default function Contact() {
           <div className="space-y-6">
             <Card className="border-border/40 hover-lift">
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
+                <CardTitle>Contact the Keepers of the Artifacts</CardTitle>
                 <CardDescription>
-                  Other ways to reach us
+                  Other Ways to Reach Us
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-arcane-gold flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">contact@arcaneartifacts.com</p>
-                  </div>
+              <CardContent className="space-y-6">
+                {/* Narrative Introduction */}
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground leading-relaxed">
+                    If the path of the website is not the road you choose, your request, custom quote, or sacred quest may still be delivered through the enchanted messenger gates of <strong>Facebook Messenger</strong>, <strong>Instagram</strong>, and <strong>TikTok</strong>, where our Keepers receive transmissions from travelers afar.
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Witness our recorded chronicles upon <strong>YouTube</strong>, where both short-form visions and long-form tales of relics, discoveries, and journeys are revealed.
+                  </p>
                 </div>
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-arcane-gold flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Location</p>
-                    <p className="text-sm text-muted-foreground">
-                      The Mystical Quarter<br />
-                      Ancient City, Realm of Wonders
-                    </p>
-                  </div>
+
+                {/* Social Media Links */}
+                <div className="flex gap-4 items-center justify-start flex-wrap">
+                  <a
+                    href="https://facebook.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-arcane-gold transition-colors"
+                    aria-label="Facebook Messenger"
+                  >
+                    <SiFacebook className="h-6 w-6" />
+                  </a>
+                  <a
+                    href="https://instagram.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-arcane-gold transition-colors"
+                    aria-label="Instagram"
+                  >
+                    <SiInstagram className="h-6 w-6" />
+                  </a>
+                  <a
+                    href="https://tiktok.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-arcane-gold transition-colors"
+                    aria-label="TikTok"
+                  >
+                    <SiTiktok className="h-6 w-6" />
+                  </a>
+                  <a
+                    href="https://youtube.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-arcane-gold transition-colors"
+                    aria-label="YouTube"
+                  >
+                    <SiYoutube className="h-6 w-6" />
+                  </a>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-arcane-gold flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Business Hours</p>
-                    <p className="text-sm text-muted-foreground">
-                      Monday - Friday: 9:00 AM - 6:00 PM<br />
-                      Saturday: 10:00 AM - 4:00 PM<br />
-                      Sunday: Closed
-                    </p>
+
+                {/* Divider */}
+                <div className="border-t border-border/40" />
+
+                {/* Contact Details with Icons */}
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-arcane-gold flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Email</p>
+                      <a
+                        href="mailto:thecreatorofsidequests@gmail.com"
+                        className="text-sm text-muted-foreground hover:text-arcane-gold transition-colors"
+                      >
+                        thecreatorofsidequests@gmail.com
+                      </a>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-arcane-gold flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Sanctum Location</p>
+                      <p className="text-sm text-muted-foreground">
+                        Ashland, Kentucky — where the hidden vault of artifacts quietly rests.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-arcane-gold flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Hours of Invocation</p>
+                      <p className="text-sm text-muted-foreground">
+                        The gates of the Keepers remain open <strong>Monday through Thursday, from 10:30 a.m. until 10:30 p.m.</strong>, when requests, quotes, and quests (for they are one and the same) may be submitted.
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        From <strong>Friday through Sunday</strong>, the Keepers enter sacred rest, and <strong>no quests or requests shall be accepted</strong> until the gates open once more.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>

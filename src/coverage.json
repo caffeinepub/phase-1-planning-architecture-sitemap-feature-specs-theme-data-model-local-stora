@@ -1,132 +1,105 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T05:18:30.376Z",
+  "generatedAt": "2026-02-11T06:18:16.432Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 6,
-    "implemented": 5,
+    "total": 7,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement a testimony verification workflow where testimonies are publicly visible on the Testimonies page immediately after submission but are clearly labeled as \"Awaiting Admin Verification\" until an admin approves them; once approved in the admin dashboard, the testimony becomes verified (status changes) and is treated as approved/verified in the UI.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx"
-        ]
+        "summary": "Persist the master admin access code in the backend canister (defaulting to \"7583A\") and use it for all admin access validation so the correct code is consistently recognized across future logins and deployments.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Add backend APIs and storage updates to support testimony approval and verified status changes by admins, including audit logging for the approval action (using the existing audit log system).",
+        "summary": "Add backend admin settings APIs to securely change the master admin access code from within the Admin Dashboard; the new code must immediately replace the previous one for all future validations.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Update the Admin Testimonies UI to support reviewing and approving/verifying testimonies: show clear status (Pending vs Verified/Approved) and provide an action to approve pending testimonies, with React Query invalidation so both admin and public views refresh.",
-        "status": "implemented",
+        "summary": "Ensure the Admin entry points in the site navigation (top header and mobile hamburger menu) route to the Administrative Access page (\"/admin-access\") and match the existing website UI styling.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/admin/AdminTestimoniesTab.tsx"
+          "frontend/src/components/layout/HeaderNav.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/admin/AdminTestimoniesTab.tsx"
-        ]
+        "matchedFiles": []
       },
       {
         "id": "REQ-4",
-        "summary": "Create a Search Artifacts system from scratch that supports keyword search and filtered/categorized results (including a \"Testimonies\" category), and automatically indexes each testimony’s title/description and media descriptions so testimonies can be discovered via Search Artifacts search.",
-        "status": "implemented",
+        "summary": "Implement the Admin Access flow so that entering the correct master code shows the text \"Access Granted\" and then immediately redirects the user to the full Admin Dashboard with all existing admin tools enabled; entering an incorrect code shows an access denied/invalid message without redirect.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/pages/SearchArtifacts.tsx",
-          "frontend/src/hooks/useSearchArtifacts.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/components/layout/HeaderNav.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/pages/AdminAccess.tsx",
+          "frontend/src/components/auth/RequireAdminAccessGate.tsx",
+          "frontend/src/lib/adminAccessSession.ts"
         ],
-        "matchedFiles": [
-          "frontend/src/pages/SearchArtifacts.tsx",
-          "frontend/src/hooks/useSearchArtifacts.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/components/layout/HeaderNav.tsx",
-          "frontend/src/hooks/useQueries.ts"
-        ]
+        "matchedFiles": []
       },
       {
         "id": "REQ-5",
-        "summary": "Enforce controlled discoverability for testimonies: testimonies must not appear on any other pages or global listings besides (1) the public Testimonies page and (2) Search Artifacts search results.",
+        "summary": "Provide an Admin Settings section within the Admin Dashboard UI that allows authorized administrators to change the master admin access code, using the backend settings API, and keep all UI text in English.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/Homepage.tsx"
+          "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
+          "frontend/src/components/admin/AdminSystemSettingsTab.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
+          "frontend/src/components/admin/AdminSystemSettingsTab.tsx"
         ]
       },
       {
         "id": "REQ-6",
-        "summary": "Implement responsive layout support across the entire website so all pages/forms/dashboards/navigation/testimonies/media upload components scale correctly on mobile, tablet, desktop, and large screens, with readable spacing, properly scaled images/videos, and touch-friendly menus/buttons.",
-        "status": "implemented",
+        "summary": "Regenerate and ensure the full Admin Dashboard tools are functional end-to-end (frontend tabs wired to backend) for: coupon creation/management, testimonies management/verification, portfolio photo/video uploads, and shop product management, all matching the existing site’s style.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/layout/HeaderNav.tsx",
-          "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "frontend/src/pages/Admin.tsx",
+          "frontend/src/components/admin/AdminPortfolioTab.tsx",
+          "frontend/src/hooks/useAdminPortfolio.ts",
+          "frontend/src/components/admin/AdminCouponsTab.tsx",
+          "frontend/src/hooks/useAdminCoupons.ts",
+          "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+          "frontend/src/components/admin/AdminProductsTab.tsx"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Keep the regenerated admin pages and components visually consistent with the existing website’s dark fantasy theme (colors, typography, spacing, and component styling) as documented in the project’s existing design direction.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/pages/AdminAccess.tsx",
+          "frontend/src/pages/Admin.tsx",
           "frontend/src/index.css"
         ],
-        "matchedFiles": [
-          "frontend/src/components/layout/HeaderNav.tsx",
-          "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-          "frontend/src/index.css"
-        ]
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/admin/AdminMessagingTab.tsx",
-    "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
+    "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
     "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-    "frontend/src/components/admin/AdminRequestsTab.tsx",
-    "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-    "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
-    "frontend/src/components/adminplus/AdminRegistrySection.tsx",
-    "frontend/src/components/adminplus/CouponManagerSection.tsx",
-    "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/shop/ShopCartDrawer.tsx",
-    "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-    "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
+    "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useAdminMessaging.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useSearchArtifacts.ts",
-    "frontend/src/index.css",
-    "frontend/src/pages/Inbox.tsx",
-    "frontend/src/pages/SearchArtifacts.tsx",
-    "frontend/src/pages/Shop.tsx",
-    "frontend/src/pages/SubmitRequest.tsx",
-    "frontend/src/pages/Testimonies.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

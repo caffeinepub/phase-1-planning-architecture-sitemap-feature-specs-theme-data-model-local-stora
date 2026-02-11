@@ -44,7 +44,6 @@ export default function AdminOrderTrackingDetailModal({
 }: AdminOrderTrackingDetailModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [locationText, setLocationText] = useState('');
-  const [locationDescription, setLocationDescription] = useState('');
   const [noteText, setNoteText] = useState('');
 
   const updateStatus = useUpdateOrderTrackingStatus();
@@ -85,11 +84,9 @@ export default function AdminOrderTrackingDetailModal({
       await addLocation.mutateAsync({
         orderId: order.id,
         location: locationText.trim(),
-        description: locationDescription.trim() || locationText.trim(),
       });
       toast.success('Location update added');
       setLocationText('');
-      setLocationDescription('');
     } catch (error: any) {
       toast.error(error.message || 'Failed to add location update');
     }
@@ -177,11 +174,6 @@ export default function AdminOrderTrackingDetailModal({
               placeholder="Location (e.g., Distribution Center, City Name)"
               value={locationText}
               onChange={(e) => setLocationText(e.target.value)}
-            />
-            <Input
-              placeholder="Description (optional)"
-              value={locationDescription}
-              onChange={(e) => setLocationDescription(e.target.value)}
             />
             <Button
               onClick={handleAddLocation}

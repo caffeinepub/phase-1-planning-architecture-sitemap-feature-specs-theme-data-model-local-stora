@@ -1,144 +1,143 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Testimony verification UI + Search Artifacts UI + controlled discoverability + responsive layout",
+  "title": "Frontend regeneration of admin access navigation, access flow, and dashboard tools (dark fantasy styling)",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Show newly submitted testimonies publicly immediately with a clear “Awaiting Admin Verification” status until approved, then reflect verified state in the UI.",
-      "acceptanceCriteria": [
-        "Submitting a testimony results in it appearing on the public Testimonies page with a visible \"Awaiting Admin Verification\" label/badge.",
-        "After an admin approves a testimony, the public Testimonies page updates to show that testimony as verified/approved (no longer labeled \"Awaiting Admin Verification\").",
-        "Admin approval action is available in the admin dashboard and persists in the backend so the status survives refresh/redeploy."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Testimonies.tsx",
-          "operation": "modify",
-          "description": "Stop filtering out unapproved testimonies for public display; render both approved and pending items and add a prominent English badge/label for pending items reading \"Awaiting Admin Verification\" while keeping approved items visually distinct."
-        },
-        {
-          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-          "operation": "modify",
-          "description": "Update English helper text and success toast to match the new behavior (appears immediately but marked as awaiting verification). Ensure messaging aligns with the public pending badge behavior."
-        }
-      ]
-    },
-    {
       "id": "REQ-3",
-      "summary": "Enable admins to review testimony status and approve pending testimonies from the Admin Testimonies UI with React Query invalidation and error handling.",
+      "summary": "Ensure header and mobile navigation Admin entry routes to /admin-access and matches existing nav styling patterns.",
       "acceptanceCriteria": [
-        "Admin testimonies tab shows each testimony’s current status.",
-        "Pending testimonies have an \"Approve\" (or equivalent) control.",
-        "Approving from the admin UI updates the item status without requiring a hard refresh (queries invalidate/refetch).",
-        "Error states are handled using existing patterns (inline error + retry)."
+        "Desktop/header navigation contains an \"Admin\" entry that routes to \"/admin-access\".",
+        "Mobile hamburger menu contains an \"Admin\" entry that routes to \"/admin-access\".",
+        "Navigation styling is consistent with the existing header/mobile menu patterns (typography, spacing, hover states)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
           "operation": "modify",
-          "description": "Add a React Query mutation hook for approving/verifying a testimony (calling the new backend capability), and invalidate/refetch relevant queries (admin list, public testimonies list, and any search-related queries that include testimonies)."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-          "operation": "modify",
-          "description": "Add a clear status indicator (Pending vs Verified/Approved) and an \"Approve\" action for pending items. Use the new mutation hook and follow existing ErrorState/inline error + retry patterns; disable controls while pending; on success trigger query invalidation refresh."
+          "description": "Harden the existing Admin navigation entries so both desktop and mobile consistently route to /admin-access, follow the same link composition/states as other nav links, and close the mobile menu on navigation. Keep visuals consistent with the current header/menu patterns. (Uses existing auth role display patterns from the authorization component’s frontend guidance; verify the component's usage instructions before implementing.)"
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Add a Search Artifacts UI with keyword search and category filtering (including “Testimonies”) that surfaces testimonies via backend indexing.",
+      "summary": "Make Admin Access submission reliably display \"Access Granted\" and redirect to /admin on success; show an invalid/denied message on failure without redirect.",
       "acceptanceCriteria": [
-        "A new Search Artifacts UI exists where users can enter a keyword query and see results.",
-        "Search results support filtering by category, including \"Testimonies\".",
-        "Newly submitted testimonies become searchable via Search Artifacts without manual re-entry.",
-        "Search indexing includes testimony textual fields and per-media description text (photos/videos).",
-        "The backend provides query methods needed for search and category filtering."
+        "When a user submits the correct master code on the Administrative Access page, the UI displays \"Access Granted\" and navigates to \"/admin\" without requiring manual refresh.",
+        "When a user submits an incorrect code, the UI displays an invalid/denied message and does not navigate to \"/admin\".",
+        "The backend records successful/failed attempts consistently, and successful attempts reset attempt count as currently designed.",
+        "After a successful admin code entry, the user can access the Admin Dashboard gated routes according to the existing admin-role and admin-access gate logic."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/SearchArtifacts.tsx",
-          "operation": "create",
-          "description": "Create the Search Artifacts page UI with a keyword input, category filter (including \"Testimonies\"), loading/empty/error states, and a results list that can render testimony results. Use existing shadcn-ui components for inputs, selects, badges, cards, and skeletons. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useSearchArtifacts.ts",
-          "operation": "create",
-          "description": "Create React Query hooks for searching artifacts by keyword and category (including \"Testimonies\"), calling the backend-provided search capabilities and exposing typed loading/error state for the new page."
-        },
-        {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/pages/AdminAccess.tsx",
           "operation": "modify",
-          "description": "Register a new route for the Search Artifacts page and ensure it is reachable via the router configuration (no orphan page)."
+          "description": "Adjust the success flow to show the exact \"Access Granted\" text and then redirect to /admin immediately (or near-immediately) after state update, while keeping failure behavior as a non-redirecting invalid/denied message. Ensure all user-facing strings remain English and match existing UI components (Card/Input/Button) without editing UI component sources. (Authorization component is used indirectly via existing auth gates and role refresh patterns; verify the component's usage instructions before implementing.)"
         },
         {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "path": "frontend/src/components/auth/RequireAdminAccessGate.tsx",
           "operation": "modify",
-          "description": "Add a navigation link to the new Search Artifacts route in both desktop and mobile menus. Keep English labels and ensure the link is reachable without authentication for public search browsing."
+          "description": "Ensure gating behavior is consistent and predictable after unlocking admin access (session flag), including redirect behavior to /admin-access when locked and null rendering while redirecting, without introducing new auth flows. (Authorization component patterns inform gating expectations; verify the component's usage instructions before implementing.)"
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/lib/adminAccessSession.ts",
           "operation": "modify",
-          "description": "Update the testimony submission mutation to invalidate Search Artifacts queries so newly submitted testimonies can become discoverable through search as soon as backend indexing is updated."
+          "description": "Align session unlock helpers with the adjusted access flow (e.g., add a clear, documented reset behavior used by logout flows elsewhere if needed), keeping storage session-scoped and stable across refreshes within a session. Keep implementation compatible with existing gates. (Authorization component guidance includes clearing cached app data on logout; verify the component's usage instructions before implementing.)"
         }
       ]
     },
     {
       "id": "REQ-5",
-      "summary": "Ensure testimonies are discoverable publicly only on the Testimonies page and in Search Artifacts results (admin dashboard remains allowed).",
+      "summary": "Add an Admin Settings area in the Admin Dashboard to change the master admin access code via backend settings methods, respecting existing permission gating and English-only UI.",
       "acceptanceCriteria": [
-        "No other existing pages/components display testimony lists/cards/teasers by default.",
-        "Only the Testimonies route and the Search Artifacts route surface testimonies to non-admin users.",
-        "Admin dashboard may list testimonies for review, but public discovery outside Testimonies and Search Artifacts does not occur."
+        "Admin Dashboard contains a clearly labeled settings area for updating the master admin access code.",
+        "The settings UI requires the current admin to be authorized (respect existing permission gating patterns used in the dashboard settings tab).",
+        "On successful update, the UI confirms success and subsequent admin-access attempts require the new code.",
+        "All user-visible strings in this flow are in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Audit and ensure there are no additional routes/pages wiring testimony lists outside of /testimonies and the new Search Artifacts route; keep testimonies surfaced only in those two public locations and the admin dashboard tab."
+          "path": "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
+          "operation": "create",
+          "description": "Create a settings section UI for changing the master admin access code (current code + new code + confirm), calling existing backend capabilities (e.g., changeAdminAccessCode/confirmNewCode/updateAdminAccessCode as available) via the actor and handling authorization errors gracefully. Use existing site UI primitives (Card/Input/Button/Alert) and English text only. (Uses authorization component patterns for admin-only access and handling authorization traps; verify the component's usage instructions before implementing.)"
         },
         {
-          "path": "frontend/src/pages/Homepage.tsx",
+          "path": "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
           "operation": "modify",
-          "description": "Confirm homepage does not fetch or render testimonies; remove/avoid any testimony list/teaser wiring if present, keeping only navigation links (no public testimony surfacing outside the allowed pages)."
+          "description": "Wire the new AdminAccessCodeSettingsSection into the Settings tab, and guard it using existing owner/full-permissions logic already used for other advanced controls. Ensure styling remains consistent with the dark fantasy theme and existing settings layout. (Authorization component informs permission gating UX; verify the component's usage instructions before implementing.)"
         }
       ]
     },
     {
       "id": "REQ-6",
-      "summary": "Improve responsive layout across the site for navigation, pages, dashboards, forms, testimonies, and media grids so the UI works well on mobile/tablet/desktop/large screens.",
+      "summary": "Regenerate/ensure Admin Dashboard tool tabs are wired and usable for coupons, testimonies verification, portfolio photo/video uploads, and shop product management, matching site style and existing admin gating.",
       "acceptanceCriteria": [
-        "Key pages (Homepage, Shop, Submit Request, Admin, AdminPlus, Testimonies, Inbox, FAQ, Contact) render without horizontal overflow at common breakpoints.",
-        "Header navigation works on touch devices (mobile menu opens/closes and is usable).",
-        "Media grids (including testimony media) adapt columns appropriately and videos/images keep correct aspect ratios using responsive sizing classes.",
-        "Forms and dialogs remain usable on small screens (no clipped content; scroll within dialogs where needed)."
+        "Coupons: an admin can create a coupon and see it listed/managed from the dashboard, with changes persisted in the backend.",
+        "Testimonies: an admin can review and approve/unapprove testimonies from the dashboard, with changes persisted in the backend.",
+        "Portfolio: an admin can upload at least one image/video item to the portfolio via the dashboard, with backend persistence using the existing blob storage mixin (no external services).",
+        "Products: an admin can create/update products via the dashboard and see the changes reflected on the Shop page data source.",
+        "All admin tools are accessible only after successful admin access and according to existing admin permission gating."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "path": "frontend/src/pages/Admin.tsx",
           "operation": "modify",
-          "description": "Harden mobile navigation for touch: ensure tap targets are sufficiently large, menu content scrolls if needed, and prevent background scroll while the menu is open using the existing .body-scroll-lock utility class behavior."
+          "description": "Add and wire a dedicated \"Portfolio\" tab into the existing admin tab system (TabsTrigger + TabsContent) so portfolio uploads are accessible alongside Products/Coupons/Testimonies, and remain wrapped in existing RequireAdmin + RequireAdminAccessGate gating. Keep the tab styling consistent with the existing dashboard. (Authorization component is used through RequireAdmin and permission checks; verify the component's usage instructions before implementing.)"
         },
         {
-          "path": "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-          "operation": "modify",
-          "description": "Make testimony media cards responsive: replace fixed heights with responsive sizing, maintain correct aspect ratios for images/videos, and ensure descriptions remain readable/scrollable on small screens."
+          "path": "frontend/src/components/admin/AdminPortfolioTab.tsx",
+          "operation": "create",
+          "description": "Implement the Portfolio admin tool UI for uploading at least one image/video and submitting it to backend portfolio capabilities, using the blob-storage ExternalBlob type for upload and direct URL usage. Include upload progress and validation using existing site patterns and English text only. (Use the blob-storage component to support ExternalBlob uploads and progress tracking; verify the component's usage instructions before implementing.)"
         },
         {
-          "path": "frontend/src/pages/Testimonies.tsx",
-          "operation": "modify",
-          "description": "Adjust testimonies layout for responsive breakpoints: ensure grids adapt cleanly, badges/status labels wrap correctly, and no horizontal overflow occurs on mobile while keeping media responsive."
+          "path": "frontend/src/hooks/useAdminPortfolio.ts",
+          "operation": "create",
+          "description": "Create React Query hooks/mutations for portfolio upload/list actions used by AdminPortfolioTab, calling the backend actor capabilities and supporting progress reporting via ExternalBlob where applicable. Handle missing capability errors with clear UI-facing errors. (Use the blob-storage component’s ExternalBlob utilities; verify the component's usage instructions before implementing.)"
         },
         {
-          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "path": "frontend/src/components/admin/AdminCouponsTab.tsx",
           "operation": "modify",
-          "description": "Ensure the testimony submission dialog is fully usable on small screens (scroll within dialog, responsive spacing, touch-friendly buttons) and that all user-facing text remains in English."
+          "description": "Ensure coupon creation/management interactions use consistent loading/error states and clearly surface backend capability availability (without breaking existing UI). Keep styling consistent with the site theme and English-only text. (Authorization component influences admin-only usage expectations; verify the component's usage instructions before implementing.)"
+        },
+        {
+          "path": "frontend/src/hooks/useAdminCoupons.ts",
+          "operation": "modify",
+          "description": "Align coupon hooks to reliably query/mutate using backend actor capabilities when present, and provide consistent error handling suitable for the dashboard (no silent empty returns that mask backend availability). (Authorization component guidance applies to handling authorization failures gracefully; verify the component's usage instructions before implementing.)"
+        },
+        {
+          "path": "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+          "operation": "modify",
+          "description": "Confirm the testimonies approval workflow supports both approve and unapprove if the backend provides it, and keep list filtering, media indicators, and action feedback consistent with the rest of the dashboard UI. (Authorization component patterns apply to admin-only screens and error handling; verify the component's usage instructions before implementing.)"
+        },
+        {
+          "path": "frontend/src/components/admin/AdminProductsTab.tsx",
+          "operation": "modify",
+          "description": "Verify product management UI is fully wired to existing product create/update flows and refreshes the shared products query so changes reflect on the Shop page data source. Keep visuals aligned with existing dashboard cards/tables. (Authorization component patterns apply to admin-only screens; verify the component's usage instructions before implementing.)"
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Keep Admin Access and Admin Dashboard visually consistent with the site dark fantasy theme by composing existing UI components and theme variables.",
+      "acceptanceCriteria": [
+        "Admin Access page and Admin Dashboard reuse existing UI components (cards, buttons, inputs, tabs) and follow the established theme variables and typography.",
+        "No new, conflicting visual theme is introduced; the admin experience looks like part of the same site."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminAccess.tsx",
+          "operation": "modify",
+          "description": "Refine Admin Access page styling to align with the documented dark fantasy design direction (spacing, typography, interactive states) using existing components and existing theme tokens, without introducing a new theme. Ensure the success/denied states remain visually consistent and readable. (shadcn-ui components are composed here; verify the component's usage instructions before implementing.)"
+        },
+        {
+          "path": "frontend/src/pages/Admin.tsx",
+          "operation": "modify",
+          "description": "Refine Admin Dashboard typography/spacing and tab layout to match the site’s design direction, using existing primitives (Card/Tabs/Badge/Button) and avoiding edits to read-only UI component sources. (shadcn-ui components are composed here; verify the component's usage instructions before implementing.)"
         },
         {
           "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Add/adjust global responsive utilities where needed to prevent horizontal overflow and improve consistent spacing across breakpoints (without changing the overall theme beyond what’s necessary)."
+          "description": "If needed to match the documented design direction, adjust only existing global theme variables/utilities (not creating a new theme) to support admin page consistency (e.g., section spacing utility usage), ensuring no conflicts with the rest of the site. (shadcn-ui theming depends on these tokens; verify the component's usage instructions before implementing.)"
         }
       ]
     }

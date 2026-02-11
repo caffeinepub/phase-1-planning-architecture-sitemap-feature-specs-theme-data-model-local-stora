@@ -1,52 +1,21 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Build a fully responsive website UI across all pages and implement a new Testimony submission/management system integrated with a new Search Artifacts system (testimonies as an artifact type), including admin verification workflow and controlled discovery/visibility rules.",
+  "summary": "Build a full Admin Access system and Admin Dashboard styled to match the existing website UI, including persistent master access code validation, admin entry points (top bar + mobile menu), an access page with redirect-on-success, and in-dashboard admin tools (coupons, testimonials management/verification, portfolio photo/video uploads, shop product management) plus an Admin Settings option to change the master code.",
   "architectural_notes": [
-    "Testimonies require an admin verification workflow: public items may appear as 'Awaiting Admin Verification' until verified; approval marks as verified and controls placement on the Testimonies page.",
-    "Discovery constraint: testimonies should only be accessible via the Testimonies page or through Search Artifacts search results (not from other site areas).",
-    "Search Artifacts is a generalized indexing/search system with artifact categories (start with testimonies; designed to support photos/videos/documents)."
+    "Admin system and dashboard should match existing website UI/style.",
+    "Master admin access code must be securely and persistently stored server-side to survive redeployments and ensure consistent validation."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Previous attempt to build the admin system failed/was incomplete (AI struggled); user requested full regeneration."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-implement-a-testimony-verification-workflow-where-testimonies-are-publicly-visible-on-the-testimonies-page-immediately-after-submission-but-are-clearly-labeled-as-awaiting-admin-verification-until-an-admin-approves-them-once-approved-in-the-admin-dashboard-the-testimony-becomes-verified-status-changes-and-is-treated-as-approved-verified-in-the-ui",
-      "title": "Implement a testimony verification workflow where testimonies are publicly visible on the Testimonies page immediately after submission but are clearly labeled as \"Awaiting Admin Verification\" until an admin approves them; once approved in the admin dashboard, the testimony becomes verified (status changes) and is treated as approved/verified in the UI.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-admin-testimonies-ui-to-support-reviewing-and-approving-verifying-testimonies-show-clear-status-pending-vs-verified-approved-and-provide-an-action-to-approve-pending-testimonies-with-react-query-invalidation-so-both-admin-and-public-views-refresh",
-      "title": "Update the Admin Testimonies UI to support reviewing and approving/verifying testimonies: show clear status (Pending vs Verified/Approved) and provide an action to approve pending testimonies, with React Query invalidation so both admin and public views refresh.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-search-artifacts-system-from-scratch-that-supports-keyword-search-and-filtered-categorized-results-including-a-testimonies-category-and-automatically-indexes-each-testimony-s-title-description-and-media-descriptions-so-testimonies-can-be-discovered-via-search-artifacts-search",
-      "title": "Create a Search Artifacts system from scratch that supports keyword search and filtered/categorized results (including a \"Testimonies\" category), and automatically indexes each testimony’s title/description and media descriptions so testimonies can be discovered via Search Artifacts search.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-enforce-controlled-discoverability-for-testimonies-testimonies-must-not-appear-on-any-other-pages-or-global-listings-besides-1-the-public-testimonies-page-and-2-search-artifacts-search-results",
-      "title": "Enforce controlled discoverability for testimonies: testimonies must not appear on any other pages or global listings besides (1) the public Testimonies page and (2) Search Artifacts search results.",
+      "id": "feature-provide-an-admin-settings-section-within-the-admin-dashboard-ui-that-allows-authorized-administrators-to-change-the-master-admin-access-code-using-the-backend-settings-api-and-keep-all-ui-text-in-english",
+      "title": "Provide an Admin Settings section within the Admin Dashboard UI that allows authorized administrators to change the master admin access code, using the backend settings API, and keep all UI text in English.",
       "reqIds": [
         "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-responsive-layout-support-across-the-entire-website-so-all-pages-forms-dashboards-navigation-testimonies-media-upload-components-scale-correctly-on-mobile-tablet-desktop-and-large-screens-with-readable-spacing-properly-scaled-images-videos-and-touch-friendly-menus-buttons",
-      "title": "Implement responsive layout support across the entire website so all pages/forms/dashboards/navigation/testimonies/media upload components scale correctly on mobile, tablet, desktop, and large screens, with readable spacing, properly scaled images/videos, and touch-friendly menus/buttons.",
-      "reqIds": [
-        "REQ-6"
       ],
       "version": 1
     }
@@ -54,32 +23,108 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement global responsive layout support across the entire website (pages, forms, dashboards, testimonies, media uploads, navigation) for mobile/tablet/desktop/large screens with touch+mouse usability and proper image/video scaling.",
+      "summary": "Create Admin entry points in site UI (top-bar Admin button and mobile hamburger menu option) that route to an Administrative Access page.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Create a full Testimony System from scratch: testimony submission with title/description/photos/videos, public listing on Testimonies page with 'Awaiting Admin Verification' labeling, and admin dashboard workflow to approve/verify testimonies (verified items are pushed to the Testimonies page).",
+      "summary": "Implement Administrative Access page that validates master admin access code; on correct code show “Access Granted” and immediately redirect to full Admin Dashboard; prevent incorrect “Access Denied” for valid code.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Create a Search Artifacts system from scratch supporting multiple artifact categories (testimonies, photos, videos, documents) with keyword search and filtered/categorized results; automatically index testimonies and allow discovery only via the Testimonies page and Search Artifacts search (not elsewhere).",
+      "summary": "Persistently and securely store the master admin access code in the backend so it consistently validates across future logins and deployments.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Build a full Admin Dashboard UI from scratch matching the existing website style, with all administrative tools enabled after successful access.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-5",
-      "summary": "Add backend APIs and storage updates to support testimony approval and verified status changes by admins, including audit logging for the approval action (using the existing audit log system).",
+      "summary": "Add Admin Dashboard tools: create/manage custom coupons.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Add Admin Dashboard tools: manage and verify testimonials.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add Admin Dashboard tools: upload photos and videos to the portfolio page.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Add Admin Dashboard tools: add custom products to the shop page.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add secure Admin Settings within the Admin Dashboard to change the master admin access code; updated code replaces previous for all future logins.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Persist the master admin access code in the backend canister (defaulting to \"7583A\") and use it for all admin access validation so the correct code is consistently recognized across future logins and deployments.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Add backend admin settings APIs to securely change the master admin access code from within the Admin Dashboard; the new code must immediately replace the previous one for all future validations.",
       "reqIds": [
         "REQ-2"
       ],
       "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Ensure the Admin entry points in the site navigation (top header and mobile hamburger menu) route to the Administrative Access page (\"/admin-access\") and match the existing website UI styling.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Implement the Admin Access flow so that entering the correct master code shows the text \"Access Granted\" and then immediately redirects the user to the full Admin Dashboard with all existing admin tools enabled; entering an incorrect code shows an access denied/invalid message without redirect.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Regenerate and ensure the full Admin Dashboard tools are functional end-to-end (frontend tabs wired to backend) for: coupon creation/management, testimonies management/verification, portfolio photo/video uploads, and shop product management, all matching the existing site’s style.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Keep the regenerated admin pages and components visually consistent with the existing website’s dark fantasy theme (colors, typography, spacing, and component styling) as documented in the project’s existing design direction.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
     }
   ],
-  "projectName": "Testimony approval/verification workflow + Search Artifacts indexing with controlled discoverability",
+  "projectName": "Regenerate admin access system with persistent master code + full admin dashboard tools (styled to match site)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

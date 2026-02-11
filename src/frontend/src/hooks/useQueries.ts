@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Testimony } from '../types/phase5a';
+import type { Testimony as BackendTestimony } from '../backend';
 import type { RequestSummary, RequestDetail, MessageAttachment } from '../types/phase5b';
 import { Principal } from '@dfinity/principal';
 import type { AdminPermissions } from '../backend';
@@ -93,6 +93,32 @@ export function useIsCallerOwner() {
 }
 
 // Admin Access Verification (Phase 6B)
+export function useSubmitAdminAccessAttempt() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      accessCode, 
+      browserInfo, 
+      deviceType 
+    }: { 
+      accessCode: string; 
+      browserInfo: string | null; 
+      deviceType: string | null;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.submitAdminAccessAttempt(accessCode, browserInfo, deviceType);
+    },
+    onSuccess: (result) => {
+      if (result === 'AdminAccessGranted') {
+        queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
+        queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
+      }
+    },
+  });
+}
+
 export function useVerifyAdminAccess() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -105,6 +131,22 @@ export function useVerifyAdminAccess() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
       queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
+    },
+  });
+}
+
+export function useUpdateAdminAccessCode() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ currentCode, newCode }: { currentCode: string; newCode: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.changeAdminAccessCode(newCode, currentCode);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminAccessLog'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLog'] });
     },
   });
 }
@@ -228,8 +270,107 @@ export function useGetAllProducts() {
   });
 }
 
-export function useGetAllProductsAdmin() {
-  return useGetAllProducts();
+// Alias for admin usage
+export const useGetAllProductsAdmin = useGetAllProducts;
+
+export function useGetProduct() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).getProduct(id);
+    },
+  });
+}
+
+export function useCreateProduct() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (product: any) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).createProduct(product);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+}
+
+export function useUpdateProduct() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, product }: { id: bigint; product: any }) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).updateProduct(id, product);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+}
+
+export function useDeleteProduct() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).deleteProduct(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+}
+
+// Store Config Queries
+export function useGetStoreConfig() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<any>({
+    queryKey: ['storeConfig'],
+    queryFn: async () => {
+      if (!actor) return { isActive: true, enableCoupons: true };
+      return (actor as any).getStoreConfig?.() || { isActive: true, enableCoupons: true };
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useGetShopActiveState() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['shopActiveState'],
+    queryFn: async () => {
+      if (!actor) return true;
+      const config = await (actor as any).getStoreConfig?.();
+      return config?.isActive ?? true;
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useSetStoreActive() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (isActive: boolean) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).setStoreActive?.(isActive);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['storeConfig'] });
+      queryClient.invalidateQueries({ queryKey: ['shopActiveState'] });
+    },
+  });
 }
 
 export function useOverrideProductPrice() {
@@ -239,7 +380,7 @@ export function useOverrideProductPrice() {
   return useMutation({
     mutationFn: async ({ productId, newPrice }: { productId: bigint; newPrice: bigint | null }) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).overrideProductPrice(productId, newPrice);
+      return (actor as any).overrideProductPrice?.(productId, newPrice);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -254,64 +395,10 @@ export function useSetProductVisibility() {
   return useMutation({
     mutationFn: async ({ productId, visibility }: { productId: bigint; visibility: any }) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).setProductVisibility(productId, visibility);
+      return (actor as any).setProductVisibility?.(productId, visibility);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-  });
-}
-
-// Store Config Queries
-export function useGetStoreConfig() {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['storeConfig'],
-    queryFn: async () => {
-      if (!actor) return { isActive: true, enableCoupons: true };
-      return (actor as any).getStoreConfig();
-    },
-    enabled: !!actor && !actorFetching,
-  });
-}
-
-export function useGetShopActiveState() {
-  const { data: config } = useGetStoreConfig();
-  return { data: config?.isActive ?? true };
-}
-
-export function useSetStoreActive() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (isActive: boolean) => {
-      if (!actor) throw new Error('Actor not available');
-      return (actor as any).setStoreActive(isActive);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['storeConfig'] });
-    },
-  });
-}
-
-export function useGetCouponsActiveState() {
-  const { data: config } = useGetStoreConfig();
-  return { data: config?.enableCoupons ?? true };
-}
-
-export function useSetCouponsActiveState() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (enableCoupons: boolean) => {
-      if (!actor) throw new Error('Actor not available');
-      return (actor as any).setCouponsActive(enableCoupons);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['storeConfig'] });
     },
   });
 }
@@ -330,79 +417,34 @@ export function useGetAllOrders() {
   });
 }
 
-export function useGetMyOrders() {
+export function useGetCallerOrders() {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<any[]>({
-    queryKey: ['myOrders'],
+    queryKey: ['callerOrders'],
     queryFn: async () => {
       if (!actor) return [];
-      return (actor as any).getMyOrders();
+      return (actor as any).getCallerOrders();
     },
     enabled: !!actor && !actorFetching,
   });
 }
+
+// Alias for dashboard usage
+export const useGetMyOrders = useGetCallerOrders;
 
 export function useCreateOrder() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (orderData: { productIds: bigint[]; totalAmount: bigint; appliedCouponCode?: string; discountAmount?: bigint }) => {
+    mutationFn: async (order: any) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).createOrder(orderData);
+      return (actor as any).createOrder(order);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['myOrders'] });
-    },
-  });
-}
-
-export function useUpdateOrderTrackingStatus() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ orderId, status }: { orderId: bigint; status: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      return (actor as any).updateOrderTrackingStatus(orderId, status);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['myOrders'] });
-    },
-  });
-}
-
-export function useAddOrderLocationUpdate() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ orderId, location, description }: { orderId: bigint; location: string; description: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      return (actor as any).addOrderLocationUpdate(orderId, location, description);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['myOrders'] });
-    },
-  });
-}
-
-export function useAddOrderPopUpNote() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ orderId, note }: { orderId: bigint; note: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      return (actor as any).addOrderPopUpNote(orderId, note);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['myOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['callerOrders'] });
     },
   });
 }
@@ -419,6 +461,37 @@ export function useValidateCoupon() {
   });
 }
 
+export function useGetCouponsActiveState() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['couponsActiveState'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return (actor as any).getCouponsActiveState();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useToggleCouponsGlobally() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (enable: boolean) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).toggleCouponsGlobally(enable);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['couponsActiveState'] });
+    },
+  });
+}
+
+// Alias for coupon manager
+export const useSetCouponsActiveState = useToggleCouponsGlobally;
+
 // Feedback Queries
 export function useGetAllFeedback() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -433,120 +506,198 @@ export function useGetAllFeedback() {
   });
 }
 
+export function useSubmitFeedback() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (feedback: any) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).submitFeedback(feedback);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    },
+  });
+}
+
+export function useReviewFeedback() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, response }: { id: bigint; response: string | null }) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).reviewFeedback(id, response);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    },
+  });
+}
+
+export function useCompleteFeedback() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, response }: { id: bigint; response: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).completeFeedback(id, response);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feedback'] });
+    },
+  });
+}
+
 // Analytics Queries
+export function useGetAnalytics() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<any>({
+    queryKey: ['analytics'],
+    queryFn: async () => {
+      if (!actor) return null;
+      return (actor as any).getAnalytics();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
 export function useGetAnalyticsSnapshot() {
   const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery({
+  return useQuery<any>({
     queryKey: ['analyticsSnapshot'],
     queryFn: async () => {
-      if (!actor) return { totalOrders: 0n, totalRevenue: 0n, activeProducts: 0n, userCount: 0n };
-      return (actor as any).getAnalyticsSnapshot();
+      if (!actor) return null;
+      return (actor as any).getAnalyticsSnapshot?.() || (actor as any).getAnalytics();
     },
     enabled: !!actor && !actorFetching,
   });
 }
 
 // Testimonies Queries
-export function useListTestimonies() {
+export function useGetAllTestimonies() {
   const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery<Testimony[]>({
+  return useQuery<BackendTestimony[]>({
     queryKey: ['testimonies'],
     queryFn: async () => {
       if (!actor) return [];
-      try {
-        return await (actor as any).getAllTestimonies();
-      } catch {
-        return await actor.getOnlyVerifiedTestimonies();
-      }
+      return actor.getAllTestimonies();
     },
     enabled: !!actor && !actorFetching,
   });
 }
 
-export function useSubmitTestimony() {
+export function useGetVerifiedTestimonies() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<BackendTestimony[]>({
+    queryKey: ['verifiedTestimonies'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getOnlyVerifiedTestimonies();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+// Alias for public testimonies page
+export const useListTestimonies = useGetVerifiedTestimonies;
+
+export function useCreateTestimony() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: {
-      rating: number;
-      description: string;
-      photos: Array<{ blob: any; description: string }>;
-      videos: Array<{ blob: any; description: string }>;
-    }) => {
+    mutationFn: async (testimony: any) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).submitTestimony(data);
+      return (actor as any).createTestimony(testimony);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonies'] });
-      queryClient.invalidateQueries({ queryKey: ['adminNotifications'] });
-      queryClient.invalidateQueries({ queryKey: ['searchArtifacts'] });
+      queryClient.invalidateQueries({ queryKey: ['verifiedTestimonies'] });
     },
   });
 }
+
+// Alias for testimony submission
+export const useSubmitTestimony = useCreateTestimony;
 
 export function useApproveTestimony() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (testimonyId: bigint) => {
+    mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).approveTestimony(testimonyId);
+      return (actor as any).approveTestimony(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonies'] });
-      queryClient.invalidateQueries({ queryKey: ['adminNotifications'] });
-      queryClient.invalidateQueries({ queryKey: ['searchArtifacts'] });
+      queryClient.invalidateQueries({ queryKey: ['verifiedTestimonies'] });
     },
   });
 }
 
-// Custom Requests Queries
-export function useSubmitRequest() {
+export function useUnapproveTestimony() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: {
-      name: string;
-      email: string;
-      description: string;
-      media: Array<{ blob: any; mediaType: string }>;
-      pricingPreference: any;
-    }) => {
+    mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).submitRequest(data);
+      return (actor as any).unapproveTestimony?.(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
-      queryClient.invalidateQueries({ queryKey: ['adminNotifications'] });
+      queryClient.invalidateQueries({ queryKey: ['testimonies'] });
+      queryClient.invalidateQueries({ queryKey: ['verifiedTestimonies'] });
     },
   });
 }
 
-export function useListRequests() {
+// Requests Queries
+export function useGetAllRequests() {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<RequestSummary[]>({
     queryKey: ['requests'],
     queryFn: async () => {
       if (!actor) return [];
-      return (actor as any).listRequests();
+      return (actor as any).getAllRequests?.() || [];
     },
     enabled: !!actor && !actorFetching,
   });
 }
 
+// Alias for admin requests tab
+export const useListRequests = useGetAllRequests;
+
 export function useGetRequestDetail() {
   const { actor } = useActor();
 
   return useMutation({
-    mutationFn: async (requestId: bigint) => {
+    mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).getRequestDetail(requestId);
+      return (actor as any).getRequestDetail?.(id);
+    },
+  });
+}
+
+export function useSubmitRequest() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (request: any) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).submitRequest?.(request);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
     },
   });
 }
@@ -558,11 +709,10 @@ export function useApproveRequest() {
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).approveRequest(id);
+      return (actor as any).approveRequest?.(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requests'] });
-      queryClient.invalidateQueries({ queryKey: ['adminNotifications'] });
     },
   });
 }
@@ -572,29 +722,12 @@ export function useDeclineRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: bigint) => {
+    mutationFn: async ({ id, reason }: { id: bigint; reason: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).declineRequest(id);
+      return (actor as any).declineRequest?.(id, reason);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['requests'] });
-      queryClient.invalidateQueries({ queryKey: ['adminNotifications'] });
-    },
-  });
-}
-
-export function useConvertRequestToOrder() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ requestId, totalAmount }: { requestId: bigint; totalAmount: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
-      return (actor as any).convertRequestToOrder(requestId, totalAmount);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });
 }
@@ -606,7 +739,7 @@ export function useSendMessageToCustomer() {
   return useMutation({
     mutationFn: async ({ customerId, message }: { customerId: Principal; message: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).sendMessageToCustomer(customerId, message);
+      return (actor as any).sendMessageToCustomer?.(customerId, message);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inbox'] });
@@ -619,9 +752,9 @@ export function useSendCouponToCustomer() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ customerId, couponId }: { customerId: Principal; couponId: bigint }) => {
+    mutationFn: async ({ customerId, couponCode }: { customerId: Principal; couponCode: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).sendCouponToCustomer(customerId, couponId);
+      return (actor as any).sendCouponToCustomer?.(customerId, couponCode);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inbox'] });
@@ -629,32 +762,44 @@ export function useSendCouponToCustomer() {
   });
 }
 
+export function useConvertRequestToOrder() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (requestId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).convertRequestToOrder?.(requestId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+}
+
 // Inbox Queries
-export function useGetInbox() {
+export function useGetCustomerInbox() {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<InboxItem[]>({
     queryKey: ['inbox'],
     queryFn: async () => {
       if (!actor) return [];
-      return (actor as any).getInbox();
+      return (actor as any).getCustomerInbox?.() || [];
     },
     enabled: !!actor && !actorFetching,
   });
 }
 
-export function useGetCustomerInbox() {
-  return useGetInbox();
-}
-
-export function useMarkInboxItemRead() {
+export function useMarkMessageAsRead() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (itemId: bigint) => {
+    mutationFn: async (messageId: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return (actor as any).markInboxItemRead(itemId);
+      return (actor as any).markMessageAsRead?.(messageId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inbox'] });
@@ -662,59 +807,59 @@ export function useMarkInboxItemRead() {
   });
 }
 
-export function useMarkMessageAsRead() {
-  return useMarkInboxItemRead();
-}
+// Order Tracking Queries
+export function useGetOrderTracking() {
+  const { actor } = useActor();
 
-// System Settings Queries
-export function useGetAuditLog() {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['auditLog'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllAuditLogEntries();
+  return useMutation({
+    mutationFn: async (orderId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).getOrderTracking?.(orderId);
     },
-    enabled: !!actor && !actorFetching,
   });
 }
 
-export function useGetAdminAccessLog() {
-  const { actor, isFetching: actorFetching } = useActor();
+export function useUpdateOrderTrackingStatus() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
 
-  return useQuery({
-    queryKey: ['adminAccessLog'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAdminAccessLog();
+  return useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: bigint; status: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).updateOrderTrackingStatus?.(orderId, status);
     },
-    enabled: !!actor && !actorFetching,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
   });
 }
 
-export function useGetLoginAttempts() {
-  const { actor, isFetching: actorFetching } = useActor();
+export function useAddOrderLocationUpdate() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
 
-  return useQuery({
-    queryKey: ['loginAttempts'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getLoginAttempts();
+  return useMutation({
+    mutationFn: async ({ orderId, location }: { orderId: bigint; location: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).addOrderLocationUpdate?.(orderId, location);
     },
-    enabled: !!actor && !actorFetching,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
   });
 }
 
-export function useGetEvents() {
-  const { actor, isFetching: actorFetching } = useActor();
+export function useAddOrderPopUpNote() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
 
-  return useQuery({
-    queryKey: ['events'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getEvents();
+  return useMutation({
+    mutationFn: async ({ orderId, note }: { orderId: bigint; note: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return (actor as any).addOrderPopUpNote?.(orderId, note);
     },
-    enabled: !!actor && !actorFetching,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
   });
 }
