@@ -1,90 +1,79 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Phase 6A Admin Access Code Gate (Frontend)",
+  "title": "Phase 6A (Frontend): Admin access gateway page, responsive Admin nav link, session gate protection, and logout gate reset",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add an Admin Access page and gate the Admin Dashboard behind successful master-code entry (7583A).",
+      "summary": "Harden /admin-access UI to verify the five-character master code and set a session unlock flag, showing only \"Access Denied\" on any failure without disclosing security details.",
       "acceptanceCriteria": [
-        "A new route/page exists for Admin Access (e.g., \"/admin-access\") with an input for the master access code and a submit action.",
-        "Attempting to open the admin dashboard route (currently \"/admin\") without a successful master-code validation sends the user to the Admin Access page (or shows a blocking gate).",
-        "Submitting any code other than \"7583A\" shows an explicit Access Denied state and does not unlock admin dashboard access.",
-        "Submitting the correct code unlocks access and then allows the user to enter the existing Admin Dashboard UI at \"/admin\"."
+        "Visiting /admin-access shows a form with a single code input limited to 5 characters.",
+        "Submitting an incorrect code results in only the text \"Access Denied\" being shown; no other explanatory text is displayed.",
+        "Submitting the correct code routes the user to /admin and the admin dashboard renders in the same session without re-entering the code.",
+        "All user-facing text on the page is in English and does not disclose security/audit details (no mention of roles, principals, timestamps, logging, or multi-step verification)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/AdminAccess.tsx",
-          "operation": "create",
-          "description": "Create the Admin Access Page UI at \"/admin-access\" with a master-code input and submit action. Use the authorization component’s existing role-based gating (e.g., existing RequireAdmin behavior) to ensure only Internet Identity admins can reach code entry; show an explicit Access Denied state on incorrect code. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-          "operation": "create",
-          "description": "Create a small gate component for \"/admin\" that checks session-scoped unlocked state; if not unlocked, redirect/navigate to \"/admin-access\" (blocking admin dashboard rendering until unlocked). Use the authorization component’s existing admin gating to ensure non-admins see Access Denied consistent with RequireAdmin. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Admin.tsx",
           "operation": "modify",
-          "description": "Wrap the existing Admin dashboard content with the new RequireAdminAccessGate so direct navigation to \"/admin\" is blocked until the access code is validated for the session; preserve existing RequireAdmin behavior for admin role checks. Verify the component's usage instructions before implementing."
-        },
+          "description": "Update the Admin Access Page UI copy and validation to enforce exactly 5 characters (maxLength=5 and submit disabled until length is 5). On any failure (invalid code, empty/short code submission, or verification error), render only the exact message \"Access Denied\" (no prefixes/suffixes, no extra help text). Remove any text that reveals security implementation/audit details (e.g., two-step verification, logging, principals, roles). Keep success behavior: call verifyAdminAccess, set the session unlock via setAdminAccessUnlocked(), then navigate to /admin. Use the authorization component’s existing frontend auth patterns via the existing RequireAdmin wrapper to ensure only authenticated admins can reach this page; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Add an \"Admin\" navigation link that routes to /admin-access in both desktop top nav and mobile hamburger menu without disrupting existing navigation.",
+      "acceptanceCriteria": [
+        "On narrow viewports, opening the hamburger menu shows an \"Admin\" link that navigates to /admin-access.",
+        "On large viewports, the top nav link row includes an \"Admin\" text link (not icon-only) that navigates to /admin-access.",
+        "Existing navigation links and behavior remain intact."
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
           "operation": "modify",
-          "description": "Register the new \"/admin-access\" route and lazy-load the new AdminAccess page; ensure routing wiring is complete and the new page is reachable. Verify the component's usage instructions before implementing."
+          "description": "Extend (do not replace) existing navigation by adding a text link labeled exactly \"Admin\" pointing to /admin-access in (1) the desktop main navigation link row and (2) the mobile hamburger menu list. Ensure the desktop presentation is text (not icon-only). Keep existing links and behavior intact; if an admin-only icon button remains, it must not be the only desktop route to /admin-access. Verify the authorization component’s usage instructions before implementing any auth-aware visibility rules."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Call backend admin-code verification and persist unlocked state in session storage; clear on logout.",
+      "summary": "Ensure /admin stays protected by the existing session-based admin access gate so the dashboard cannot render unless the gate is unlocked in the current browser session.",
       "acceptanceCriteria": [
-        "Admin Access Page calls the backend verify method and only unlocks on a successful response.",
-        "Unlocked state is stored in session-scoped browser storage (e.g., sessionStorage) and is checked by the admin-gating logic before rendering \"/admin\".",
-        "Logging out of Internet Identity clears the unlocked state so the user must re-enter the master code after the next login to access \"/admin\"."
+        "Direct navigation to /admin without having unlocked the access gate during the current session redirects the user to /admin-access or otherwise prevents rendering of the dashboard content.",
+        "After a successful unlock, navigating to /admin works for the remainder of the browser session (until session end or explicit logout/session clear).",
+        "No existing Admin Dashboard tabs/features are removed or replaced."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/adminAccessSession.ts",
-          "operation": "create",
-          "description": "Add a tiny helper module to read/write/clear the admin unlocked flag using sessionStorage (session-scoped), to be shared by the Admin Access Page, the \"/admin\" gate, and logout cleanup. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminAccess.tsx",
-          "operation": "modify",
-          "description": "Wire the submit action to call the backend capability verifyAdminAccess(inputCode) via the existing actor (from useActor). On success, set the session unlocked flag and navigate to \"/admin\"; on failure, keep locked and show Access Denied. Verify the component's usage instructions before implementing."
-        },
-        {
           "path": "frontend/src/components/auth/RequireAdminAccessGate.tsx",
           "operation": "modify",
-          "description": "Use the shared adminAccessSession helper to check session unlocked state before rendering the Admin dashboard; if locked, redirect the user to \"/admin-access\". Verify the component's usage instructions before implementing."
+          "description": "Confirm and tighten the existing gate behavior so that when admin access is not unlocked it reliably prevents dashboard rendering and navigates to /admin-access, including on direct navigation/refresh. Keep the implementation as an extension of the existing session gate (isAdminAccessUnlocked) rather than replacing the Admin dashboard. Verify the authorization component’s usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/auth/LoginButton.tsx",
+          "path": "frontend/src/pages/Admin.tsx",
           "operation": "modify",
-          "description": "On logout (existing Internet Identity clear flow), also clear the admin unlocked session flag (via the new adminAccessSession helper) so the master code must be re-entered after the next login. Verify the component's usage instructions before implementing."
+          "description": "Ensure the Admin Dashboard remains wrapped with the existing RequireAdmin and RequireAdminAccessGate wrappers so /admin cannot render without both admin role authorization and a session-unlocked access gate. Preserve all existing dashboard tabs/features. Verify the authorization component’s usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-5",
-      "summary": "Clarify the two-step admin entry UX (II admin role + master access code) in English without editing immutable paths.",
+      "summary": "Clear session-scoped \"admin access unlocked\" state on logout so subsequent sessions require re-entering the master code.",
       "acceptanceCriteria": [
-        "If a user is not logged in, they are prompted to log in via the existing authentication flow before they can use the Admin Access Page.",
-        "If a user is logged in but not an admin, they see an Access Denied state (reusing the existing `RequireAdmin` behavior) and cannot proceed to code entry.",
-        "If a user is an admin but has not entered the master code in the current session, the UI clearly instructs them to enter the master code to continue to the dashboard.",
-        "No changes are requested to files listed in `SYSTEM_CONTEXT.frontend.immutablePaths` (any new gating is implemented via new components/pages and composition)."
+        "After successfully unlocking admin access, logging out and then logging back in requires re-entering the master code before /admin can be accessed in that session.",
+        "No other session/local-storage state unrelated to the admin access gate is unintentionally cleared beyond current logout behavior."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminAccess.tsx",
+          "path": "frontend/src/components/auth/LoginButton.tsx",
           "operation": "modify",
-          "description": "Add English instructional copy that explains the two-step requirement (Internet Identity admin role + master access code) and what happens after successful verification; ensure unauthenticated/non-admin handling is achieved via composition with existing RequireAdmin. Verify the component's usage instructions before implementing."
+          "description": "Verify logout behavior continues to clear the admin access gate state by calling clearAdminAccessUnlocked() as part of the existing logout flow (alongside existing cache/session clearing), without clearing unrelated storage beyond current behavior. Verify the authorization component’s usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "path": "frontend/src/lib/adminAccessSession.ts",
           "operation": "modify",
-          "description": "Update the Admin navigation entry for admins to point to the Admin Access Page (\"/admin-access\") so the user sees the two-step security messaging before attempting to reach the dashboard. Verify the component's usage instructions before implementing."
+          "description": "Confirm the session gate utilities continue to use session-scoped browser storage and provide a reliable clear function used on logout. Ensure naming/behavior matches the existing gate mechanism and remains session-scoped. Verify the authorization component’s usage instructions before implementing."
         }
       ]
     }

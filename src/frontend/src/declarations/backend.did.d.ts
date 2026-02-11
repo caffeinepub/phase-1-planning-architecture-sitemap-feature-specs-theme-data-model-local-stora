@@ -10,6 +10,11 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AdminAccessLogEntry {
+  'id' : bigint,
+  'principal' : Principal,
+  'timestamp' : bigint,
+}
 export interface AdminLoginAttempt {
   'id' : bigint,
   'principal' : Principal,
@@ -69,6 +74,7 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignAdminRole' : ActorMethod<[Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'getAdminAccessLog' : ActorMethod<[], Array<AdminAccessLogEntry>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getEvents' : ActorMethod<[], Array<Event>>,

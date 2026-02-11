@@ -17,11 +17,10 @@ export default function RequireAdminAccessGate({ children }: RequireAdminAccessG
 
   useEffect(() => {
     if (!isUnlocked) {
-      navigate({ to: '/admin-access' });
+      navigate({ to: '/admin-access', replace: true });
     }
   }, [isUnlocked, navigate]);
 
-  // Only render children if unlocked
   if (!isUnlocked) {
     return null;
   }

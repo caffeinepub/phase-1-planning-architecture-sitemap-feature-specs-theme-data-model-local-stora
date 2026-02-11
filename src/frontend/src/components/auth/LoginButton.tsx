@@ -14,11 +14,10 @@ export default function LoginButton() {
 
   const handleAuth = async () => {
     if (isAuthenticated) {
-      // Clear all cached data on logout
       await clear();
       queryClient.clear();
       clearSessionStorage();
-      clearAdminAccessUnlocked(); // Clear admin access gate
+      clearAdminAccessUnlocked();
     } else {
       try {
         await login();

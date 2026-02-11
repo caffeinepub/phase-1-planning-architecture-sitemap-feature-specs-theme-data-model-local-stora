@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Shield, Loader2 } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
 import RequireAdmin from '../components/auth/RequireAdmin';
@@ -21,8 +20,8 @@ function AdminAccessContent() {
     e.preventDefault();
     setError('');
 
-    if (!accessCode.trim()) {
-      setError('Please enter an access code');
+    if (accessCode.length !== 5) {
+      setError('Access Denied');
       return;
     }
 
@@ -30,16 +29,14 @@ function AdminAccessContent() {
       const isValid = await verifyMutation.mutateAsync(accessCode);
       
       if (isValid) {
-        // Set session flag and navigate to admin dashboard
         setAdminAccessUnlocked();
         navigate({ to: '/admin' });
       } else {
-        setError('Access Denied: Invalid access code');
+        setError('Access Denied');
         setAccessCode('');
       }
     } catch (err: any) {
-      console.error('Admin access verification error:', err);
-      setError('Access Denied: Invalid access code or authorization error');
+      setError('Access Denied');
       setAccessCode('');
     }
   };
@@ -57,27 +54,19 @@ function AdminAccessContent() {
                 <Shield className="h-8 w-8 text-primary" />
               </div>
               <CardTitle className="text-2xl">Administrative Access</CardTitle>
-              <CardDescription className="text-base">
-                This dashboard requires two-step security verification:
-                <ol className="mt-3 space-y-1 text-left list-decimal list-inside">
-                  <li>Internet Identity admin role (verified ✓)</li>
-                  <li>Master access code (enter below)</li>
-                </ol>
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="accessCode" className="text-sm font-medium flex items-center gap-2">
-                    <Lock className="h-4 w-4" />
-                    Master Access Code
+                  <label htmlFor="accessCode" className="text-sm font-medium">
+                    Access Code
                   </label>
                   <Input
                     id="accessCode"
                     type="text"
                     value={accessCode}
-                    onChange={(e) => setAccessCode(e.target.value)}
-                    placeholder="Enter 5-digit code"
+                    onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                    placeholder="Enter code"
                     maxLength={5}
                     className="text-center text-lg tracking-widest font-mono"
                     disabled={verifyMutation.isPending}
@@ -86,16 +75,13 @@ function AdminAccessContent() {
                 </div>
 
                 {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
+                  <p className="text-sm text-destructive text-center">{error}</p>
                 )}
 
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={verifyMutation.isPending || !accessCode.trim()}
+                  disabled={verifyMutation.isPending || accessCode.length !== 5}
                 >
                   {verifyMutation.isPending ? (
                     <>
@@ -105,14 +91,10 @@ function AdminAccessContent() {
                   ) : (
                     <>
                       <Shield className="h-4 w-4 mr-2" />
-                      Verify & Enter Dashboard
+                      Enter Dashboard
                     </>
                   )}
                 </Button>
-
-                <p className="text-xs text-muted-foreground text-center mt-4">
-                  Each access attempt is logged with timestamp and principal ID for security audit purposes.
-                </p>
               </form>
             </CardContent>
           </Card>

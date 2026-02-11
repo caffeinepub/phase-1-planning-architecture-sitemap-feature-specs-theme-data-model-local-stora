@@ -2,12 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-phase-6a-admin-access-page-and-gating-so-that-entering-the-master-access-code-7583a-is-required-before-an-admin-can-enter-the-administrative-dashboard-with-incorrect-entries-denied",
-      "featureTitle": "Implement Phase 6A Admin Access Page and gating so that entering the master access code \"7583A\" is required before an admin can enter the administrative dashboard, with incorrect entries denied.",
+      "featureId": "feature-implement-a-protected-admin-access-page-at-route-admin-access-that-prompts-for-the-five-character-master-access-code-7583a-and-on-correct-entry-immediately-grants-access-to-the-existing-admin-dashboard-on-success-unlock-the-existing-admin-access-gate-for-the-current-browser-session-and-route-the-user-to-admin-on-failure-including-backend-errors-deny-access-and-display-only-the-exact-user-facing-message-access-denied-no-extra-details-ensure-the-input-enforces-exactly-5-characters-ui-maxlength-5-and-ui-copy-must-refer-to-a-five-character-code-not-a-digit-only-pin-do-not-display-any-security-implementation-details-e-g-do-not-mention-multi-step-verification-logging-mechanics-principals-roles-etc-on-this-page",
+      "featureTitle": "Implement a protected Admin Access Page at route \"/admin-access\" that prompts for the five-character master access code \"7583A\" and, on correct entry, immediately grants access to the existing Admin Dashboard.\n\n- On success: unlock the existing admin access gate for the current browser session and route the user to \"/admin\".\n- On failure (including backend errors): deny access and display only the exact user-facing message \"Access Denied\" (no extra details).\n- Ensure the input enforces exactly 5 characters (UI maxLength=5, and UI copy must refer to a five-character code, not a digit-only PIN).\n- Do not display any security implementation details (e.g., do not mention multi-step verification, logging mechanics, principals, roles, etc.) on this page.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-        "frontend/src/pages/Admin.tsx",
         "frontend/src/pages/AdminAccess.tsx"
       ],
       "components": [
@@ -25,13 +22,30 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-wire-the-admin-access-page-to-the-backend-verification-api-and-persist-the-unlocked-state-on-the-client-so-that-a-page-refresh-does-not-immediately-re-lock-during-the-same-session-while-still-allowing-lockout-on-explicit-logout",
-      "featureTitle": "Wire the Admin Access Page to the backend verification API and persist the unlocked state on the client so that a page refresh does not immediately re-lock during the same session (while still allowing lockout on explicit logout).",
+      "featureId": "feature-update-the-site-header-navigation-so-the-admin-access-page-link-placement-matches-the-requested-responsive-behavior-mobile-devices-ensure-an-admin-link-appears-in-the-top-right-hamburger-menu-desktop-computer-tv-screens-ensure-an-admin-link-appears-in-the-main-top-navigation-bar-alongside-the-other-website-pages-labeled-exactly-admin-the-link-must-navigate-to-admin-access-and-must-extend-existing-navigation-behavior-rather-than-replacing-it",
+      "featureTitle": "Update the site header navigation so the Admin Access Page link placement matches the requested responsive behavior:\n\n- Mobile devices: ensure an \"Admin\" link appears in the top-right hamburger menu.\n- Desktop/computer/TV screens: ensure an \"Admin\" link appears in the main top navigation bar alongside the other website pages, labeled exactly \"Admin\".\n\nThe link must navigate to \"/admin-access\" and must extend existing navigation behavior rather than replacing it.",
       "files": [
-        "frontend/src/components/auth/LoginButton.tsx",
-        "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-        "frontend/src/lib/adminAccessSession.ts",
-        "frontend/src/pages/AdminAccess.tsx"
+        "frontend/src/components/layout/HeaderNav.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-admin-dashboard-route-admin-remains-protected-by-the-existing-authentication-and-admin-access-gate-systems-such-that-users-cannot-access-the-admin-dashboard-unless-they-have-successfully-entered-the-master-access-code-during-the-current-browser-session-this-gating-behavior-must-extend-existing-mechanisms-e-g-the-current-gate-session-approach-rather-than-replacing-the-admin-dashboard-implementation",
+      "featureTitle": "Ensure the Admin Dashboard route \"/admin\" remains protected by the existing authentication and admin access gate systems, such that:\n\n- Users cannot access the Admin Dashboard unless they have successfully entered the master access code during the current browser session.\n- This gating behavior must extend existing mechanisms (e.g., the current gate/session approach) rather than replacing the admin dashboard implementation.",
+      "files": [
+        "frontend/src/components/auth/RequireAdminAccessGate.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -48,11 +62,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-admin-dashboard-entry-ux-to-clearly-communicate-the-two-step-security-requirement-internet-identity-admin-role-master-access-code-using-english-user-facing-text-without-modifying-read-only-immutable-frontend-paths",
-      "featureTitle": "Update the admin dashboard entry UX to clearly communicate the two-step security requirement (Internet Identity admin role + master access code) using English user-facing text, without modifying read-only/immutable frontend paths.",
+      "featureId": "feature-ensure-logging-out-clears-any-session-scoped-admin-access-unlocked-state-so-that-after-logout-the-browser-session-no-longer-has-access-gate-unlock-privileges-until-the-master-code-is-re-entered",
+      "featureTitle": "Ensure logging out clears any session-scoped \"admin access unlocked\" state so that, after logout, the browser session no longer has access-gate unlock privileges until the master code is re-entered.",
       "files": [
-        "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/pages/AdminAccess.tsx"
+        "frontend/src/components/auth/LoginButton.tsx"
       ],
       "components": [
         "authorization@4.0.0",

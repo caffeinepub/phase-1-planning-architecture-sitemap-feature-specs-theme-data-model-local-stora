@@ -1,14 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Add a two-step admin entry gate (Internet Identity admin role + master access code) with backend verification and persistent audit logging, and complete the unified single-actor backend so existing frontend admin/customer workflows function end-to-end.
+**Goal:** Add a secure Admin Access gateway page that verifies a five-character master code, routes authorized users into the existing Admin Dashboard for the current session, and records successful access events for audit.
 
 **Planned changes:**
-- Add a new Admin Access page/route (e.g., `/admin-access`) that requires entering the master access code `7583A` before allowing access to the existing admin dashboard at `/admin`.
-- Gate the `/admin` route so admins who haven’t successfully entered the master code in the current session are redirected/blocked and guided to the Admin Access page.
-- Implement backend methods in the single Motoko actor (`backend/main.mo`) to verify the master code for admin principals only, persist a successful-login audit entry (principal + timestamp), and provide an admin-only query to list these audit log entries.
-- Wire the Admin Access page to call the backend verification method; store the unlocked state in session-scoped browser storage so refreshes don’t re-lock during the same session, and clear this unlocked state on explicit logout.
-- Ensure unified backend coverage for requests, testimonies, messages/inbox, coupons, and orders in `backend/main.mo` so the frontend’s existing React Query hooks and admin UI flows work with consistent method shapes and workflows.
-- Update admin entry UX messaging (English) to clearly communicate the two-step security requirement, while avoiding edits to immutable frontend paths by using new pages/components and composition.
+- Add a protected Admin Access Page at `/admin-access` with a single 5-character input to verify master code `7583A`; on success unlock admin access for the current browser session and route to `/admin`, and on failure show only “Access Denied”.
+- Update responsive header navigation to include an “Admin” link to `/admin-access` in both desktop top navigation and the mobile hamburger menu, without replacing existing links/behavior.
+- Ensure `/admin` remains gated so it cannot be viewed unless admin access has been unlocked in the current session; redirect/prevent rendering otherwise, while keeping the existing Admin Dashboard intact.
+- Update backend verification to persist an Admin Access Log entry for successful verifications (unique id, caller principal, real timestamp) and keep/provide an admin-only endpoint to query the log.
+- Ensure logout clears the session-scoped “admin access unlocked” state so the master code must be re-entered after logging out/logging back in.
 
-**User-visible outcome:** Admins must log in with Internet Identity, then enter the master access code `7583A` to access the admin dashboard; successful unlocks are recorded and viewable via an admin-only audit log, and the existing admin/customer workflows for requests, inbox/messages, coupons, testimonies, and orders work through the unified backend.
+**User-visible outcome:** Users can navigate to `/admin-access` (or via the new “Admin” nav link), enter the five-character code to access `/admin` for the current session, and see only “Access Denied” when the code is incorrect; successful entries are recorded for admin-only auditing.

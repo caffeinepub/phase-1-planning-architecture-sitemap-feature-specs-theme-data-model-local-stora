@@ -24,6 +24,11 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const AdminAccessLogEntry = IDL.Record({
+  'id' : IDL.Nat,
+  'principal' : IDL.Principal,
+  'timestamp' : IDL.Nat,
+});
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
@@ -86,6 +91,7 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'getAdminAccessLog' : IDL.Func([], [IDL.Vec(AdminAccessLogEntry)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
@@ -122,6 +128,11 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const AdminAccessLogEntry = IDL.Record({
+    'id' : IDL.Nat,
+    'principal' : IDL.Principal,
+    'timestamp' : IDL.Nat,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
   const Event = IDL.Record({
@@ -182,6 +193,11 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'getAdminAccessLog' : IDL.Func(
+        [],
+        [IDL.Vec(AdminAccessLogEntry)],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),

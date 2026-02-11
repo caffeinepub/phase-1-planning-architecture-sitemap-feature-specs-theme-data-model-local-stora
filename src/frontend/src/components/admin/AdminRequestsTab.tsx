@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useListAllRequests, useGetRequestById } from '../../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,11 +7,27 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FileText, Paperclip } from 'lucide-react';
 import ErrorState from '../system/ErrorState';
 import AdminRequestDetailModal from './AdminRequestDetailModal';
+import type { RequestDetail } from '../../types/phase5b';
 
 export default function AdminRequestsTab() {
   const { data: requests = [], isLoading, error, refetch } = useListAllRequests();
   const [selectedRequestId, setSelectedRequestId] = useState<bigint | null>(null);
-  const { data: selectedRequest } = useGetRequestById(selectedRequestId);
+  const [selectedRequest, setSelectedRequest] = useState<RequestDetail | null>(null);
+  const getRequestDetail = useGetRequestById();
+
+  // Fetch request detail when selectedRequestId changes
+  useEffect(() => {
+    if (selectedRequestId !== null) {
+      getRequestDetail.mutateAsync(selectedRequestId)
+        .then(detail => setSelectedRequest(detail))
+        .catch(err => {
+          console.error('Failed to fetch request detail:', err);
+          setSelectedRequest(null);
+        });
+    } else {
+      setSelectedRequest(null);
+    }
+  }, [selectedRequestId]);
 
   if (isLoading) {
     return (
@@ -55,6 +71,8 @@ export default function AdminRequestsTab() {
             request.status.__kind__ === 'declined' ? 'destructive' :
             'outline';
 
+          const attachmentCount = Number(request.attachmentCount);
+
           return (
             <Card key={request.id.toString()} className="hover:shadow-md transition-shadow">
               <CardHeader>
@@ -73,25 +91,23 @@ export default function AdminRequestsTab() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Description:</p>
-                  <p className="text-sm line-clamp-3">{request.description}</p>
-                </div>
-
+              <CardContent className="space-y-3">
+                <p className="text-sm line-clamp-2">{request.description}</p>
+                
                 <div className="flex items-center justify-between">
-                  {request.attachmentCount > 0n && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Paperclip className="h-4 w-4" />
-                      <span>{request.attachmentCount.toString()} attachment{request.attachmentCount > 1n ? 's' : ''}</span>
-                    </div>
-                  )}
-
+                  <div className="flex gap-4 text-sm text-muted-foreground">
+                    {attachmentCount > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Paperclip className="h-4 w-4" />
+                        <span>{attachmentCount} attachment{attachmentCount !== 1 ? 's' : ''}</span>
+                      </div>
+                    )}
+                  </div>
+                  
                   <Button
-                    variant="outline"
                     size="sm"
+                    variant="outline"
                     onClick={() => setSelectedRequestId(request.id)}
-                    className="ml-auto"
                   >
                     View Details
                   </Button>
@@ -103,10 +119,13 @@ export default function AdminRequestsTab() {
       </div>
 
       <AdminRequestDetailModal
-        request={selectedRequest || null}
-        open={!!selectedRequestId}
+        request={selectedRequest}
+        open={selectedRequestId !== null}
         onOpenChange={(open) => {
-          if (!open) setSelectedRequestId(null);
+          if (!open) {
+            setSelectedRequestId(null);
+            setSelectedRequest(null);
+          }
         }}
       />
     </>

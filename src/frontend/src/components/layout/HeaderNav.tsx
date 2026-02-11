@@ -47,6 +47,14 @@ export default function HeaderNav() {
               {link.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link
+              to="/admin-access"
+              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+            >
+              Admin
+            </Link>
+          )}
         </div>
 
         {/* Desktop Actions */}
@@ -68,15 +76,6 @@ export default function HeaderNav() {
                 <User className="h-5 w-5" />
               </Button>
             </>
-          )}
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate({ to: '/admin-access' })}
-            >
-              <Shield className="h-5 w-5" />
-            </Button>
           )}
           <LoginButton />
         </div>

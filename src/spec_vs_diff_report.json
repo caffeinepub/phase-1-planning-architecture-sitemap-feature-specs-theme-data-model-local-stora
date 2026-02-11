@@ -1,71 +1,64 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T01:38:45.650Z",
-  "summary": "Phase 6A admin-access gating is largely implemented on the frontend (new /admin-access page, sessionStorage unlock flag, /admin route gated and redirects). The backend adds verifyAdminAccess plus an audit-log query, but the backend behavior does not meet several REQ-2 acceptance criteria (admin-only verification, timestamping, and logging successful verifications via the existing event log). Phase 5F unified backend workflows (REQ-4) are not evidenced in the provided backend diff snippet.",
+  "generatedAt": "2026-02-11T02:25:20.701Z",
+  "summary": "Diff adds an /admin-access page with code entry and session unlock, adds an admin-access gate component used to protect /admin, updates header nav with an Admin link (but only for admins on desktop; mobile section is truncated), clears admin-unlock state on logout, and updates backend to verify master code and persist a successful-access log. Several requirements are partially met or missing, and a few unrequested backend behaviors were added.",
   "missing_requirements": [
     {
-      "id": "REQ-2",
-      "requirement": "Backend verification must be admin-only, persist successful-login audit entries with a real timestamp, expose an admin-only query to list successful admin-access log entries, and record successful verifications via the existing event logging mechanism (without frontend calling logEvent).",
-      "reason": "The diff shows verifyAdminAccess accepts any caller (and even assigns admin role on success), logs attempts with timestamp hard-coded to 0, and getLoginAttempts returns all attempts (including failures). No evidence is shown that successful verifications are written to the existing Event logging mechanism.",
+      "id": "REQ-1",
+      "requirement": "Admin Access Page must not display any security implementation details, and UI copy must refer to a five-character code.",
+      "reason": "The page description explicitly mentions security control, and there is no visible user-facing text indicating it is a five-character code (only a generic 'Access Code' / 'Enter code' plus maxLength).",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/pages/AdminAccess.tsx"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Admin link must appear in the main top navigation bar on large viewports and in the hamburger menu on mobile, navigating to /admin-access, without replacing existing navigation.",
+      "reason": "Desktop nav shows the Admin link only when `isAdmin` is true, which does not guarantee the link is present as required. The mobile menu portion is truncated, so presence of the Admin link there is not evidenced.",
+      "evidence": [
+        "frontend/src/components/layout/HeaderNav.tsx"
       ]
     },
     {
       "id": "REQ-4",
-      "requirement": "Complete Phase 5F unified backend workflows (requests, inbox messaging with attachments/coupons, testimonies moderation, orders) in the single Motoko actor with methods matching frontend hooks in frontend/src/hooks/useQueries.ts.",
-      "reason": "The provided diff excerpt of backend/main.mo only shows healthCheck and the new admin access verification/audit methods plus the start of event logging types; it does not show implementation/evidence of the required requests/testimonies/messages/coupons/orders canister methods and workflows.",
+      "requirement": "Provide an admin-only query endpoint to retrieve the persistent Admin Access Log (successful verifications only) for auditing.",
+      "reason": "The diff shows creation of `adminAccessLog` and writing entries on success, but the only retrieval endpoint evidenced is `getLoginAttempts()` (and the file is truncated before any `getAdminAccessLog`-style endpoint is shown).",
       "evidence": [
-        "backend/main.mo",
-        "frontend/src/hooks/useQueries.ts"
+        "backend/main.mo"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Backend assigns #admin role to the caller as a side-effect of entering the master access code (turning the code into an admin role bootstrap mechanism).",
-      "reason": "REQ-2 requires that only authenticated admins can verify/unlock; it does not request granting admin privileges based on the access code.",
+      "description": "Logging of all admin access verification attempts (successful and unsuccessful) into an `adminLogins` store plus a `getLoginAttempts()` query endpoint.",
+      "reason": "REQ-4 requires logging only successful master-code verifications to the Admin Access Log; it does not request storing or exposing a separate log of all attempts.",
       "evidence": [
         "backend/main.mo"
       ]
     },
     {
-      "description": "Audit logging stores all login attempts (successful and unsuccessful) and exposes them via getLoginAttempts.",
-      "reason": "REQ-2 specifically asks to record successful-login audit log entries and expose an admin-only query to read those entries; it does not request logging failed attempts or exposing them.",
+      "description": "Automatic assignment of the `#admin` role to the caller upon successful master-code verification.",
+      "reason": "BuildRequest specifies unlocking an existing admin access gate for the browser session and routing to /admin; it does not request changing role assignment/authorization by granting admin role on code entry.",
       "evidence": [
-        "backend/main.mo",
-        "frontend/src/hooks/useQueries.ts"
+        "backend/main.mo"
       ]
     },
     {
-      "description": "Additional admin/order tracking UI changes (e.g., AdminOrderTrackingDetailModal) and other unrelated UI work (e.g., AdvancedShopControlsSection, ShopCartDrawer coupon behavior tweaks, CreateTestimonyDialog updates).",
-      "reason": "These changes are not explicitly requested by REQ-1/2/3/5; and the REQ-4 work is specified as backend unification (single actor methods), not frontend redesign/feature expansion beyond the admin-access gate flow.",
+      "description": "Admin Access Page is wrapped in `RequireAdmin` (admin role guard) before allowing code entry.",
+      "reason": "REQ-1 describes a master-code gateway to the existing Admin Dashboard; it does not specify that the /admin-access page itself must be restricted to already-admin users.",
       "evidence": [
-        "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
-        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-        "frontend/src/components/shop/ShopCartDrawer.tsx",
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx"
+        "frontend/src/pages/AdminAccess.tsx"
       ]
     }
   ],
-  "confidence": 0.68,
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
-    "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-    "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
     "frontend/src/components/auth/LoginButton.tsx",
     "frontend/src/components/auth/RequireAdminAccessGate.tsx",
     "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/shop/ShopCartDrawer.tsx",
-    "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/lib/adminAccessSession.ts",
-    "frontend/src/pages/Admin.tsx",
     "frontend/src/pages/AdminAccess.tsx",
     "project_state.json"
   ]

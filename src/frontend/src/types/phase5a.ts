@@ -28,6 +28,8 @@ export interface Testimony {
   photos: TestimonyMedia[];
   videos: TestimonyMedia[];
   approved: boolean;
+  shortReview?: string | null;
+  starRating?: number | null;
 }
 
 export enum MediaType {

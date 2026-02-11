@@ -53,10 +53,7 @@ export default function AdminRequestDetailModal({
 
   const handleDecline = async () => {
     try {
-      await declineRequest.mutateAsync({
-        requestId: request.id,
-        reason: 'Declined by admin',
-      });
+      await declineRequest.mutateAsync(request.id);
       toast.success('Request declined');
     } catch (error: any) {
       toast.error(error.message || 'Failed to decline request');
@@ -73,7 +70,7 @@ export default function AdminRequestDetailModal({
       await sendMessage.mutateAsync({
         customerId: request.submittedBy,
         subject: `Re: Request #${request.id.toString()}`,
-        body: messageBody,
+        message: messageBody,
         attachments: messageAttachments,
       });
       toast.success('Message sent to customer');

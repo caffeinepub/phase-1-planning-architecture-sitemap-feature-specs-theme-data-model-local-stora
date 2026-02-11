@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Star } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useSubmitTestimony } from '../../hooks/useQueries';
 import TestimonyMediaPicker, { type TestimonyMediaItem } from './TestimonyMediaPicker';
+import HalfStarRatingInput from './HalfStarRatingInput';
 
 interface CreateTestimonyDialogProps {
   open: boolean;
@@ -14,15 +15,21 @@ interface CreateTestimonyDialogProps {
 
 export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTestimonyDialogProps) {
   const [rating, setRating] = useState<number>(0);
-  const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const [description, setDescription] = useState<string>('');
   const [photos, setPhotos] = useState<TestimonyMediaItem[]>([]);
   const [videos, setVideos] = useState<TestimonyMediaItem[]>([]);
 
   const submitTestimony = useSubmitTestimony();
 
   const handleSubmit = async () => {
+    // Validation
     if (rating === 0) {
       toast.error('Please select a star rating');
+      return;
+    }
+
+    if (!description.trim()) {
+      toast.error('Please provide a short review description');
       return;
     }
 
@@ -34,6 +41,7 @@ export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTest
     try {
       const testimonyData = {
         rating,
+        description: description.trim(),
         photos: photos.map(p => ({ blob: p.blob, description: p.description })),
         videos: videos.map(v => ({ blob: v.blob, description: v.description })),
       };
@@ -43,6 +51,7 @@ export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTest
       
       // Reset form
       setRating(0);
+      setDescription('');
       setPhotos([]);
       setVideos([]);
       onOpenChange(false);
@@ -58,39 +67,35 @@ export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTest
         <DialogHeader>
           <DialogTitle>Create Testimony</DialogTitle>
           <DialogDescription>
-            Share your experience with photos, videos, and a star rating. Your testimony will be reviewed before appearing publicly.
+            Share your experience with a star rating, short review, photos, and videos. Your testimony will be reviewed before appearing publicly.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Star Rating */}
           <div className="space-y-2">
-            <Label>Star Rating *</Label>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setRating(star)}
-                  onMouseEnter={() => setHoveredRating(star)}
-                  onMouseLeave={() => setHoveredRating(0)}
-                  className="transition-transform hover:scale-110"
-                >
-                  <Star
-                    className={`h-8 w-8 ${
-                      star <= (hoveredRating || rating)
-                        ? 'fill-arcane-gold text-arcane-gold'
-                        : 'text-muted-foreground'
-                    }`}
-                  />
-                </button>
-              ))}
-            </div>
-            {rating > 0 && (
-              <p className="text-sm text-muted-foreground">
-                {rating} {rating === 1 ? 'star' : 'stars'} selected
-              </p>
-            )}
+            <Label htmlFor="rating">Star Rating *</Label>
+            <HalfStarRatingInput value={rating} onChange={setRating} />
+            <p className="text-xs text-muted-foreground">
+              Select from 0.5 to 5.0 stars in half-star increments
+            </p>
+          </div>
+
+          {/* Short Review Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description">Short Review Description *</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Share your experience in a few sentences..."
+              rows={4}
+              maxLength={500}
+              className="resize-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              {description.length}/500 characters
+            </p>
           </div>
 
           {/* Photos and Videos */}
@@ -108,7 +113,12 @@ export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTest
           <div className="flex gap-4">
             <Button
               onClick={handleSubmit}
-              disabled={submitTestimony.isPending || rating === 0 || (photos.length === 0 && videos.length === 0)}
+              disabled={
+                submitTestimony.isPending || 
+                rating === 0 || 
+                !description.trim() ||
+                (photos.length === 0 && videos.length === 0)
+              }
               className="flex-1"
             >
               {submitTestimony.isPending ? 'Submitting...' : 'Submit Testimony'}

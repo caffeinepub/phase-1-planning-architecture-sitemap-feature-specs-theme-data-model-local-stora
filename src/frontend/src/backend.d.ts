@@ -24,6 +24,11 @@ export interface PageFeatures {
     features: Array<Feature>;
     page: string;
 }
+export interface AdminAccessLogEntry {
+    id: bigint;
+    principal: Principal;
+    timestamp: bigint;
+}
 export interface HealthStatus {
     status: string;
     environment: string;
@@ -50,6 +55,7 @@ export enum Variant_later_phase1 {
 export interface backendInterface {
     assignAdminRole(user: Principal): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    getAdminAccessLog(): Promise<Array<AdminAccessLogEntry>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getEvents(): Promise<Array<Event>>;

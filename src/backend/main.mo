@@ -5,7 +5,8 @@ import Text "mo:core/Text";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Array "mo:core/Array";
-import Migration "migration";
+import Time "mo:core/Time";
+import Int "mo:core/Int";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
@@ -13,7 +14,6 @@ import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
 // Auto-migrate on upgrade!
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -87,39 +87,63 @@ actor {
 
   var nextLoginAttemptId = 1;
 
+  // --- Admin Access Log Entry ---
+  public type AdminAccessLogEntry = {
+    id : Nat;
+    principal : Principal;
+    timestamp : Nat;
+  };
+
+  var nextAdminAccessLogId = 1;
+  var adminAccessLog = Map.empty<Nat, AdminAccessLogEntry>();
+
   // PIN Verification and Audit Logging
   public shared ({ caller }) func verifyAdminAccess(inputCode : Text) : async Bool {
     let masterCode = "7583A";
     let isValid = inputCode == masterCode;
+    let currentTimestamp = Int.abs(Time.now());
 
     // Log the attempt regardless of outcome
     let attempt : AdminLoginAttempt = {
       id = nextLoginAttemptId;
       principal = caller;
-      timestamp = 0; // Use 0 as timestamp until time_import is supported for Internet Computer
+      timestamp = currentTimestamp;
       successful = isValid;
     };
 
     adminLogins.add(nextLoginAttemptId, attempt);
     nextLoginAttemptId += 1;
 
-    // If code is valid, grant admin role and return true
     if (isValid) {
+      // Log successful access attempt
+      let accessLogEntry : AdminAccessLogEntry = {
+        id = nextAdminAccessLogId;
+        principal = caller;
+        timestamp = currentTimestamp;
+      };
+      adminAccessLog.add(nextAdminAccessLogId, accessLogEntry);
+      nextAdminAccessLogId += 1;
+
       // Grant admin role to the caller
       AccessControl.assignRole(accessControlState, caller, caller, #admin);
       return true;
     };
-
-    // If code is invalid, return false (don't trap, just return false)
     return false;
   };
 
-  // Admin-only endpoint to query login attempts
   public query ({ caller }) func getLoginAttempts() : async [AdminLoginAttempt] {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view login attempts");
     };
     adminLogins.values().toArray();
+  };
+
+  // Admin-only endpoint to query successful admin access attempts
+  public query ({ caller }) func getAdminAccessLog() : async [AdminAccessLogEntry] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view admin access log");
+    };
+    adminAccessLog.values().toArray();
   };
 
   // Event Logging
@@ -156,7 +180,7 @@ actor {
       id = nextEventId;
       message;
       level;
-      timestamp = 0; // Use 0 as timestamp until time_import is supported for Internet Computer
+      timestamp = Int.abs(Time.now());
       principal = caller;
     };
 
@@ -359,6 +383,8 @@ actor {
     rating : ?Nat;
     photo : ?Storage.ExternalBlob;
     video : ?Storage.ExternalBlob;
+    shortReview : ?Text;
+    starRating : ?Float;
   };
 
   public type Coupon = {

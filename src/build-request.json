@@ -1,110 +1,112 @@
 {
   "kind": "build_request",
-  "title": "Phase 5F Unified Backend + Phase 6A Admin Access Code Gate with Audit Logging",
+  "title": "Phase 6A: Secure Admin Access Page gateway with master code verification, audit logging, and responsive navigation",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement Phase 6A Admin Access Page and gating so that entering the master access code \"7583A\" is required before an admin can enter the administrative dashboard, with incorrect entries denied.",
+      "text": "Implement a protected Admin Access Page at route \"/admin-access\" that prompts for the five-character master access code \"7583A\" and, on correct entry, immediately grants access to the existing Admin Dashboard.\n\n- On success: unlock the existing admin access gate for the current browser session and route the user to \"/admin\".\n- On failure (including backend errors): deny access and display only the exact user-facing message \"Access Denied\" (no extra details).\n- Ensure the input enforces exactly 5 characters (UI maxLength=5, and UI copy must refer to a five-character code, not a digit-only PIN).\n- Do not display any security implementation details (e.g., do not mention multi-step verification, logging mechanics, principals, roles, etc.) on this page.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-1"
+          "msg-6"
         ],
         "quotes": [
-          "Create a secure Admin Access Page that requires a five-digit master access code (7583A) to enter the administrative dashboard. If the correct code is entered, full dashboard access is granted; incorrect entries deny access."
+          "Create a secure Admin Access Page... five-character master access code (7583A)",
+          "If the code is incorrect, access is denied and a simple “Access Denied” message is shown without revealing any security details."
         ]
       },
       "acceptanceCriteria": [
-        "A new route/page exists for Admin Access (e.g., \"/admin-access\") with an input for the master access code and a submit action.",
-        "Attempting to open the admin dashboard route (currently \"/admin\") without a successful master-code validation sends the user to the Admin Access page (or shows a blocking gate).",
-        "Submitting any code other than \"7583A\" shows an explicit Access Denied state and does not unlock admin dashboard access.",
-        "Submitting the correct code unlocks access and then allows the user to enter the existing Admin Dashboard UI at \"/admin\"."
+        "Visiting /admin-access shows a form with a single code input limited to 5 characters.",
+        "Submitting an incorrect code results in only the text \"Access Denied\" being shown; no other explanatory text is displayed.",
+        "Submitting the correct code routes the user to /admin and the admin dashboard renders in the same session without re-entering the code.",
+        "All user-facing text on the page is in English and does not disclose security/audit details (no mention of roles, principals, timestamps, logging, or multi-step verification)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a backend API to verify the master access code \"7583A\" for admin principals and record a successful-login audit log entry containing the caller principal and a timestamp, and expose an admin-only query to read these audit log entries.",
-      "target": "backend",
+      "text": "Update the site header navigation so the Admin Access Page link placement matches the requested responsive behavior:\n\n- Mobile devices: ensure an \"Admin\" link appears in the top-right hamburger menu.\n- Desktop/computer/TV screens: ensure an \"Admin\" link appears in the main top navigation bar alongside the other website pages, labeled exactly \"Admin\".\n\nThe link must navigate to \"/admin-access\" and must extend existing navigation behavior rather than replacing it.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "user-1"
+          "msg-6"
         ],
         "quotes": [
-          "Each successful login is timestamped and logged."
+          "Mobile devices: The Admin Page link must appear in the top-right hamburger menu.",
+          "Desktop, computer, and TV screens: The Admin Page must appear in the main top navigation bar alongside the other website pages, labeled clearly as “Admin.”"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes a shared method to verify the submitted master access code \"7583A\" and returns a success/failure result.",
-        "Only authenticated admins can successfully verify/unlock via this method (non-admin callers are rejected).",
-        "On each successful verification, the backend persists a log entry with (at minimum) caller principal and a timestamp value.",
-        "Backend exposes an admin-only query to list the successful admin-access log entries.",
-        "Successful verifications are also recorded via the existing event logging mechanism (or an equivalent persistent audit log) without requiring the frontend to call logEvent directly."
+        "On narrow viewports, opening the hamburger menu shows an \"Admin\" link that navigates to /admin-access.",
+        "On large viewports, the top nav link row includes an \"Admin\" text link (not icon-only) that navigates to /admin-access.",
+        "Existing navigation links and behavior remain intact."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Wire the Admin Access Page to the backend verification API and persist the unlocked state on the client so that a page refresh does not immediately re-lock during the same session (while still allowing lockout on explicit logout).",
+      "text": "Ensure the Admin Dashboard route \"/admin\" remains protected by the existing authentication and admin access gate systems, such that:\n\n- Users cannot access the Admin Dashboard unless they have successfully entered the master access code during the current browser session.\n- This gating behavior must extend existing mechanisms (e.g., the current gate/session approach) rather than replacing the admin dashboard implementation.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-1"
+          "msg-6"
+        ],
+        "quotes": [
+          "This Admin Access Page must integrate with the existing authentication and dashboard systems, extending current functionality rather than replacing any existing systems, and must act solely as the secure entry gateway to the Administrative Dashboard."
         ]
       },
       "acceptanceCriteria": [
-        "Admin Access Page calls the backend verify method and only unlocks on a successful response.",
-        "Unlocked state is stored in session-scoped browser storage (e.g., sessionStorage) and is checked by the admin-gating logic before rendering \"/admin\".",
-        "Logging out of Internet Identity clears the unlocked state so the user must re-enter the master code after the next login to access \"/admin\"."
+        "Direct navigation to /admin without having unlocked the access gate during the current session redirects the user to /admin-access or otherwise prevents rendering of the dashboard content.",
+        "After a successful unlock, navigating to /admin works for the remainder of the browser session (until session end or explicit logout/session clear).",
+        "No existing Admin Dashboard tabs/features are removed or replaced."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Complete Phase 5F Unified Backend by ensuring requests, testimonies, messages, coupons, and orders are handled in the single Motoko backend actor with consistent, end-to-end workflows that match the frontend’s existing React Query hooks and admin UI flows.",
+      "text": "Update the backend admin access verification so that every successful master-code verification is automatically timestamped and stored in a persistent Admin Access Log for auditing.\n\n- Store at least: unique log entry id, caller principal, and a real timestamp (do not use a placeholder value).\n- Only successful verifications must be recorded in this Admin Access Log.\n- Keep (or provide) an admin-only query endpoint to retrieve the Admin Access Log for auditing purposes (do not expose this log publicly).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "user-1"
+          "msg-6"
         ],
         "quotes": [
-          "Requests, testimonies, messages, coupons, and orders all run in one backend for smooth admin and customer workflow."
+          "Every successful login must be automatically timestamped and stored in an Admin Access Log for auditing purposes."
         ]
       },
       "acceptanceCriteria": [
-        "All canister methods currently invoked by the frontend hooks in `frontend/src/hooks/useQueries.ts` for requests/inbox messaging/coupons/testimonies/orders exist in `backend/main.mo` and return data in the shapes the frontend expects.",
-        "Admin request workflow supports: list all requests, view request by id, approve/decline, convert an approved request into an order, and write request action history updates.",
-        "Admin messaging workflow supports: sending a message with attachments to a customer and sending a coupon code to a customer, and these appear in the customer’s Inbox (`/inbox`) via a list-caller-inbox API.",
-        "Testimonies workflow supports: submit testimony, list approved testimonies for the public page, and list/moderate testimonies for admins (approve/reject).",
-        "All of the above live in the existing single actor (`backend/main.mo`) rather than introducing additional backend services/canisters."
+        "Submitting the correct code causes the canister to persist a new Admin Access Log entry containing the caller principal and a non-zero timestamp.",
+        "Submitting an incorrect code does not create a new Admin Access Log entry.",
+        "Only authorized admins can query/retrieve the Admin Access Log; unauthorized callers are rejected.",
+        "Existing verification behavior continues to work with the master code \"7583A\"."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Update the admin dashboard entry UX to clearly communicate the two-step security requirement (Internet Identity admin role + master access code) using English user-facing text, without modifying read-only/immutable frontend paths.",
+      "text": "Ensure logging out clears any session-scoped \"admin access unlocked\" state so that, after logout, the browser session no longer has access-gate unlock privileges until the master code is re-entered.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-1"
+          "msg-6"
+        ],
+        "quotes": [
+          "Create a secure Admin Access Page... protected gateway to the Administrative Dashboard."
         ]
       },
       "acceptanceCriteria": [
-        "If a user is not logged in, they are prompted to log in via the existing authentication flow before they can use the Admin Access Page.",
-        "If a user is logged in but not an admin, they see an Access Denied state (reusing the existing `RequireAdmin` behavior) and cannot proceed to code entry.",
-        "If a user is an admin but has not entered the master code in the current session, the UI clearly instructs them to enter the master code to continue to the dashboard.",
-        "No changes are requested to files listed in `SYSTEM_CONTEXT.frontend.immutablePaths` (any new gating is implemented via new components/pages and composition)."
+        "After successfully unlocking admin access, logging out and then logging back in requires re-entering the master code before /admin can be accessed in that session.",
+        "No other session/local-storage state unrelated to the admin access gate is unintentionally cleared beyond current logout behavior."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister with all logic in `backend/main.mo` (no additional backend services).",
-    "Do not edit frontend immutable paths: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, and anything under `frontend/src/components/ui`.",
-    "All user-facing text must be in English.",
-    "Preserve the exact master access code value: \"7583A\"."
+    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
+    "Do not edit files under frontend/src/components/ui or any paths listed in frontend.immutablePaths (compose instead).",
+    "Use English for all user-facing UI text."
   ],
   "nonGoals": [
-    "Do not add third-party authentication providers (only Internet Identity).",
-    "Do not implement real-time features (no WebSockets/chat).",
-    "Do not add external databases or off-chain storage; use canister state only.",
-    "Do not redesign the existing admin dashboard tabs beyond adding the new access gate flow."
+    "Do not implement third-party authentication or replace Internet Identity.",
+    "Do not add multi-factor authentication beyond the specified five-character master access code.",
+    "Do not build a full admin audit-log UI unless explicitly required; retrieving logs via existing admin-only endpoint is sufficient.",
+    "Do not introduce external databases or off-canister logging/storage."
   ],
   "imageRequirements": {
     "required": [],

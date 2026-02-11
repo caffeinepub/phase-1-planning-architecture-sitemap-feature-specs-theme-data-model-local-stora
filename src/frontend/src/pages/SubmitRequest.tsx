@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useGetCallerUserProfile, useCreateRequest } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
@@ -14,7 +14,6 @@ import FadeInSection from '../components/effects/FadeInSection';
 import RequireAuth from '../components/auth/RequireAuth';
 import RequestMediaPicker, { RequestMediaItem } from '../components/requests/RequestMediaPicker';
 import { toast } from 'sonner';
-import type { Request, MediaType } from '../types/phase5a';
 
 function SubmitRequestForm() {
   const navigate = useNavigate();
@@ -30,12 +29,12 @@ function SubmitRequestForm() {
   const [media, setMedia] = useState<RequestMediaItem[]>([]);
 
   // Prefill from profile when loaded
-  useState(() => {
+  useEffect(() => {
     if (userProfile) {
       setName(userProfile.name);
       setEmail(userProfile.email);
     }
-  });
+  }, [userProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,19 +55,17 @@ function SubmitRequestForm() {
     }
 
     try {
-      const requestData: Request = {
-        id: 0n, // Will be set by backend
+      const requestData = {
         name: name.trim(),
         email: email.trim(),
         description: description.trim(),
-        media: media.map(m => ({
+        attachments: media.map(m => ({
           blob: m.blob,
-          mediaType: (m.isVideo ? 'video' : 'photo') as MediaType,
+          filename: m.isVideo ? 'video.mp4' : 'photo.jpg',
         })),
         pricingPreference: pricingType === 'flexible' 
           ? { __kind__: 'flexible' as const }
           : { __kind__: 'range' as const, value: priceRange.trim() },
-        submittedBy: identity.getPrincipal(),
       };
 
       await createRequest.mutateAsync(requestData);
