@@ -124,9 +124,6 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  /**
-   * / Entry point for admin authentication - allows guest/anonymous access
-   */
   'adminLogin' : ActorMethod<[string, boolean, string, string], boolean>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'changeAdminAccessCode' : ActorMethod<[string, string], boolean>,
@@ -161,9 +158,11 @@ export interface _SERVICE {
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCurrentAdminAccessCode' : ActorMethod<[], [] | [string]>,
+  'getCurrentAdminAccessCodeUnmasked' : ActorMethod<[], string>,
   'getEvents' : ActorMethod<[], Array<Event>>,
   'getFeatureSpecification' : ActorMethod<[], Array<PageFeatures>>,
   'getLoginAttempts' : ActorMethod<[], Array<AdminLoginAttempt>>,
+  'getMaskedAdminAccessCode' : ActorMethod<[], string>,
   'getOnlyVerifiedTestimonies' : ActorMethod<[], Array<Testimony>>,
   'getPermissions' : ActorMethod<[Principal], [] | [AdminPermissions]>,
   'getRecentAuditLogEntries' : ActorMethod<[bigint], Array<AuditLogEntry>>,
@@ -171,25 +170,18 @@ export interface _SERVICE {
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'healthCheck' : ActorMethod<[], HealthStatus>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'isCallerLockedOut' : ActorMethod<[], boolean>,
   'listAdmins' : ActorMethod<[], Array<AdminPermissions>>,
   'logEvent' : ActorMethod<[string, string], undefined>,
   'resetAdminAttempts' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'setOwner' : ActorMethod<[Principal], undefined>,
-  /**
-   * / If returns "Invalid Access Code" an error message has to be presented in the app
-   * / Only on successful returns, the full admin dashboard should become accessible.
-   */
   'submitAdminAccessAttempt' : ActorMethod<
     [string, [] | [string], [] | [string]],
     string
   >,
   'updateAdminAccessCode' : ActorMethod<[string], undefined>,
   'verifyAccessCode' : ActorMethod<[string], boolean>,
-  /**
-   * / Verifies admin access code and grants admin role on success
-   * / Allows any caller (including guests) to attempt verification
-   */
   'verifyAdminAccess' : ActorMethod<
     [string, [] | [string], [] | [string]],
     boolean

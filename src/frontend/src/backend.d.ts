@@ -113,9 +113,6 @@ export enum Variant_later_phase1 {
     phase1 = "phase1"
 }
 export interface backendInterface {
-    /**
-     * / Entry point for admin authentication - allows guest/anonymous access
-     */
     adminLogin(adminCode: string, codeConfirmed: boolean, browserInfo: string, deviceInfo: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     changeAdminAccessCode(newCodeConfirmed: string, currentAccessCode: string): Promise<boolean>;
@@ -144,9 +141,11 @@ export interface backendInterface {
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCurrentAdminAccessCode(): Promise<string | null>;
+    getCurrentAdminAccessCodeUnmasked(): Promise<string>;
     getEvents(): Promise<Array<Event>>;
     getFeatureSpecification(): Promise<Array<PageFeatures>>;
     getLoginAttempts(): Promise<Array<AdminLoginAttempt>>;
+    getMaskedAdminAccessCode(): Promise<string>;
     getOnlyVerifiedTestimonies(): Promise<Array<Testimony>>;
     getPermissions(principal: Principal): Promise<AdminPermissions | null>;
     getRecentAuditLogEntries(count: bigint): Promise<Array<AuditLogEntry>>;
@@ -154,21 +153,14 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     healthCheck(): Promise<HealthStatus>;
     isCallerAdmin(): Promise<boolean>;
+    isCallerLockedOut(): Promise<boolean>;
     listAdmins(): Promise<Array<AdminPermissions>>;
     logEvent(message: string, level: string): Promise<void>;
     resetAdminAttempts(principal: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setOwner(owner: Principal): Promise<void>;
-    /**
-     * / If returns "Invalid Access Code" an error message has to be presented in the app
-     * / Only on successful returns, the full admin dashboard should become accessible.
-     */
     submitAdminAccessAttempt(accessCode: string, browserInfo: string | null, deviceType: string | null): Promise<string>;
     updateAdminAccessCode(newAccessCode: string): Promise<void>;
     verifyAccessCode(adminAttemptedCode: string): Promise<boolean>;
-    /**
-     * / Verifies admin access code and grants admin role on success
-     * / Allows any caller (including guests) to attempt verification
-     */
     verifyAdminAccess(adminAttemptedCode: string, browserInfo: string | null, deviceType: string | null): Promise<boolean>;
 }

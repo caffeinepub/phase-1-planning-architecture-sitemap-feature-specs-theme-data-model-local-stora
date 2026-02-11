@@ -1,14 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Regenerate a reliable admin access system with a persisted master code and a fully functional Admin Dashboard (including settings to change the code), all styled consistently with the existing site.
+**Goal:** Make “7583A” a permanent master admin code that always grants access, bypasses lockouts, and redirects users to the Admin Dashboard on success.
 
 **Planned changes:**
-- Persist the master admin access code in backend canister state (default to "7583A" on fresh deploy) and validate admin access against the persisted value.
-- Add backend admin settings API to update the master admin access code (authorized admins only) and persist the change.
-- Ensure site navigation “Admin” entry points (header and mobile menu) route to `/admin-access` and match existing nav styling.
-- Implement Admin Access flow: correct code shows “Access Granted” then redirects to `/admin`; incorrect code shows denied/invalid message without redirect.
-- Add an Admin Settings section in the Admin Dashboard UI to change the master admin access code via the backend API (English text only).
-- Regenerate/wire up Admin Dashboard tools end-to-end (frontend to backend) for coupon management, testimonies review/verification, portfolio photo/video uploads, and shop product management, following existing permission gating and site theme.
+- Backend: Treat “7583A” as a permanent master admin code that always returns “Access Granted” (including when locked out), and clears/resets any lockout/attempt counters on success.
+- Backend: Normalize master-code input by trimming whitespace and comparing case-insensitively, while still requiring a five-character code after trimming.
+- Frontend: On the Admin Access page, ensure entering the master code shows “Access Granted” and auto-redirects to “/admin” without ever showing an access-denied state for that input (including normalized variants).
+- Frontend: Update admin settings UI copy to clearly state “7583A” is permanent and cannot be changed; describe the existing update form as changing only a configurable/secondary admin access code (English text only).
 
-**User-visible outcome:** Users can navigate to `/admin-access`, enter the current master code to gain access (with an “Access Granted” confirmation and automatic redirect), and authorized admins can use a themed Admin Dashboard to manage coupons, testimonies, portfolio uploads, products, and update the master admin code.
+**User-visible outcome:** Users can enter “7583A” (even with surrounding spaces or different casing) to always get “Access Granted” and be automatically taken to “/admin”, and the settings UI clearly distinguishes the permanent master code from the configurable admin access code.

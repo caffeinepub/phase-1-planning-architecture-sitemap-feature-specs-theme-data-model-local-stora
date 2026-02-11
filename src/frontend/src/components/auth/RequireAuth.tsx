@@ -32,7 +32,7 @@ export default function RequireAuth({ children }: RequireAuthProps) {
             </div>
             <CardTitle>Authentication Required</CardTitle>
             <CardDescription>
-              You must be logged in to access this page.
+              Please log in with Internet Identity to access admin features. After logging in, you will need to enter the 5-character master code.
             </CardDescription>
           </CardHeader>
           <CardContent>

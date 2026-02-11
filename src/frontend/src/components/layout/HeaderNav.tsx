@@ -4,16 +4,33 @@ import { Menu, X, ShoppingCart, User, Shield, Inbox, Search } from 'lucide-react
 import { Button } from '@/components/ui/button';
 import LoginButton from '../auth/LoginButton';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import { useGetCallerUserRole } from '../../hooks/useQueries';
+import { useGetCallerUserRole, useGetAdminEntryLockoutStatus } from '../../hooks/useQueries';
+import { isAdminEntryLockedOut, setAdminEntryLockedOut } from '../../lib/adminEntryLockout';
 
 export default function HeaderNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
   const { data: userRole } = useGetCallerUserRole();
+  const { data: backendLockedOut, isFetched: lockoutFetched } = useGetAdminEntryLockoutStatus();
 
   const isAuthenticated = !!identity;
   const isAdmin = userRole === 'admin';
+
+  // Determine if Admin link should be shown
+  // Use localStorage-first for instant hiding, then reconcile with backend
+  const principalString = identity?.getPrincipal().toString() || '';
+  const localLockedOut = isAuthenticated ? isAdminEntryLockedOut(principalString) : false;
+  
+  // If backend confirms lockout, persist it locally
+  useEffect(() => {
+    if (isAuthenticated && lockoutFetched && backendLockedOut && principalString) {
+      setAdminEntryLockedOut(principalString);
+    }
+  }, [isAuthenticated, lockoutFetched, backendLockedOut, principalString]);
+
+  // Show Admin link only if not locked out (local or backend)
+  const showAdminLink = !localLockedOut && !(lockoutFetched && backendLockedOut);
 
   const navLinks = [
     { to: '/about', label: 'About' },
@@ -59,12 +76,14 @@ export default function HeaderNav() {
               {link.label}
             </Link>
           ))}
-          <Link
-            to="/admin-access"
-            className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors whitespace-nowrap"
-          >
-            Admin
-          </Link>
+          {showAdminLink && (
+            <Link
+              to="/admin-access"
+              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors whitespace-nowrap"
+            >
+              Admin
+            </Link>
+          )}
         </div>
 
         {/* Desktop & Tablet Actions */}
@@ -156,14 +175,16 @@ export default function HeaderNav() {
               </>
             )}
             
-            <Link
-              to="/admin-access"
-              className="flex items-center gap-2 px-3 py-3 text-sm font-medium rounded-md hover:bg-accent transition-colors touch-manipulation"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Shield className="h-5 w-5" />
-              Admin
-            </Link>
+            {showAdminLink && (
+              <Link
+                to="/admin-access"
+                className="flex items-center gap-2 px-3 py-3 text-sm font-medium rounded-md hover:bg-accent transition-colors touch-manipulation"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Shield className="h-5 w-5" />
+                Admin
+              </Link>
+            )}
             
             <div className="pt-2">
               <LoginButton />

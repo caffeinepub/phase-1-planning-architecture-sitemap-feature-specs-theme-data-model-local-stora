@@ -1,21 +1,26 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Build a full Admin Access system and Admin Dashboard styled to match the existing website UI, including persistent master access code validation, admin entry points (top bar + mobile menu), an access page with redirect-on-success, and in-dashboard admin tools (coupons, testimonials management/verification, portfolio photo/video uploads, shop product management) plus an Admin Settings option to change the master code.",
+  "summary": "Admin Access system must validate a permanent five-character master access code (7583A) to grant admin access and redirect to the full Admin Dashboard with all tools enabled.",
   "architectural_notes": [
-    "Admin system and dashboard should match existing website UI/style.",
-    "Master admin access code must be securely and persistently stored server-side to survive redeployments and ensure consistent validation."
+    "Admin Access page must recognize master code '7583A' and, when entered exactly, immediately display 'Access Granted' and auto-redirect to Admin Dashboard with full admin permissions enabled."
   ],
-  "known_issues": [
-    "Previous attempt to build the admin system failed/was incomplete (AI struggled); user requested full regeneration."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-provide-an-admin-settings-section-within-the-admin-dashboard-ui-that-allows-authorized-administrators-to-change-the-master-admin-access-code-using-the-backend-settings-api-and-keep-all-ui-text-in-english",
-      "title": "Provide an Admin Settings section within the Admin Dashboard UI that allows authorized administrators to change the master admin access code, using the backend settings API, and keep all UI text in English.",
+      "id": "feature-update-the-admin-access-page-so-that-when-the-user-enters-7583a-it-immediately-shows-the-success-message-access-granted-and-automatically-redirects-to-admin-without-ever-displaying-an-access-denied-state-for-that-exact-input",
+      "title": "Update the Admin Access page so that when the user enters \"7583A\" it immediately shows the success message \"Access Granted\" and automatically redirects to \"/admin\" without ever displaying an access-denied state for that exact input.",
       "reqIds": [
-        "REQ-5"
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-admin-settings-ui-copy-so-it-does-not-imply-that-the-permanent-master-code-can-be-changed-clearly-present-7583a-as-the-permanent-master-code-and-treat-the-existing-update-form-as-changing-only-the-configurable-admin-access-code",
+      "title": "Update admin settings UI copy so it does not imply that the permanent master code can be changed; clearly present 7583A as the permanent master code and treat the existing update form as changing only the configurable admin access code.",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
@@ -23,108 +28,28 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Create Admin entry points in site UI (top-bar Admin button and mobile hamburger menu option) that route to an Administrative Access page.",
+      "summary": "Implement permanent master admin access code '7583A' that always grants access, shows 'Access Granted', and redirects to full Admin Dashboard with all admin tools enabled.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Implement Administrative Access page that validates master admin access code; on correct code show “Access Granted” and immediately redirect to full Admin Dashboard; prevent incorrect “Access Denied” for valid code.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Persistently and securely store the master admin access code in the backend so it consistently validates across future logins and deployments.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Build a full Admin Dashboard UI from scratch matching the existing website style, with all administrative tools enabled after successful access.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Add Admin Dashboard tools: create/manage custom coupons.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Add Admin Dashboard tools: manage and verify testimonials.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Add Admin Dashboard tools: upload photos and videos to the portfolio page.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Add Admin Dashboard tools: add custom products to the shop page.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Add secure Admin Settings within the Admin Dashboard to change the master admin access code; updated code replaces previous for all future logins.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "Persist the master admin access code in the backend canister (defaulting to \"7583A\") and use it for all admin access validation so the correct code is consistently recognized across future logins and deployments.",
+      "summary": "Ensure the backend permanently recognizes the master admin access code \"7583A\" and always returns \"Access Granted\" when the caller submits exactly that code, regardless of any prior lockout state or configurable code changes.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-11",
-      "summary": "Add backend admin settings APIs to securely change the master admin access code from within the Admin Dashboard; the new code must immediately replace the previous one for all future validations.",
+      "id": "AR-3",
+      "summary": "Normalize admin access code validation on the backend so that the permanent master code check for \"7583A\" is robust to common user input variations (leading/trailing spaces and case differences), while still treating the code as exactly five characters after trimming.",
       "reqIds": [
         "REQ-2"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-12",
-      "summary": "Ensure the Admin entry points in the site navigation (top header and mobile hamburger menu) route to the Administrative Access page (\"/admin-access\") and match the existing website UI styling.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Implement the Admin Access flow so that entering the correct master code shows the text \"Access Granted\" and then immediately redirects the user to the full Admin Dashboard with all existing admin tools enabled; entering an incorrect code shows an access denied/invalid message without redirect.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-15",
-      "summary": "Regenerate and ensure the full Admin Dashboard tools are functional end-to-end (frontend tabs wired to backend) for: coupon creation/management, testimonies management/verification, portfolio photo/video uploads, and shop product management, all matching the existing site’s style.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-16",
-      "summary": "Keep the regenerated admin pages and components visually consistent with the existing website’s dark fantasy theme (colors, typography, spacing, and component styling) as documented in the project’s existing design direction.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "status": "pending"
     }
   ],
-  "projectName": "Regenerate admin access system with persistent master code + full admin dashboard tools (styled to match site)",
+  "projectName": "Make 7583A a permanent master admin code that always grants access and redirects to Admin Dashboard",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

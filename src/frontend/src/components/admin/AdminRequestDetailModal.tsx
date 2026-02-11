@@ -6,11 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, XCircle, Send, Gift, DollarSign, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
+import { CheckCircle, XCircle, Send, Gift, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApproveRequest, useDeclineRequest, useSendMessageToCustomer, useSendCouponToCustomer, useConvertRequestToOrder } from '../../hooks/useQueries';
 import type { RequestDetail } from '../../types/phase5b';
-import { Principal } from '@dfinity/principal';
 
 interface AdminRequestDetailModalProps {
   open: boolean;
@@ -26,9 +25,7 @@ export default function AdminRequestDetailModal({
   isLoading,
 }: AdminRequestDetailModalProps) {
   const [message, setMessage] = useState('');
-  const [couponCode, setCouponCode] = useState('');
-  const [orderAmount, setOrderAmount] = useState('');
-  const [declineReason, setDeclineReason] = useState('');
+  const [couponId, setCouponId] = useState('');
   const [showDeclineInput, setShowDeclineInput] = useState(false);
 
   const approveRequest = useApproveRequest();
@@ -55,15 +52,10 @@ export default function AdminRequestDetailModal({
       setShowDeclineInput(true);
       return;
     }
-    if (!declineReason.trim()) {
-      toast.error('Please provide a reason for declining');
-      return;
-    }
     try {
-      await declineRequest.mutateAsync({ id: request.id, reason: declineReason.trim() });
+      await declineRequest.mutateAsync(request.id);
       toast.success('Request declined');
       setShowDeclineInput(false);
-      setDeclineReason('');
       onOpenChange(false);
     } catch (error: any) {
       console.error('Failed to decline request:', error);
@@ -90,20 +82,25 @@ export default function AdminRequestDetailModal({
   };
 
   const handleSendCoupon = async () => {
-    if (!request || !couponCode.trim()) {
-      toast.error('Please enter a coupon code');
+    if (!request || !couponId.trim()) {
+      toast.error('Please enter a coupon ID');
       return;
     }
     try {
+      const parsedCouponId = BigInt(couponId.trim());
       await sendCoupon.mutateAsync({
         customerId: request.submittedBy,
-        couponCode: couponCode.trim(),
+        couponId: parsedCouponId,
       });
       toast.success('Coupon sent successfully');
-      setCouponCode('');
+      setCouponId('');
     } catch (error: any) {
       console.error('Failed to send coupon:', error);
-      toast.error(error.message || 'Failed to send coupon');
+      if (error.message && error.message.includes('Cannot convert')) {
+        toast.error('Invalid coupon ID format. Please enter a valid number.');
+      } else {
+        toast.error(error.message || 'Failed to send coupon');
+      }
     }
   };
 
@@ -115,7 +112,6 @@ export default function AdminRequestDetailModal({
     try {
       await convertToOrder.mutateAsync(request.id);
       toast.success('Request converted to order successfully');
-      setOrderAmount('');
       onOpenChange(false);
     } catch (error: any) {
       console.error('Failed to convert to order:', error);
@@ -227,57 +223,25 @@ export default function AdminRequestDetailModal({
             {isPending(request.status) && (
               <div className="space-y-3 pt-4 border-t">
                 <Label>Admin Actions</Label>
-                {showDeclineInput ? (
-                  <div className="space-y-3">
-                    <Textarea
-                      placeholder="Enter reason for declining..."
-                      value={declineReason}
-                      onChange={(e) => setDeclineReason(e.target.value)}
-                      rows={3}
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleDecline}
-                        disabled={declineRequest.isPending || !declineReason.trim()}
-                        variant="destructive"
-                        className="flex-1"
-                      >
-                        <XCircle className="mr-2 h-4 w-4" />
-                        {declineRequest.isPending ? 'Declining...' : 'Confirm Decline'}
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setShowDeclineInput(false);
-                          setDeclineReason('');
-                        }}
-                        variant="outline"
-                        className="flex-1"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleApprove}
-                      disabled={approveRequest.isPending}
-                      className="flex-1"
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      {approveRequest.isPending ? 'Approving...' : 'Approve'}
-                    </Button>
-                    <Button
-                      onClick={handleDecline}
-                      disabled={declineRequest.isPending}
-                      variant="destructive"
-                      className="flex-1"
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Decline
-                    </Button>
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleApprove}
+                    disabled={approveRequest.isPending}
+                    className="flex-1"
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    {approveRequest.isPending ? 'Approving...' : 'Approve'}
+                  </Button>
+                  <Button
+                    onClick={handleDecline}
+                    disabled={declineRequest.isPending}
+                    variant="destructive"
+                    className="flex-1"
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    {declineRequest.isPending ? 'Declining...' : 'Decline'}
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -304,13 +268,14 @@ export default function AdminRequestDetailModal({
             <div className="space-y-3 pt-4 border-t">
               <Label>Send Coupon to Customer</Label>
               <Input
-                placeholder="Enter coupon code"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
+                type="number"
+                placeholder="Enter coupon ID (numeric)"
+                value={couponId}
+                onChange={(e) => setCouponId(e.target.value)}
               />
               <Button
                 onClick={handleSendCoupon}
-                disabled={!couponCode.trim() || sendCoupon.isPending}
+                disabled={!couponId.trim() || sendCoupon.isPending}
                 className="w-full"
               >
                 <Gift className="mr-2 h-4 w-4" />

@@ -189,9 +189,11 @@ export const idlService = IDL.Service({
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCurrentAdminAccessCode' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
+  'getCurrentAdminAccessCodeUnmasked' : IDL.Func([], [IDL.Text], ['query']),
   'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getFeatureSpecification' : IDL.Func([], [IDL.Vec(PageFeatures)], ['query']),
   'getLoginAttempts' : IDL.Func([], [IDL.Vec(AdminLoginAttempt)], ['query']),
+  'getMaskedAdminAccessCode' : IDL.Func([], [IDL.Text], ['query']),
   'getOnlyVerifiedTestimonies' : IDL.Func([], [IDL.Vec(Testimony)], ['query']),
   'getPermissions' : IDL.Func(
       [IDL.Principal],
@@ -211,6 +213,7 @@ export const idlService = IDL.Service({
     ),
   'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'isCallerLockedOut' : IDL.Func([], [IDL.Bool], ['query']),
   'listAdmins' : IDL.Func([], [IDL.Vec(AdminPermissions)], ['query']),
   'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'resetAdminAttempts' : IDL.Func([IDL.Principal], [], []),
@@ -419,6 +422,7 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCurrentAdminAccessCode' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
+    'getCurrentAdminAccessCodeUnmasked' : IDL.Func([], [IDL.Text], ['query']),
     'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getFeatureSpecification' : IDL.Func(
         [],
@@ -426,6 +430,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getLoginAttempts' : IDL.Func([], [IDL.Vec(AdminLoginAttempt)], ['query']),
+    'getMaskedAdminAccessCode' : IDL.Func([], [IDL.Text], ['query']),
     'getOnlyVerifiedTestimonies' : IDL.Func(
         [],
         [IDL.Vec(Testimony)],
@@ -449,6 +454,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'isCallerLockedOut' : IDL.Func([], [IDL.Bool], ['query']),
     'listAdmins' : IDL.Func([], [IDL.Vec(AdminPermissions)], ['query']),
     'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'resetAdminAttempts' : IDL.Func([IDL.Principal], [], []),

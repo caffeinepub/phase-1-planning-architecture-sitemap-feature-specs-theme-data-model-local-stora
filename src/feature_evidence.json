@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-provide-an-admin-settings-section-within-the-admin-dashboard-ui-that-allows-authorized-administrators-to-change-the-master-admin-access-code-using-the-backend-settings-api-and-keep-all-ui-text-in-english",
-      "featureTitle": "Provide an Admin Settings section within the Admin Dashboard UI that allows authorized administrators to change the master admin access code, using the backend settings API, and keep all UI text in English.",
+      "featureId": "feature-update-the-admin-access-page-so-that-when-the-user-enters-7583a-it-immediately-shows-the-success-message-access-granted-and-automatically-redirects-to-admin-without-ever-displaying-an-access-denied-state-for-that-exact-input",
+      "featureTitle": "Update the Admin Access page so that when the user enters \"7583A\" it immediately shows the success message \"Access Granted\" and automatically redirects to \"/admin\" without ever displaying an access-denied state for that exact input.",
       "files": [
-        "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-        "frontend/src/components/admin/AdminSystemSettingsTab.tsx"
+        "frontend/src/pages/AdminAccess.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,7 +17,28 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-5"
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-admin-settings-ui-copy-so-it-does-not-imply-that-the-permanent-master-code-can-be-changed-clearly-present-7583a-as-the-permanent-master-code-and-treat-the-existing-update-form-as-changing-only-the-configurable-admin-access-code",
+      "featureTitle": "Update admin settings UI copy so it does not imply that the permanent master code can be changed; clearly present 7583A as the permanent master code and treat the existing update form as changing only the configurable admin access code.",
+      "files": [
+        "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
+        "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

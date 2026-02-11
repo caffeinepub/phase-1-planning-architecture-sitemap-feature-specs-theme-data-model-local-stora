@@ -22,7 +22,7 @@ export default function AdminCouponsTab() {
   const [newCode, setNewCode] = useState('');
   const [newDiscount, setNewDiscount] = useState('');
   const [customerPrincipal, setCustomerPrincipal] = useState('');
-  const [selectedCouponCode, setSelectedCouponCode] = useState('');
+  const [selectedCouponId, setSelectedCouponId] = useState<bigint | null>(null);
   const [validationError, setValidationError] = useState('');
 
   // Check if send coupon functionality is available
@@ -59,7 +59,7 @@ export default function AdminCouponsTab() {
     try {
       await createCoupon.mutateAsync({
         code: newCode.trim().toUpperCase(),
-        discount,
+        discount: BigInt(discount),
       });
 
       toast.success('Coupon created successfully');
@@ -71,14 +71,11 @@ export default function AdminCouponsTab() {
     }
   };
 
-  const handleToggleValidity = async (couponId: bigint, currentValidity: boolean) => {
+  const handleToggleValidity = async (couponId: bigint) => {
     try {
-      await toggleValidity.mutateAsync({
-        couponId,
-        valid: !currentValidity,
-      });
+      await toggleValidity.mutateAsync(couponId);
 
-      toast.success(`Coupon ${!currentValidity ? 'enabled' : 'disabled'}`);
+      toast.success('Coupon validity toggled');
       refetch();
     } catch (error: any) {
       toast.error(error.message || 'Failed to toggle coupon validity');
@@ -88,20 +85,20 @@ export default function AdminCouponsTab() {
   const handleSendCoupon = async () => {
     if (!validatePrincipal(customerPrincipal)) return;
 
-    if (!selectedCouponCode) {
-      toast.error('Please select a coupon code');
+    if (!selectedCouponId) {
+      toast.error('Please select a coupon');
       return;
     }
 
     try {
       await sendCoupon.mutateAsync({
         customerId: customerPrincipal.trim(),
-        couponCode: selectedCouponCode,
+        couponId: selectedCouponId,
       });
 
       toast.success('Coupon sent to customer inbox');
       setCustomerPrincipal('');
-      setSelectedCouponCode('');
+      setSelectedCouponId(null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to send coupon');
     }
@@ -220,16 +217,16 @@ export default function AdminCouponsTab() {
               <select
                 id="coupon-select"
                 className="w-full px-3 py-2 border rounded-md"
-                value={selectedCouponCode}
-                onChange={(e) => setSelectedCouponCode(e.target.value)}
+                value={selectedCouponId?.toString() || ''}
+                onChange={(e) => setSelectedCouponId(e.target.value ? BigInt(e.target.value) : null)}
                 disabled={!customerPrincipal.trim() || !!validationError}
               >
                 <option value="">Choose a coupon...</option>
                 {coupons
                   .filter((c) => c.valid)
                   .map((coupon) => (
-                    <option key={coupon.code} value={coupon.code}>
-                      {coupon.code} - {coupon.discount}% off
+                    <option key={coupon.id.toString()} value={coupon.id.toString()}>
+                      {coupon.code} - {coupon.discount.toString()}% off
                     </option>
                   ))}
               </select>
@@ -239,7 +236,7 @@ export default function AdminCouponsTab() {
               onClick={handleSendCoupon}
               disabled={
                 !customerPrincipal.trim() ||
-                !selectedCouponCode ||
+                !selectedCouponId ||
                 !!validationError ||
                 sendCoupon.isPending
               }
@@ -325,7 +322,7 @@ export default function AdminCouponsTab() {
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {coupon.discount}% discount
+                        {coupon.discount.toString()}% discount
                       </p>
                     </div>
                   </div>
@@ -336,7 +333,7 @@ export default function AdminCouponsTab() {
                     <Switch
                       id={`toggle-${coupon.id}`}
                       checked={coupon.valid}
-                      onCheckedChange={() => handleToggleValidity(coupon.id, coupon.valid)}
+                      onCheckedChange={() => handleToggleValidity(coupon.id)}
                       disabled={toggleValidity.isPending}
                     />
                   </div>

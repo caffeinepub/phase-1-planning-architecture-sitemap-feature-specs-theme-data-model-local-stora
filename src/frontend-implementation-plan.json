@@ -1,143 +1,42 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend regeneration of admin access navigation, access flow, and dashboard tools (dark fantasy styling)",
+  "title": "Frontend updates: permanent master admin code UX + admin settings copy",
   "requirements": [
     {
       "id": "REQ-3",
-      "summary": "Ensure header and mobile navigation Admin entry routes to /admin-access and matches existing nav styling patterns.",
+      "summary": "On /admin-access, treat 7583A (case/whitespace normalized) as an immediate success that redirects to /admin without showing access-denied.",
       "acceptanceCriteria": [
-        "Desktop/header navigation contains an \"Admin\" entry that routes to \"/admin-access\".",
-        "Mobile hamburger menu contains an \"Admin\" entry that routes to \"/admin-access\".",
-        "Navigation styling is consistent with the existing header/mobile menu patterns (typography, spacing, hover states)."
+        "Entering 7583A on /admin-access shows \"Access Granted\" and navigates to /admin automatically.",
+        "No \"Access Denied\" message is shown when the user enters 7583A (including case/whitespace variants that normalize to 7583A).",
+        "Redirect happens automatically after success without requiring additional user interaction."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "path": "frontend/src/pages/AdminAccess.tsx",
           "operation": "modify",
-          "description": "Harden the existing Admin navigation entries so both desktop and mobile consistently route to /admin-access, follow the same link composition/states as other nav links, and close the mobile menu on navigation. Keep visuals consistent with the current header/menu patterns. (Uses existing auth role display patterns from the authorization component’s frontend guidance; verify the component's usage instructions before implementing.)"
+          "description": "Update admin access submission and UI gating so normalized input (trim + uppercase) equal to \"7583A\" short-circuits all lockout/denied paths: immediately set success UI state (showing exactly \"Access Granted\"), call setAdminAccessUnlocked(), and auto-navigate to \"/admin\". Ensure the lockout UI does not prevent entering the code (e.g., do not fully replace the form with a lockout-only screen), while keeping existing lockout behavior for all non-master codes."
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Make Admin Access submission reliably display \"Access Granted\" and redirect to /admin on success; show an invalid/denied message on failure without redirect.",
+      "summary": "Revise admin settings UI text to clearly state 7583A is a permanent master code and the editable form only changes a configurable secondary code.",
       "acceptanceCriteria": [
-        "When a user submits the correct master code on the Administrative Access page, the UI displays \"Access Granted\" and navigates to \"/admin\" without requiring manual refresh.",
-        "When a user submits an incorrect code, the UI displays an invalid/denied message and does not navigate to \"/admin\".",
-        "The backend records successful/failed attempts consistently, and successful attempts reset attempt count as currently designed.",
-        "After a successful admin code entry, the user can access the Admin Dashboard gated routes according to the existing admin-role and admin-access gate logic."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminAccess.tsx",
-          "operation": "modify",
-          "description": "Adjust the success flow to show the exact \"Access Granted\" text and then redirect to /admin immediately (or near-immediately) after state update, while keeping failure behavior as a non-redirecting invalid/denied message. Ensure all user-facing strings remain English and match existing UI components (Card/Input/Button) without editing UI component sources. (Authorization component is used indirectly via existing auth gates and role refresh patterns; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-          "operation": "modify",
-          "description": "Ensure gating behavior is consistent and predictable after unlocking admin access (session flag), including redirect behavior to /admin-access when locked and null rendering while redirecting, without introducing new auth flows. (Authorization component patterns inform gating expectations; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/lib/adminAccessSession.ts",
-          "operation": "modify",
-          "description": "Align session unlock helpers with the adjusted access flow (e.g., add a clear, documented reset behavior used by logout flows elsewhere if needed), keeping storage session-scoped and stable across refreshes within a session. Keep implementation compatible with existing gates. (Authorization component guidance includes clearing cached app data on logout; verify the component's usage instructions before implementing.)"
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Add an Admin Settings area in the Admin Dashboard to change the master admin access code via backend settings methods, respecting existing permission gating and English-only UI.",
-      "acceptanceCriteria": [
-        "Admin Dashboard contains a clearly labeled settings area for updating the master admin access code.",
-        "The settings UI requires the current admin to be authorized (respect existing permission gating patterns used in the dashboard settings tab).",
-        "On successful update, the UI confirms success and subsequent admin-access attempts require the new code.",
-        "All user-visible strings in this flow are in English."
+        "Admin access code settings section labeling/descriptions clearly state that \"7583A\" is permanent and cannot be changed.",
+        "The update form is described as changing a configurable/secondary admin access code (while 7583A always remains valid).",
+        "All user-facing text remains in English."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-          "operation": "create",
-          "description": "Create a settings section UI for changing the master admin access code (current code + new code + confirm), calling existing backend capabilities (e.g., changeAdminAccessCode/confirmNewCode/updateAdminAccessCode as available) via the actor and handling authorization errors gracefully. Use existing site UI primitives (Card/Input/Button/Alert) and English text only. (Uses authorization component patterns for admin-only access and handling authorization traps; verify the component's usage instructions before implementing.)"
+          "operation": "modify",
+          "description": "Update headings/descriptions/labels/button text and any success/error copy so the page explicitly states \"7583A\" is the permanent master admin code (cannot be changed) and the form updates only the configurable/secondary admin access code used for normal access. Ensure all user-facing text remains English and no copy implies 7583A is editable."
         },
         {
-          "path": "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
+          "path": "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx",
           "operation": "modify",
-          "description": "Wire the new AdminAccessCodeSettingsSection into the Settings tab, and guard it using existing owner/full-permissions logic already used for other advanced controls. Ensure styling remains consistent with the dark fantasy theme and existing settings layout. (Authorization component informs permission gating UX; verify the component's usage instructions before implementing.)"
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Regenerate/ensure Admin Dashboard tool tabs are wired and usable for coupons, testimonies verification, portfolio photo/video uploads, and shop product management, matching site style and existing admin gating.",
-      "acceptanceCriteria": [
-        "Coupons: an admin can create a coupon and see it listed/managed from the dashboard, with changes persisted in the backend.",
-        "Testimonies: an admin can review and approve/unapprove testimonies from the dashboard, with changes persisted in the backend.",
-        "Portfolio: an admin can upload at least one image/video item to the portfolio via the dashboard, with backend persistence using the existing blob storage mixin (no external services).",
-        "Products: an admin can create/update products via the dashboard and see the changes reflected on the Shop page data source.",
-        "All admin tools are accessible only after successful admin access and according to existing admin permission gating."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Admin.tsx",
-          "operation": "modify",
-          "description": "Add and wire a dedicated \"Portfolio\" tab into the existing admin tab system (TabsTrigger + TabsContent) so portfolio uploads are accessible alongside Products/Coupons/Testimonies, and remain wrapped in existing RequireAdmin + RequireAdminAccessGate gating. Keep the tab styling consistent with the existing dashboard. (Authorization component is used through RequireAdmin and permission checks; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/components/admin/AdminPortfolioTab.tsx",
-          "operation": "create",
-          "description": "Implement the Portfolio admin tool UI for uploading at least one image/video and submitting it to backend portfolio capabilities, using the blob-storage ExternalBlob type for upload and direct URL usage. Include upload progress and validation using existing site patterns and English text only. (Use the blob-storage component to support ExternalBlob uploads and progress tracking; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/hooks/useAdminPortfolio.ts",
-          "operation": "create",
-          "description": "Create React Query hooks/mutations for portfolio upload/list actions used by AdminPortfolioTab, calling the backend actor capabilities and supporting progress reporting via ExternalBlob where applicable. Handle missing capability errors with clear UI-facing errors. (Use the blob-storage component’s ExternalBlob utilities; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/components/admin/AdminCouponsTab.tsx",
-          "operation": "modify",
-          "description": "Ensure coupon creation/management interactions use consistent loading/error states and clearly surface backend capability availability (without breaking existing UI). Keep styling consistent with the site theme and English-only text. (Authorization component influences admin-only usage expectations; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/hooks/useAdminCoupons.ts",
-          "operation": "modify",
-          "description": "Align coupon hooks to reliably query/mutate using backend actor capabilities when present, and provide consistent error handling suitable for the dashboard (no silent empty returns that mask backend availability). (Authorization component guidance applies to handling authorization failures gracefully; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-          "operation": "modify",
-          "description": "Confirm the testimonies approval workflow supports both approve and unapprove if the backend provides it, and keep list filtering, media indicators, and action feedback consistent with the rest of the dashboard UI. (Authorization component patterns apply to admin-only screens and error handling; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/components/admin/AdminProductsTab.tsx",
-          "operation": "modify",
-          "description": "Verify product management UI is fully wired to existing product create/update flows and refreshes the shared products query so changes reflect on the Shop page data source. Keep visuals aligned with existing dashboard cards/tables. (Authorization component patterns apply to admin-only screens; verify the component's usage instructions before implementing.)"
-        }
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "summary": "Keep Admin Access and Admin Dashboard visually consistent with the site dark fantasy theme by composing existing UI components and theme variables.",
-      "acceptanceCriteria": [
-        "Admin Access page and Admin Dashboard reuse existing UI components (cards, buttons, inputs, tabs) and follow the established theme variables and typography.",
-        "No new, conflicting visual theme is introduced; the admin experience looks like part of the same site."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminAccess.tsx",
-          "operation": "modify",
-          "description": "Refine Admin Access page styling to align with the documented dark fantasy design direction (spacing, typography, interactive states) using existing components and existing theme tokens, without introducing a new theme. Ensure the success/denied states remain visually consistent and readable. (shadcn-ui components are composed here; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/pages/Admin.tsx",
-          "operation": "modify",
-          "description": "Refine Admin Dashboard typography/spacing and tab layout to match the site’s design direction, using existing primitives (Card/Tabs/Badge/Button) and avoiding edits to read-only UI component sources. (shadcn-ui components are composed here; verify the component's usage instructions before implementing.)"
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "If needed to match the documented design direction, adjust only existing global theme variables/utilities (not creating a new theme) to support admin page consistency (e.g., section spacing utility usage), ensuring no conflicts with the rest of the site. (shadcn-ui theming depends on these tokens; verify the component's usage instructions before implementing.)"
+          "description": "Update Security Settings copy (card title/description, labels, and toast messages where applicable) to present \"7583A\" as the permanent master admin code that cannot be changed, and clarify the form changes only the configurable/secondary admin access code while 7583A always remains valid. Keep all user-facing text in English."
         }
       ]
     }

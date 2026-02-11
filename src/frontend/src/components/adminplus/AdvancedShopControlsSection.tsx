@@ -136,71 +136,76 @@ export default function AdvancedShopControlsSection() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
-            <div>
-              <Label htmlFor="product-select">Select Product</Label>
-              <select
-                id="product-select"
-                value={selectedProductId?.toString() || ''}
-                onChange={(e) => setSelectedProductId(e.target.value ? BigInt(e.target.value) : null)}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background"
-              >
-                <option value="">Choose a product...</option>
-                {products.map((product: any) => (
-                  <option key={product.id.toString()} value={product.id.toString()}>
-                    {product.name} (Original: {Number(product.price) / 100} ICP)
-                  </option>
-                ))}
-              </select>
+            <Label>Set Price Override</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="product-select" className="text-xs">Select Product</Label>
+                <select
+                  id="product-select"
+                  className="w-full p-2 border rounded-md"
+                  value={selectedProductId?.toString() || ''}
+                  onChange={(e) => setSelectedProductId(e.target.value ? BigInt(e.target.value) : null)}
+                >
+                  <option value="">Choose a product...</option>
+                  {products.map((product: any) => (
+                    <option key={product.id.toString()} value={product.id.toString()}>
+                      {product.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="override-price" className="text-xs">Override Price ($)</Label>
+                <Input
+                  id="override-price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={overridePrice}
+                  onChange={(e) => setOverridePrice(e.target.value)}
+                />
+              </div>
             </div>
-
-            <div>
-              <Label htmlFor="override-price">Override Price (ICP)</Label>
-              <Input
-                id="override-price"
-                type="number"
-                step="0.01"
-                value={overridePrice}
-                onChange={(e) => setOverridePrice(e.target.value)}
-                placeholder="Enter new price..."
-              />
-            </div>
-
             <Button
               onClick={handleSetPriceOverride}
               disabled={!selectedProductId || !overridePrice || overridePriceMutation.isPending}
               className="w-full"
             >
-              {overridePriceMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <DollarSign className="h-4 w-4 mr-2" />
-              )}
+              {overridePriceMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Set Price Override
             </Button>
           </div>
 
           <Separator />
 
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm">Active Overrides</h4>
-            {products.filter((p: any) => p.priceOverride !== null).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No active price overrides</p>
+          <div className="space-y-3">
+            <Label>Active Price Overrides</Label>
+            {products.filter((p: any) => p.priceOverride !== null && p.priceOverride !== undefined).length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No active price overrides
+              </p>
             ) : (
               <div className="space-y-2">
                 {products
-                  .filter((p: any) => p.priceOverride !== null)
+                  .filter((p: any) => p.priceOverride !== null && p.priceOverride !== undefined)
                   .map((product: any) => (
-                    <div key={product.id.toString()} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={product.id.toString()}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div>
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          Original: {Number(product.price) / 100} ICP → Override: {Number(product.priceOverride) / 100} ICP
+                          Original: ${(Number(product.price) / 100).toFixed(2)} →{' '}
+                          Override: ${(Number(product.priceOverride) / 100).toFixed(2)}
                         </p>
                       </div>
                       <Button
-                        size="sm"
                         variant="outline"
+                        size="sm"
                         onClick={() => handleClearPriceOverride(product.id)}
+                        disabled={overridePriceMutation.isPending}
                       >
                         Clear
                       </Button>
@@ -218,24 +223,29 @@ export default function AdvancedShopControlsSection() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-arcane-gold" />
+            <Eye className="h-5 w-5 text-primary" />
             <CardTitle>Product Visibility</CardTitle>
           </div>
           <CardDescription>
-            Show or hide products from the shop without deleting them
+            Control which products are visible to customers
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {products.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No products available</p>
-            ) : (
-              products.map((product: any) => {
-                const visibility: ProductVisibility = product.visibility || { __kind__: 'visible' };
-                const isVisible = visibility.__kind__ === 'visible';
-
+          {products.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No products available
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {products.map((product: any) => {
+                const visibilityKind = product.visibility?.__kind__ || 'visible';
+                const isVisible = visibilityKind === 'visible';
+                
                 return (
-                  <div key={product.id.toString()} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={product.id.toString()}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       {isVisible ? (
                         <Eye className="h-4 w-4 text-green-600" />
@@ -245,23 +255,20 @@ export default function AdvancedShopControlsSection() {
                       <div>
                         <p className="font-medium">{product.name}</p>
                         <Badge variant={isVisible ? 'default' : 'secondary'} className="text-xs">
-                          {visibility.__kind__}
+                          {visibilityKind}
                         </Badge>
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleToggleVisibility(product.id, visibility)}
+                    <Switch
+                      checked={isVisible}
+                      onCheckedChange={() => handleToggleVisibility(product.id, product.visibility)}
                       disabled={setVisibilityMutation.isPending}
-                    >
-                      {isVisible ? 'Hide' : 'Show'}
-                    </Button>
+                    />
                   </div>
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

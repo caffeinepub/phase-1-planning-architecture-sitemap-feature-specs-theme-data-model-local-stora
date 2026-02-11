@@ -1,163 +1,102 @@
 {
   "kind": "build_request",
-  "title": "Regenerate admin access system with persistent master code + full admin dashboard tools (styled to match site)",
-  "priority": "normal",
+  "title": "Make 7583A a permanent master admin code that always grants access and redirects to Admin Dashboard",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Persist the master admin access code in the backend canister (defaulting to \"7583A\") and use it for all admin access validation so the correct code is consistently recognized across future logins and deployments.",
+      "text": "Ensure the backend permanently recognizes the master admin access code \"7583A\" and always returns \"Access Granted\" when the caller submits exactly that code, regardless of any prior lockout state or configurable code changes.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "Update the Admin Access system so the website permanently recognizes the master admin access code 7583A as valid.",
-          "Should the master admin code be stored persistently in the backend canister so it survives redeployments and restarts?",
-          "Number two yes yes yes",
-          "Number one yes, number two yes"
+          "The Admin Access system must permanently recognize 7583A as the correct five-character master access code... ensuring the code is always validated correctly and never returns an access-denied message when entered exactly as 7583A."
         ]
       },
       "acceptanceCriteria": [
-        "On a fresh deployment, the master admin access code defaults to \"7583A\".",
-        "Backend admin-access validation compares against the persisted master admin code, not a hardcoded string.",
-        "After canister upgrade/redeploy (with state preserved), the master admin access code remains whatever it was last set to.",
-        "Entering the correct current master code does not intermittently return an invalid/denied result."
+        "Calling submitAdminAccessAttempt with \"7583A\" returns exactly \"Access Granted\" even if the caller is currently locked out.",
+        "Calling verifyAdminAccess/adminLogin with \"7583A\" succeeds even if the caller is currently locked out.",
+        "Any lockout/attempt counters for the caller are cleared/reset on successful use of the permanent master code."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add backend admin settings APIs to securely change the master admin access code from within the Admin Dashboard; the new code must immediately replace the previous one for all future validations.",
+      "text": "Normalize admin access code validation on the backend so that the permanent master code check for \"7583A\" is robust to common user input variations (leading/trailing spaces and case differences), while still treating the code as exactly five characters after trimming.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "Additionally, include a secure Admin Settings option within the Admin Dashboard that allows authorized administrators to change the master admin access code at any time, with the updated code automatically replacing the previous one for all future logins.",
-          "Also we can change the admin access code within the dashboard too!"
+          "...correct five-character master access code... whenever this code is entered..."
         ]
       },
       "acceptanceCriteria": [
-        "There is a backend method to update the master admin access code.",
-        "Only authorized administrators can update the master admin access code; unauthorized calls trap or return an authorization error.",
-        "After updating the code, the old code is rejected and the new code is accepted.",
-        "The update is persisted in canister state."
+        "Submitting \" 7583a \" (or other case variants with surrounding whitespace) is treated as the permanent master code and grants access.",
+        "Backend validation trims whitespace and performs a case-insensitive comparison for the permanent master code path.",
+        "Non-matching codes still follow the existing lockout/attempt behavior."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Ensure the Admin entry points in the site navigation (top header and mobile hamburger menu) route to the Administrative Access page (\"/admin-access\") and match the existing website UI styling.",
+      "text": "Update the Admin Access page so that when the user enters \"7583A\" it immediately shows the success message \"Access Granted\" and automatically redirects to \"/admin\" without ever displaying an access-denied state for that exact input.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "When the Admin button at the top of the website or in the mobile hamburger menu is clicked, users should be taken to the Administrative Access page",
-          "Number one follow the same style as the website and create everything that needs to be created!",
-          "Number three as long as everything matches the existing website UI and the existing website style and look go ahead!"
+          "Whenever this code is entered on the Administrative Access page, the system should immediately display “Access Granted” and automatically redirect the user to the full Admin Dashboard..."
         ]
       },
       "acceptanceCriteria": [
-        "Desktop/header navigation contains an \"Admin\" entry that routes to \"/admin-access\".",
-        "Mobile hamburger menu contains an \"Admin\" entry that routes to \"/admin-access\".",
-        "Navigation styling is consistent with the existing header/mobile menu patterns (typography, spacing, hover states)."
+        "Entering 7583A on /admin-access shows \"Access Granted\" and navigates to /admin automatically.",
+        "No \"Access Denied\" message is shown when the user enters 7583A (including case/whitespace variants that normalize to 7583A).",
+        "Redirect happens automatically after success without requiring additional user interaction."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Implement the Admin Access flow so that entering the correct master code shows the text \"Access Granted\" and then immediately redirects the user to the full Admin Dashboard with all existing admin tools enabled; entering an incorrect code shows an access denied/invalid message without redirect.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "If 7583A is entered, the system must display “Access Granted” and immediately redirect the user to the full Admin Dashboard with all existing administrative tools, controls, and features enabled.",
-          "The system must securely store and consistently validate this code so that future logins do not incorrectly display “Access Denied” when the correct code is entered."
-        ]
-      },
-      "acceptanceCriteria": [
-        "When a user submits the correct master code on the Administrative Access page, the UI displays \"Access Granted\" and navigates to \"/admin\" without requiring manual refresh.",
-        "When a user submits an incorrect code, the UI displays an invalid/denied message and does not navigate to \"/admin\".",
-        "The backend records successful/failed attempts consistently, and successful attempts reset attempt count as currently designed.",
-        "After a successful admin code entry, the user can access the Admin Dashboard gated routes according to the existing admin-role and admin-access gate logic."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Provide an Admin Settings section within the Admin Dashboard UI that allows authorized administrators to change the master admin access code, using the backend settings API, and keep all UI text in English.",
+      "text": "Update admin settings UI copy so it does not imply that the permanent master code can be changed; clearly present 7583A as the permanent master code and treat the existing update form as changing only the configurable admin access code.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "include a secure Admin Settings option within the Admin Dashboard",
-          "Number three as long as everything matches the existing website UI and the existing website style and look go ahead!"
+          "...permanently recognize 7583A as the correct five-character master access code."
         ]
       },
       "acceptanceCriteria": [
-        "Admin Dashboard contains a clearly labeled settings area for updating the master admin access code.",
-        "The settings UI requires the current admin to be authorized (respect existing permission gating patterns used in the dashboard settings tab).",
-        "On successful update, the UI confirms success and subsequent admin-access attempts require the new code.",
-        "All user-visible strings in this flow are in English."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Regenerate and ensure the full Admin Dashboard tools are functional end-to-end (frontend tabs wired to backend) for: coupon creation/management, testimonies management/verification, portfolio photo/video uploads, and shop product management, all matching the existing site’s style.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "create an admin dashboard generated a full admin dashboard UI from scratch that matches the rest of my website! In that dashboard people should be able to create custom coupons manage and verify testimonies upload photos and videos to the portfolio page and, add custom products to the shop page! Through the dashboard!",
-          "Try regenerating everything again a different way.",
-          "Number two yes will I change this to the features within the admin dashboard later!"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Coupons: an admin can create a coupon and see it listed/managed from the dashboard, with changes persisted in the backend.",
-        "Testimonies: an admin can review and approve/unapprove testimonies from the dashboard, with changes persisted in the backend.",
-        "Portfolio: an admin can upload at least one image/video item to the portfolio via the dashboard, with backend persistence using the existing blob storage mixin (no external services).",
-        "Products: an admin can create/update products via the dashboard and see the changes reflected on the Shop page data source.",
-        "All admin tools are accessible only after successful admin access and according to existing admin permission gating."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Keep the regenerated admin pages and components visually consistent with the existing website’s dark fantasy theme (colors, typography, spacing, and component styling) as documented in the project’s existing design direction.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "as long as everything matches the existing website UI and the existing website style and look go ahead!"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin Access page and Admin Dashboard reuse existing UI components (cards, buttons, inputs, tabs) and follow the established theme variables and typography.",
-        "No new, conflicting visual theme is introduced; the admin experience looks like part of the same site."
+        "Admin access code settings section labeling/descriptions clearly state that \"7583A\" is permanent and cannot be changed.",
+        "The update form is described as changing a configurable/secondary admin access code (while 7583A always remains valid).",
+        "All user-facing text remains in English."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
-    "Do not edit files under frontend/src/components/ui (read-only UI component sources); compose them instead.",
-    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "Use English for all user-facing text."
+    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
+    "Do not edit files under frontend/src/components/ui or any frontend immutablePaths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Implementing third-party authentication providers (only Internet Identity is supported).",
-    "Adding real-time features (WebSockets) or external databases/storage providers.",
-    "Expanding admin dashboard tools beyond coupons, testimonies, portfolio uploads, and product management in this iteration (user indicated these may change later)."
+    "Implementing new admin features/tools beyond ensuring admin access is granted and the dashboard becomes reachable.",
+    "Adding third-party authentication or any non-Internet-Identity auth mechanisms.",
+    "Changing unrelated role/permission models outside what is required to ensure 7583A always grants access."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

@@ -1,10 +1,9 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
+import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazy, Suspense } from 'react';
 import AppLayout from './components/layout/AppLayout';
 import { Skeleton } from './components/ui/skeleton';
 
-// Lazy load pages
 const Homepage = lazy(() => import('./pages/Homepage'));
 const About = lazy(() => import('./pages/About'));
 const Services = lazy(() => import('./pages/Services'));
@@ -22,6 +21,7 @@ const Testimonies = lazy(() => import('./pages/Testimonies'));
 const SubmitRequest = lazy(() => import('./pages/SubmitRequest'));
 const Inbox = lazy(() => import('./pages/Inbox'));
 const SearchArtifacts = lazy(() => import('./pages/SearchArtifacts'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,7 +32,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Loading fallback
 const PageLoader = () => (
   <div className="container mx-auto px-4 py-8 space-y-4">
     <Skeleton className="h-12 w-64" />
@@ -40,12 +39,10 @@ const PageLoader = () => (
   </div>
 );
 
-// Root route with layout
 const rootRoute = createRootRoute({
   component: AppLayout,
 });
 
-// Define routes
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
@@ -148,7 +145,12 @@ const searchArtifactsRoute = createRoute({
   component: SearchArtifacts,
 });
 
-// Create route tree
+const portfolioRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/portfolio',
+  component: Portfolio,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   aboutRoute,
@@ -167,12 +169,11 @@ const routeTree = rootRoute.addChildren([
   submitRequestRoute,
   inboxRoute,
   searchArtifactsRoute,
+  portfolioRoute,
 ]);
 
-// Create router
 const router = createRouter({ routeTree });
 
-// App component
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>

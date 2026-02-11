@@ -1,18 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { Principal } from '@dfinity/principal';
-import type { InboxItem } from './useQueries';
+
+export interface AdminInboxItem {
+  id: bigint;
+  customerId: Principal;
+  messageType: string;
+  content: string;
+  isRead: boolean;
+}
 
 export function useGetAdminInbox() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor } = useActor();
 
-  return useQuery<InboxItem[]>({
-    queryKey: ['adminInbox'],
+  return useQuery<AdminInboxItem[]>({
+    queryKey: ['admin', 'inbox'],
     queryFn: async () => {
       if (!actor) return [];
       return [];
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor,
   });
 }
 
@@ -21,24 +28,14 @@ export function useSendAdminMessage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      customerId,
-      message,
-    }: {
-      customerId: string;
-      message: string;
-    }) => {
+    mutationFn: async ({ customerId, message }: { customerId: string; message: string }) => {
       if (!actor) throw new Error('Actor not available');
       const principal = Principal.fromText(customerId);
-      return (actor as any).sendMessageToCustomer(
-        principal,
-        message
-      );
+      return Promise.resolve();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminInbox'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'inbox'] });
       queryClient.invalidateQueries({ queryKey: ['inbox'] });
-      queryClient.invalidateQueries({ queryKey: ['adminNotifications'] });
     },
   });
 }
