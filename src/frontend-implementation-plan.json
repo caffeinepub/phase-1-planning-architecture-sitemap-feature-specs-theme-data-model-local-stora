@@ -1,182 +1,95 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Phase 5A (Frontend): Auth-gated Request/Testimony submission with media, flippable Testimonies gallery, and Admin listings",
+  "title": "Phase 5B (Frontend): Admin Requests Review + Customer Inbox + Message Attachments",
   "requirements": [
     {
-      "id": "REQ-3",
-      "summary": "Add media attachment UI for Requests and Testimonies with client-side validation (counts, per-item description length, file size, video duration) and submission using ExternalBlob.",
-      "acceptanceCriteria": [
-        "Request submission supports zero or more media attachments and stores references/metadata for each attachment.",
-        "Testimony submission enforces the maximum counts: ≤5 photos and ≤3 videos.",
-        "Each testimony media item stores a per-item description that is limited to 1,500 characters.",
-        "Frontend validates file size ≤800 MB per file before attempting upload.",
-        "Frontend captures and submits video duration metadata and blocks videos longer than 5 minutes (client-side validation)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/requests/RequestMediaPicker.tsx",
-          "operation": "create",
-          "description": "Create a media picker for the Request form (optional attachments) that prepares uploads using the blob-storage ExternalBlob class and shows basic previews/progress. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/testimonies/TestimonyMediaPicker.tsx",
-          "operation": "create",
-          "description": "Create a media picker for Testimony submission enforcing ≤5 photos and ≤3 videos, with per-item description (≤1,500 chars), file size validation (≤800MB), and video duration validation (≤5 minutes) before submission. Use the blob-storage ExternalBlob capability for uploads and direct URL previews when available. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/utils/mediaValidation.ts",
-          "operation": "create",
-          "description": "Add reusable validation helpers for media: file size (≤800MB), photo/video counts, description length (≤1,500), and video duration extraction from File via HTMLMediaElement metadata."
-        }
-      ]
-    },
-    {
       "id": "REQ-4",
-      "summary": "Create auth-gated UI routes/forms for submitting Requests and Testimonies, prefilling name/email from the user profile when available.",
+      "summary": "Add admin UI support for sending inbox messages with file attachments (≤800 MB per file) and allow customers to open/download attachments from their inbox.",
       "acceptanceCriteria": [
-        "A dedicated Request submission page/route exists and presents fields: name, email, description, optional media, and pricing preference (either price range input or a “Flexible” selection).",
-        "A dedicated Testimony submission page/route or dialog exists and supports uploading up to 5 photos and 3 videos, with a description per media item (≤1,500 chars).",
-        "When unauthenticated, attempting to access submission UI shows the existing login prompt behavior (via RequireAuth) instead of the form.",
-        "When authenticated, name and email are prefilled from the existing user profile when available, while still allowing the user to edit before submitting."
+        "Admin UI allows selecting one or more files for a message and enforces a per-file max size of 800 MB before attempting upload.",
+        "Uploaded message attachments are stored via the canister’s blob storage utilities and can be downloaded/opened by the customer from their inbox.",
+        "If an admin attempts to attach a file > 800 MB, the UI blocks submission with a clear English validation error."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/SubmitRequest.tsx",
+          "path": "frontend/src/components/admin/MessageAttachmentPicker.tsx",
           "operation": "create",
-          "description": "Implement the Request submission page wrapped in the existing RequireAuth gate. Prefill name/email from useGetCallerUserProfile when available; allow edits. Include fields for description and pricing preference (range vs Flexible), and integrate RequestMediaPicker for optional attachments."
+          "description": "Create an admin-focused attachment picker for message composition that supports multiple files, enforces 800 MB per-file validation with clear English errors, and converts files to blob-storage ExternalBlob objects with optional upload progress tracking. Use the blob-storage component capability (ExternalBlob.fromBytes / withUploadProgress / getDirectURL). Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Implement the Testimony submission dialog (auth-gated usage) with fields for name/email prefilling (from user profile), and integrate TestimonyMediaPicker for up to 5 photos and 3 videos with per-item descriptions. Use the authorization component’s frontend guidance for handling auth state and backend authorization errors gracefully. Verify the component's usage instructions before implementing."
+          "description": "Add React Query mutations for sending an admin-to-customer inbox message that accepts body text and optional attachment blobs, plus shared helpers for mapping attachments into download/openable URLs for the customer UI. Use the blob-storage component capability (ExternalBlob typing + upload progress handling). Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/Testimonies.tsx",
-          "operation": "modify",
-          "description": "Add a logged-in-only ‘Submit a Testimony’ call-to-action that opens CreateTestimonyDialog; when unauthenticated, show the existing RequireAuth login prompt behavior (not the dialog)."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wire the new Request submission route (e.g., /submit-request) into the TanStack Router route tree and lazy-loading setup so it is navigable."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Expose Request/Testimony submission entry points in main navigation and add CTAs on Testimonies, Services, and Shop without breaking existing flows.",
-      "acceptanceCriteria": [
-        "Header navigation includes links to the Request submission page and the Testimonies page.",
-        "The Testimonies page includes a prominent logged-in-only call-to-action to submit a new testimony.",
-        "Services and Shop experiences include at least one non-intrusive call-to-action link/button that routes to the Request submission page (while preserving existing layouts and interactions)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
-          "operation": "modify",
-          "description": "Add navigation links to the Testimonies page and the Request submission page, preserving existing responsive behavior and layouts."
-        },
-        {
-          "path": "frontend/src/pages/Services.tsx",
-          "operation": "modify",
-          "description": "Add a non-intrusive call-to-action (using TanStack Router Link where appropriate) that routes to the Request submission page, while preserving existing ‘Contact Us’ flow and layout."
-        },
-        {
-          "path": "frontend/src/pages/Shop.tsx",
-          "operation": "modify",
-          "description": "Add a subtle call-to-action link/button in the Shop UI that routes to the Request submission page without disrupting product browsing, cart drawer, or existing interactions."
-        },
-        {
-          "path": "frontend/src/pages/Testimonies.tsx",
-          "operation": "modify",
-          "description": "Ensure the Testimonies page includes a prominent logged-in-only CTA to open CreateTestimonyDialog and a secondary link to the Request submission page for users who want custom work."
+          "path": "frontend/src/pages/Inbox.tsx",
+          "operation": "create",
+          "description": "Implement rendering of inbox message attachments as open/download links using blob-storage ExternalBlob direct URLs, and ensure attachments are visible per item when present. Use the blob-storage component capability (ExternalBlob.getDirectURL). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-6",
-      "summary": "Implement the Testimonies page with interactive flippable media cards (video hover preview + click flip/paused description; photo hover zoom + click flip).",
+      "summary": "Upgrade Admin Dashboard Requests tab to load real requests, show details with attachment previews/links, and provide approve/decline, message/coupon send, and approved-only convert-to-order actions with clear feedback.",
       "acceptanceCriteria": [
-        "Testimonies page is implemented (not empty) and renders a grid/list of media cards.",
-        "Each card uses the existing FlipCard component behavior for click-to-flip and keyboard accessibility.",
-        "Video cards: hovering starts playback preview (muted), clicking flips to the back and pauses playback; flipping back returns to the front state.",
-        "Photo cards: hovering provides a zoom-in interaction, clicking flips to show the description on the back.",
-        "Reduced-motion preference is respected (no forced animation beyond what FlipCard already supports)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Testimonies.tsx",
-          "operation": "modify",
-          "description": "Implement the Testimonies page content: load/render a grid of testimony media cards and include the submission CTA section. Use the existing FlipCard component for click-to-flip + keyboard accessibility, and respect reduced-motion via FlipCard’s existing behavior."
-        },
-        {
-          "path": "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-          "operation": "create",
-          "description": "Create a flippable card component for a single media item: front shows photo/video preview; back shows description. For videos, start muted preview on hover and pause on flip; for photos, add hover zoom and flip to description. Use FlipCard for the flip interaction."
-        },
-        {
-          "path": "frontend/src/components/testimonies/useHoverVideoPreview.ts",
-          "operation": "create",
-          "description": "Add a small hook to manage hover-driven video preview (muted play/pause) and to coordinate pausing when the card flips, while keeping reduced-motion considerations in mind."
-        }
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "summary": "Update the admin dashboard UI to list submitted Requests and Testimonies with unique IDs and key metadata, and refresh after successful submissions via React Query invalidation.",
-      "acceptanceCriteria": [
-        "Admin page (existing /admin route) contains sections/tabs/panels for Requests and Testimonies listings (not just placeholders).",
-        "Each Request row shows at minimum: Request ID, submitter name/email, pricing preference (range or Flexible), and a truncated description preview.",
-        "Each Testimony row shows at minimum: Testimony ID, submitter identity label (from profile/name), counts of attached photos/videos, and approval status if present.",
-        "After a successful submission, navigating to /admin shows the new item present without requiring a hard reload (React Query invalidation/refetch is sufficient)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Admin.tsx",
-          "operation": "modify",
-          "description": "Replace the current placeholder Admin page body with tabs/panels for Orders, Requests, and Testimonies listings while keeping the existing RequireAdmin guard intact."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-          "operation": "modify",
-          "description": "Implement the admin Testimonies listing UI: show Testimony ID, submitter label (profile/name if available), photo/video counts, and approval status if present; include loading/empty/error states and rely on React Query refetch."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminRequestsTab.tsx",
-          "operation": "create",
-          "description": "Create an admin Requests listing UI: show Request ID, name/email, pricing preference, and truncated description preview; include loading/empty/error states and rely on React Query refetch."
-        },
-        {
-          "path": "frontend/src/pages/SubmitRequest.tsx",
-          "operation": "modify",
-          "description": "After successful Request submission, invalidate/refetch the admin Requests list query key so the /admin view can show the new item without a hard reload."
-        },
-        {
-          "path": "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-          "operation": "modify",
-          "description": "After successful Testimony submission, invalidate/refetch the admin Testimonies list query key so the /admin view can show the new item without a hard reload."
-        }
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "summary": "Add React Query hooks to create and list Requests/Testimonies using existing actor-based patterns and consistent query keys, with mutation-driven invalidation.",
-      "acceptanceCriteria": [
-        "New hooks exist for: createRequest, createTestimony, listRequests (admin), listTestimonies (admin/public as needed).",
-        "Hooks are wired to backend actor methods and use query keys consistent with the existing useQueries.ts patterns.",
-        "Successful mutations invalidate the relevant list queries so the admin listings update predictably."
+        "The Requests tab no longer uses disabled placeholder hooks; it loads from backend and renders a non-empty list when requests exist.",
+        "Selecting a request shows a detail panel/modal that includes description, submitter principal, and a list of attachments with open/download actions.",
+        "Approve/Decline actions trigger backend mutations and the UI updates status after success (via React Query invalidation/refetch).",
+        "The UI provides controls to send a message/coupon to the request’s customer and shows success/error feedback in English.",
+        "The UI provides a Convert to Order action that is only enabled when the request is approved and shows the created Order id/link after success."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add actor-based React Query hooks for Requests/Testimonies: createRequest, createTestimony, listRequests (admin), listTestimonies (admin and/or public as needed), using consistent query keys and invalidation on mutation success."
+          "description": "Replace the disabled/throwing request hooks with working React Query hooks for: admin list requests, fetch request detail, approve, decline, send message (with attachments), send coupon, and convert approved request to order. Ensure success invalidates/refetches request list and selected request detail. Use the authorization component capability indirectly via existing role-gated screens (RequireAdmin) to ensure hooks are only invoked from admin UI. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminRequestsTab.tsx",
+          "operation": "modify",
+          "description": "Implement the upgraded Requests tab: load requests, allow selecting a request, show a detail modal/panel with submitter, description, status, action history (if available), and attachment open/download links; include approve/decline actions; include message composer (with MessageAttachmentPicker) and coupon send controls; include Convert to Order button enabled only for approved requests and show resulting Order id/link after success. Use the blob-storage component capability for attachment previews/links and uploads. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminRequestDetailModal.tsx",
+          "operation": "create",
+          "description": "Create a request detail modal/panel component used by AdminRequestsTab to render full request details, attachments list with open/download actions, moderation actions, messaging/coupon actions, and convert-to-order UI in a focused layout. Use the blob-storage component capability (ExternalBlob.getDirectURL) and the authorization component capability via admin-only access patterns (RequireAdmin). Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/backend.d.ts",
           "operation": "modify",
-          "description": "Update frontend type declarations to include the new Request/Testimony types and backend actor methods used by the new React Query hooks (create/list and any required fields for UI rendering)."
+          "description": "Extend the frontend backend interface typings to include the new request/admin/inbox related backend capabilities required by AdminRequestsTab (list requests, get request by id, approve/decline, send message with attachments, send coupon, convert request to order) and the data shapes referenced by the UI (request summary/detail, attachment metadata, order link). Keep this as typing-only alignment for frontend compilation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Add an authenticated customer Inbox page that lists messages and coupons from the backend and supports manual refresh via React Query refetch.",
+      "acceptanceCriteria": [
+        "Authenticated users can navigate to an Inbox section/page and see a list of inbox items (messages and coupons) from the backend.",
+        "The Inbox UI includes a Refresh button that triggers a React Query refetch and updates the list without a full page reload.",
+        "Inbox items display at minimum: type (Message/Coupon), sender (admin principal or label), body/code, and timestamp (when available)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/Inbox.tsx",
+          "operation": "create",
+          "description": "Create an authenticated Inbox page (wrapped with RequireAuth) that lists inbox items (messages and coupons), displays required fields (type, sender label, body/code, timestamp), supports attachments open/download links for message items, and includes a manual Refresh button calling React Query refetch. Use the authorization component capability (Internet Identity auth gating via RequireAuth). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a React Query hook for listing the authenticated caller’s inbox items (messages + coupons) in reverse-chronological order as provided by backend, plus any minimal type helpers needed by the Inbox page. Use the authorization component capability by relying on authenticated actor calls (RequireAuth-gated screens) and handling backend authorization failures with clear English errors. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register a new route for the Inbox page (e.g., /inbox) using the existing TanStack Router setup and lazy-load pattern, ensuring it is navigable and not an orphan view."
+        },
+        {
+          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "operation": "modify",
+          "description": "Add an Inbox navigation entry for authenticated users (desktop and mobile sections) so users can reach the new Inbox page."
         }
       ]
     }

@@ -10,23 +10,6 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface AdminCredentials {
-  'principal' : Principal,
-  'passwordHash' : string,
-}
-export interface AdminRole { 'principal' : Principal, 'isOwner' : boolean }
-export interface AnalyticsSnapshot {
-  'totalOrders' : bigint,
-  'totalUsers' : bigint,
-  'totalRevenue' : bigint,
-  'activeProducts' : bigint,
-}
-export interface CartItem { 'productId' : bigint, 'quantity' : bigint }
-export interface CouponValidationResult {
-  'valid' : boolean,
-  'message' : string,
-  'discount' : bigint,
-}
 export interface Event {
   'id' : bigint,
   'principal' : Principal,
@@ -34,13 +17,6 @@ export interface Event {
   'message' : string,
   'timestamp' : bigint,
 }
-export interface ExpandedProduct {
-  'id' : bigint,
-  'sharable' : boolean,
-  'productType' : string,
-  'viewCount' : bigint,
-}
-export type ExternalBlob = Uint8Array;
 export interface Feature {
   'description' : string,
   'phase' : { 'later' : null } |
@@ -52,35 +28,7 @@ export interface HealthStatus {
   'build' : string,
   'deployedVersion' : string,
 }
-export interface Order {
-  'id' : bigint,
-  'productIds' : Array<bigint>,
-  'userId' : Principal,
-  'discountAmount' : bigint,
-  'totalAmount' : bigint,
-  'appliedCouponCode' : [] | [string],
-}
 export interface PageFeatures { 'features' : Array<Feature>, 'page' : string }
-export interface Product {
-  'id' : bigint,
-  'isInStock' : boolean,
-  'name' : string,
-  'description' : string,
-  'priceOverride' : [] | [bigint],
-  'availability' : { 'dropOff' : null } |
-    { 'pickup' : null } |
-    { 'delivery' : null },
-  'stock' : bigint,
-  'shortDescription' : string,
-  'image' : ExternalBlob,
-  'price' : bigint,
-  'visibility' : ProductVisibility,
-}
-export type ProductVisibility = { 'hidden' : null } |
-  { 'outOfStock' : null } |
-  { 'visible' : null };
-export interface StoreConfig { 'isActive' : boolean, 'enableCoupons' : boolean }
-export interface UserProfile { 'name' : string, 'email' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -112,57 +60,15 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'addToCart' : ActorMethod<[bigint, bigint], undefined>,
   'assignAdminRole' : ActorMethod<[Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'clearCallerCart' : ActorMethod<[], undefined>,
-  'clearProductPriceOverride' : ActorMethod<[bigint], undefined>,
-  'createCoupon' : ActorMethod<[string, bigint], bigint>,
-  'createOrder' : ActorMethod<[Array<bigint>, [] | [string]], bigint>,
-  'createProduct' : ActorMethod<[Product], bigint>,
-  'demoteAdmin' : ActorMethod<[Principal], undefined>,
-  'getAdminCredentials' : ActorMethod<[Principal], [] | [AdminCredentials]>,
-  'getAnalyticsSnapshot' : ActorMethod<[], AnalyticsSnapshot>,
-  'getCallerCart' : ActorMethod<[], Array<CartItem>>,
-  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getCart' : ActorMethod<[Principal], Array<CartItem>>,
-  'getCouponsActiveState' : ActorMethod<[], boolean>,
-  'getEffectiveProductPrice' : ActorMethod<[bigint], bigint>,
   'getEvents' : ActorMethod<[], Array<Event>>,
-  'getExpandedProductById' : ActorMethod<[bigint], ExpandedProduct>,
   'getFeatureSpecification' : ActorMethod<[], Array<PageFeatures>>,
-  'getOrder' : ActorMethod<[bigint], Order>,
-  'getProductById' : ActorMethod<[bigint], Product>,
-  'getShopActiveState' : ActorMethod<[], boolean>,
-  'getStoreConfig' : ActorMethod<[], StoreConfig>,
-  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'healthCheck' : ActorMethod<[], HealthStatus>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'isCallerOwner' : ActorMethod<[], boolean>,
-  'listAdmins' : ActorMethod<[], Array<AdminRole>>,
-  'listAllOrders' : ActorMethod<[], Array<Order>>,
-  'listAllProducts' : ActorMethod<[], Array<Product>>,
-  'listCallerOrders' : ActorMethod<[], Array<Order>>,
-  'listExpandedProducts' : ActorMethod<[], Array<ExpandedProduct>>,
-  'listExpiredProducts' : ActorMethod<[Principal], Array<ExpandedProduct>>,
-  'listProducts' : ActorMethod<[], Array<Product>>,
   'logEvent' : ActorMethod<[string, string], undefined>,
-  'overrideProductPrice' : ActorMethod<[bigint, bigint], undefined>,
-  'promoteAdmin' : ActorMethod<[Principal], undefined>,
   'removeAdminRole' : ActorMethod<[Principal], undefined>,
-  'removeFromCart' : ActorMethod<[bigint], undefined>,
-  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'setAdminPassword' : ActorMethod<[Principal, string], undefined>,
-  'setCouponsActiveState' : ActorMethod<[boolean], undefined>,
-  'setOwner' : ActorMethod<[Principal], undefined>,
-  'setProductVisibility' : ActorMethod<[bigint, ProductVisibility], undefined>,
-  'setShopActiveState' : ActorMethod<[boolean], undefined>,
-  'transferOwnership' : ActorMethod<[Principal], undefined>,
-  'updateCoupon' : ActorMethod<[bigint, boolean], undefined>,
-  'updateExpandedProduct' : ActorMethod<[bigint, ExpandedProduct], undefined>,
-  'updateProduct' : ActorMethod<[bigint, Product], undefined>,
-  'validateCoupon' : ActorMethod<[string], CouponValidationResult>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

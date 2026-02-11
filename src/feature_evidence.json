@@ -2,35 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-media-attachment-support-for-requests-optional-media-and-testimonies-up-to-5-photos-and-3-videos-using-the-existing-backend-blob-storage-mixin-storing-media-metadata-alongside-submissions",
-      "featureTitle": "Implement media attachment support for Requests (optional media) and Testimonies (up to 5 photos and 3 videos) using the existing backend blob storage mixin, storing media metadata alongside submissions.",
+      "featureId": "feature-support-attachments-up-to-800-mb-for-admin-to-customer-messaging-file-attachments-on-messages-storing-the-attachment-content-using-the-existing-blob-storage-mixin-and-linking-the-blob-reference-from-the-inbox-item",
+      "featureTitle": "Support attachments up to 800 MB for admin-to-customer messaging (file attachments on messages), storing the attachment content using the existing blob storage mixin and linking the blob reference from the inbox item.",
       "files": [
-        "frontend/src/components/requests/RequestMediaPicker.tsx",
-        "frontend/src/components/testimonies/TestimonyMediaPicker.tsx",
-        "frontend/src/utils/mediaValidation.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-customer-facing-ui-routes-and-forms-for-1-submitting-a-request-and-2-submitting-a-testimony-and-ensure-these-forms-are-only-accessible-usable-when-the-user-is-logged-in",
-      "featureTitle": "Create customer-facing UI routes and forms for (1) submitting a Request and (2) submitting a Testimony, and ensure these forms are only accessible/usable when the user is logged in.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-        "frontend/src/pages/SubmitRequest.tsx",
-        "frontend/src/pages/Testimonies.tsx"
+        "frontend/src/components/admin/MessageAttachmentPicker.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/Inbox.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -47,35 +24,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-expose-the-request-and-testimony-submission-entry-points-in-the-main-navigation-and-on-the-testimonies-page-and-add-clear-call-to-action-links-in-relevant-service-product-areas-without-breaking-existing-flows",
-      "featureTitle": "Expose the Request and Testimony submission entry points in the main navigation and on the Testimonies page (and add clear call-to-action links in relevant service/product areas without breaking existing flows).",
+      "featureId": "feature-upgrade-the-admin-dashboard-requests-tab-to-a-actually-load-requests-from-the-backend-b-show-a-request-detail-view-with-attachment-previews-links-c-allow-approve-decline-d-allow-sending-a-message-and-or-coupon-to-the-request-s-submitter-and-e-allow-converting-an-approved-request-into-an-order",
+      "featureTitle": "Upgrade the Admin Dashboard Requests tab to (a) actually load requests from the backend, (b) show a request detail view with attachment previews/links, (c) allow approve/decline, (d) allow sending a message and/or coupon to the request’s submitter, and (e) allow converting an approved request into an order.",
       "files": [
-        "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/pages/Services.tsx",
-        "frontend/src/pages/Shop.tsx",
-        "frontend/src/pages/Testimonies.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-the-testimonies-page-to-display-testimony-media-as-interactive-flippable-cards-with-hover-and-click-effects-videos-auto-preview-on-hover-click-flips-and-pauses-to-show-description-photos-support-hover-zoom-and-click-flips-to-show-description",
-      "featureTitle": "Implement the Testimonies page to display testimony media as interactive flippable cards with hover and click effects: videos auto-preview on hover, click flips and pauses to show description; photos support hover zoom and click flips to show description.",
-      "files": [
-        "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-        "frontend/src/components/testimonies/useHoverVideoPreview.ts",
-        "frontend/src/pages/Testimonies.tsx"
+        "frontend/src/components/admin/AdminRequestDetailModal.tsx",
+        "frontend/src/components/admin/AdminRequestsTab.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -92,14 +46,13 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-admin-dashboard-ui-to-list-newly-submitted-requests-and-testimonies-showing-their-unique-ids-and-key-metadata-and-refresh-the-lists-immediately-after-a-new-submission-succeeds",
-      "featureTitle": "Add admin dashboard UI to list newly submitted Requests and Testimonies, showing their unique IDs and key metadata, and refresh the lists immediately after a new submission succeeds.",
+      "featureId": "feature-add-a-customer-facing-inbox-ui-accessible-to-authenticated-users-that-lists-received-messages-and-coupons-and-includes-a-manual-refresh-control-to-fetch-new-items",
+      "featureTitle": "Add a customer-facing Inbox UI (accessible to authenticated users) that lists received messages and coupons and includes a manual Refresh control to fetch new items.",
       "files": [
-        "frontend/src/components/admin/AdminRequestsTab.tsx",
-        "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-        "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-        "frontend/src/pages/Admin.tsx",
-        "frontend/src/pages/SubmitRequest.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/layout/HeaderNav.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/Inbox.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -112,26 +65,6 @@
       ],
       "testIds": [
         "REQ-7"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-react-query-hooks-in-the-existing-query-layer-for-creating-and-listing-requests-testimonies-and-any-required-admin-actions-following-existing-actor-based-patterns",
-      "featureTitle": "Add React Query hooks in the existing query layer for creating and listing Requests/Testimonies (and any required admin actions), following existing actor-based patterns.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-8"
       ],
       "confidence": "high"
     }

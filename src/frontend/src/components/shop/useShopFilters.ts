@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { Product } from '../../backend';
+import type { Product } from '../../types/common';
 
 export function useShopFilters(products: Product[]) {
   const [searchQuery, setSearchQuery] = useState('');

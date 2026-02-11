@@ -24,59 +24,12 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
-export const ExternalBlob = IDL.Vec(IDL.Nat8);
-export const ProductVisibility = IDL.Variant({
-  'hidden' : IDL.Null,
-  'outOfStock' : IDL.Null,
-  'visible' : IDL.Null,
-});
-export const Product = IDL.Record({
-  'id' : IDL.Nat,
-  'isInStock' : IDL.Bool,
-  'name' : IDL.Text,
-  'description' : IDL.Text,
-  'priceOverride' : IDL.Opt(IDL.Nat),
-  'availability' : IDL.Variant({
-    'dropOff' : IDL.Null,
-    'pickup' : IDL.Null,
-    'delivery' : IDL.Null,
-  }),
-  'stock' : IDL.Nat,
-  'shortDescription' : IDL.Text,
-  'image' : ExternalBlob,
-  'price' : IDL.Nat,
-  'visibility' : ProductVisibility,
-});
-export const AdminCredentials = IDL.Record({
-  'principal' : IDL.Principal,
-  'passwordHash' : IDL.Text,
-});
-export const AnalyticsSnapshot = IDL.Record({
-  'totalOrders' : IDL.Nat,
-  'totalUsers' : IDL.Nat,
-  'totalRevenue' : IDL.Nat,
-  'activeProducts' : IDL.Nat,
-});
-export const CartItem = IDL.Record({
-  'productId' : IDL.Nat,
-  'quantity' : IDL.Nat,
-});
-export const UserProfile = IDL.Record({
-  'name' : IDL.Text,
-  'email' : IDL.Text,
-});
 export const Event = IDL.Record({
   'id' : IDL.Nat,
   'principal' : IDL.Principal,
   'level' : IDL.Text,
   'message' : IDL.Text,
   'timestamp' : IDL.Nat,
-});
-export const ExpandedProduct = IDL.Record({
-  'id' : IDL.Nat,
-  'sharable' : IDL.Bool,
-  'productType' : IDL.Text,
-  'viewCount' : IDL.Nat,
 });
 export const Feature = IDL.Record({
   'description' : IDL.Text,
@@ -86,32 +39,11 @@ export const PageFeatures = IDL.Record({
   'features' : IDL.Vec(Feature),
   'page' : IDL.Text,
 });
-export const Order = IDL.Record({
-  'id' : IDL.Nat,
-  'productIds' : IDL.Vec(IDL.Nat),
-  'userId' : IDL.Principal,
-  'discountAmount' : IDL.Nat,
-  'totalAmount' : IDL.Nat,
-  'appliedCouponCode' : IDL.Opt(IDL.Text),
-});
-export const StoreConfig = IDL.Record({
-  'isActive' : IDL.Bool,
-  'enableCoupons' : IDL.Bool,
-});
 export const HealthStatus = IDL.Record({
   'status' : IDL.Text,
   'environment' : IDL.Text,
   'build' : IDL.Text,
   'deployedVersion' : IDL.Text,
-});
-export const AdminRole = IDL.Record({
-  'principal' : IDL.Principal,
-  'isOwner' : IDL.Bool,
-});
-export const CouponValidationResult = IDL.Record({
-  'valid' : IDL.Bool,
-  'message' : IDL.Text,
-  'discount' : IDL.Nat,
 });
 
 export const idlService = IDL.Service({
@@ -142,73 +74,15 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-  'addToCart' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
   'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'clearCallerCart' : IDL.Func([], [], []),
-  'clearProductPriceOverride' : IDL.Func([IDL.Nat], [], []),
-  'createCoupon' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Nat], []),
-  'createOrder' : IDL.Func(
-      [IDL.Vec(IDL.Nat), IDL.Opt(IDL.Text)],
-      [IDL.Nat],
-      [],
-    ),
-  'createProduct' : IDL.Func([Product], [IDL.Nat], []),
-  'demoteAdmin' : IDL.Func([IDL.Principal], [], []),
-  'getAdminCredentials' : IDL.Func(
-      [IDL.Principal],
-      [IDL.Opt(AdminCredentials)],
-      ['query'],
-    ),
-  'getAnalyticsSnapshot' : IDL.Func([], [AnalyticsSnapshot], ['query']),
-  'getCallerCart' : IDL.Func([], [IDL.Vec(CartItem)], ['query']),
-  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getCart' : IDL.Func([IDL.Principal], [IDL.Vec(CartItem)], ['query']),
-  'getCouponsActiveState' : IDL.Func([], [IDL.Bool], ['query']),
-  'getEffectiveProductPrice' : IDL.Func([IDL.Nat], [IDL.Nat], ['query']),
   'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
-  'getExpandedProductById' : IDL.Func([IDL.Nat], [ExpandedProduct], ['query']),
   'getFeatureSpecification' : IDL.Func([], [IDL.Vec(PageFeatures)], ['query']),
-  'getOrder' : IDL.Func([IDL.Nat], [Order], ['query']),
-  'getProductById' : IDL.Func([IDL.Nat], [Product], ['query']),
-  'getShopActiveState' : IDL.Func([], [IDL.Bool], ['query']),
-  'getStoreConfig' : IDL.Func([], [StoreConfig], ['query']),
-  'getUserProfile' : IDL.Func(
-      [IDL.Principal],
-      [IDL.Opt(UserProfile)],
-      ['query'],
-    ),
   'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'isCallerOwner' : IDL.Func([], [IDL.Bool], ['query']),
-  'listAdmins' : IDL.Func([], [IDL.Vec(AdminRole)], ['query']),
-  'listAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
-  'listAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
-  'listCallerOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
-  'listExpandedProducts' : IDL.Func([], [IDL.Vec(ExpandedProduct)], ['query']),
-  'listExpiredProducts' : IDL.Func(
-      [IDL.Principal],
-      [IDL.Vec(ExpandedProduct)],
-      ['query'],
-    ),
-  'listProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
-  'overrideProductPrice' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
-  'promoteAdmin' : IDL.Func([IDL.Principal], [], []),
   'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
-  'removeFromCart' : IDL.Func([IDL.Nat], [], []),
-  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'setAdminPassword' : IDL.Func([IDL.Principal, IDL.Text], [], []),
-  'setCouponsActiveState' : IDL.Func([IDL.Bool], [], []),
-  'setOwner' : IDL.Func([IDL.Principal], [], []),
-  'setProductVisibility' : IDL.Func([IDL.Nat, ProductVisibility], [], []),
-  'setShopActiveState' : IDL.Func([IDL.Bool], [], []),
-  'transferOwnership' : IDL.Func([IDL.Principal], [], []),
-  'updateCoupon' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
-  'updateExpandedProduct' : IDL.Func([IDL.Nat, ExpandedProduct], [], []),
-  'updateProduct' : IDL.Func([IDL.Nat, Product], [], []),
-  'validateCoupon' : IDL.Func([IDL.Text], [CouponValidationResult], []),
 });
 
 export const idlInitArgs = [];
@@ -230,53 +104,12 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
-  const ExternalBlob = IDL.Vec(IDL.Nat8);
-  const ProductVisibility = IDL.Variant({
-    'hidden' : IDL.Null,
-    'outOfStock' : IDL.Null,
-    'visible' : IDL.Null,
-  });
-  const Product = IDL.Record({
-    'id' : IDL.Nat,
-    'isInStock' : IDL.Bool,
-    'name' : IDL.Text,
-    'description' : IDL.Text,
-    'priceOverride' : IDL.Opt(IDL.Nat),
-    'availability' : IDL.Variant({
-      'dropOff' : IDL.Null,
-      'pickup' : IDL.Null,
-      'delivery' : IDL.Null,
-    }),
-    'stock' : IDL.Nat,
-    'shortDescription' : IDL.Text,
-    'image' : ExternalBlob,
-    'price' : IDL.Nat,
-    'visibility' : ProductVisibility,
-  });
-  const AdminCredentials = IDL.Record({
-    'principal' : IDL.Principal,
-    'passwordHash' : IDL.Text,
-  });
-  const AnalyticsSnapshot = IDL.Record({
-    'totalOrders' : IDL.Nat,
-    'totalUsers' : IDL.Nat,
-    'totalRevenue' : IDL.Nat,
-    'activeProducts' : IDL.Nat,
-  });
-  const CartItem = IDL.Record({ 'productId' : IDL.Nat, 'quantity' : IDL.Nat });
-  const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
   const Event = IDL.Record({
     'id' : IDL.Nat,
     'principal' : IDL.Principal,
     'level' : IDL.Text,
     'message' : IDL.Text,
     'timestamp' : IDL.Nat,
-  });
-  const ExpandedProduct = IDL.Record({
-    'id' : IDL.Nat,
-    'sharable' : IDL.Bool,
-    'productType' : IDL.Text,
-    'viewCount' : IDL.Nat,
   });
   const Feature = IDL.Record({
     'description' : IDL.Text,
@@ -286,32 +119,11 @@ export const idlFactory = ({ IDL }) => {
     'features' : IDL.Vec(Feature),
     'page' : IDL.Text,
   });
-  const Order = IDL.Record({
-    'id' : IDL.Nat,
-    'productIds' : IDL.Vec(IDL.Nat),
-    'userId' : IDL.Principal,
-    'discountAmount' : IDL.Nat,
-    'totalAmount' : IDL.Nat,
-    'appliedCouponCode' : IDL.Opt(IDL.Text),
-  });
-  const StoreConfig = IDL.Record({
-    'isActive' : IDL.Bool,
-    'enableCoupons' : IDL.Bool,
-  });
   const HealthStatus = IDL.Record({
     'status' : IDL.Text,
     'environment' : IDL.Text,
     'build' : IDL.Text,
     'deployedVersion' : IDL.Text,
-  });
-  const AdminRole = IDL.Record({
-    'principal' : IDL.Principal,
-    'isOwner' : IDL.Bool,
-  });
-  const CouponValidationResult = IDL.Record({
-    'valid' : IDL.Bool,
-    'message' : IDL.Text,
-    'discount' : IDL.Nat,
   });
   
   return IDL.Service({
@@ -342,85 +154,19 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-    'addToCart' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
     'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'clearCallerCart' : IDL.Func([], [], []),
-    'clearProductPriceOverride' : IDL.Func([IDL.Nat], [], []),
-    'createCoupon' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Nat], []),
-    'createOrder' : IDL.Func(
-        [IDL.Vec(IDL.Nat), IDL.Opt(IDL.Text)],
-        [IDL.Nat],
-        [],
-      ),
-    'createProduct' : IDL.Func([Product], [IDL.Nat], []),
-    'demoteAdmin' : IDL.Func([IDL.Principal], [], []),
-    'getAdminCredentials' : IDL.Func(
-        [IDL.Principal],
-        [IDL.Opt(AdminCredentials)],
-        ['query'],
-      ),
-    'getAnalyticsSnapshot' : IDL.Func([], [AnalyticsSnapshot], ['query']),
-    'getCallerCart' : IDL.Func([], [IDL.Vec(CartItem)], ['query']),
-    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getCart' : IDL.Func([IDL.Principal], [IDL.Vec(CartItem)], ['query']),
-    'getCouponsActiveState' : IDL.Func([], [IDL.Bool], ['query']),
-    'getEffectiveProductPrice' : IDL.Func([IDL.Nat], [IDL.Nat], ['query']),
     'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
-    'getExpandedProductById' : IDL.Func(
-        [IDL.Nat],
-        [ExpandedProduct],
-        ['query'],
-      ),
     'getFeatureSpecification' : IDL.Func(
         [],
         [IDL.Vec(PageFeatures)],
         ['query'],
       ),
-    'getOrder' : IDL.Func([IDL.Nat], [Order], ['query']),
-    'getProductById' : IDL.Func([IDL.Nat], [Product], ['query']),
-    'getShopActiveState' : IDL.Func([], [IDL.Bool], ['query']),
-    'getStoreConfig' : IDL.Func([], [StoreConfig], ['query']),
-    'getUserProfile' : IDL.Func(
-        [IDL.Principal],
-        [IDL.Opt(UserProfile)],
-        ['query'],
-      ),
     'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'isCallerOwner' : IDL.Func([], [IDL.Bool], ['query']),
-    'listAdmins' : IDL.Func([], [IDL.Vec(AdminRole)], ['query']),
-    'listAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
-    'listAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
-    'listCallerOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
-    'listExpandedProducts' : IDL.Func(
-        [],
-        [IDL.Vec(ExpandedProduct)],
-        ['query'],
-      ),
-    'listExpiredProducts' : IDL.Func(
-        [IDL.Principal],
-        [IDL.Vec(ExpandedProduct)],
-        ['query'],
-      ),
-    'listProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
-    'overrideProductPrice' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
-    'promoteAdmin' : IDL.Func([IDL.Principal], [], []),
     'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
-    'removeFromCart' : IDL.Func([IDL.Nat], [], []),
-    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'setAdminPassword' : IDL.Func([IDL.Principal, IDL.Text], [], []),
-    'setCouponsActiveState' : IDL.Func([IDL.Bool], [], []),
-    'setOwner' : IDL.Func([IDL.Principal], [], []),
-    'setProductVisibility' : IDL.Func([IDL.Nat, ProductVisibility], [], []),
-    'setShopActiveState' : IDL.Func([IDL.Bool], [], []),
-    'transferOwnership' : IDL.Func([IDL.Principal], [], []),
-    'updateCoupon' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
-    'updateExpandedProduct' : IDL.Func([IDL.Nat, ExpandedProduct], [], []),
-    'updateProduct' : IDL.Func([IDL.Nat, Product], [], []),
-    'validateCoupon' : IDL.Func([IDL.Text], [CouponValidationResult], []),
   });
 };
 

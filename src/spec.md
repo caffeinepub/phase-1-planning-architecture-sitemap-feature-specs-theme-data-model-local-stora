@@ -1,17 +1,16 @@
 # Specification
 
 ## Summary
-**Goal:** Enable logged-in customers to submit Requests and Testimonies (with media), assign unique IDs, display interactive testimony media cards publicly, and let admins list/review all submissions in the admin dashboard.
+**Goal:** Add persistent, canister-backed request moderation and a customer inbox so admins can review/approve requests, message customers (with large attachments), deliver coupons, and convert approved requests into orders.
 
 **Planned changes:**
-- Add backend models and actor APIs for creating Requests and Testimonies with unique, non-zero IDs, plus admin-only list methods with consistent ordering.
-- Enforce backend authorization: only authenticated users can submit; only admins can access listing/review endpoints.
-- Add media attachment support using existing blob storage mixin: optional media for Requests; up to 5 photos and 3 videos for Testimonies, storing media metadata and per-item descriptions (≤1,500 chars).
-- Create frontend routes/forms for submitting a Request and submitting a Testimony, gated behind existing RequireAuth behavior; prefill name/email from profile when available.
-- Add navigation and page entry points: main nav links, testimonies page CTA for logged-in users, and at least one non-intrusive CTA in Services/Shop routing to Request submission.
-- Implement the Testimonies page to render media as interactive flippable cards using the existing FlipCard component: video hover preview (muted) and pause-on-flip; photo hover zoom and flip-to-description; respect reduced-motion preference.
-- Extend the admin dashboard (/admin) to list Requests and Testimonies with unique IDs and key metadata, and refresh lists after successful submissions via React Query invalidation/refetch.
-- Add React Query hooks for create/list operations for Requests/Testimonies following existing actor-based query patterns.
-- If required by schema changes, add a conditional backend migration preserving existing data and ensuring ID counters do not collide/reset.
+- Implement backend persistence and APIs for customer Requests: create (with optional media attachments), admin list, and admin fetch-by-id including attachment metadata and status.
+- Add backend admin moderation actions for Requests (approve/decline) with immutable, timestamped action history and admin-only authorization.
+- Implement backend customer inbox APIs for admin-to-customer messages and coupon deliveries, scoped per customer principal, persisted, and returned newest-first.
+- Support message file attachments up to 800 MB using existing blob storage utilities, with inbox items linking stored blob references for customer download.
+- Implement backend request-to-order conversion for admins, only allowed for approved requests, and persist link between Request and created Order.
+- Upgrade Admin Dashboard Requests tab to load from backend, show request detail with attachment links/previews, allow approve/decline, send message/coupon to submitter, and convert approved requests to an order with success/error feedback.
+- Add a customer-facing Inbox UI that lists messages/coupons and provides a manual Refresh control to refetch from the backend.
+- Ensure all admin-only operations use the existing admin/owner role system and work for any principal in the admin registry (not only owner).
 
-**User-visible outcome:** Logged-in users can submit Requests and Testimonies (including media uploads with limits), browse a Testimonies page with interactive media cards, and admins can view up-to-date lists of all submissions (with unique IDs) in the admin dashboard.
+**User-visible outcome:** Customers can submit requests and later view admin messages/coupons in an Inbox (with manual refresh and downloadable attachments). Admins can view and moderate all requests with attachments, message customers (including large files), send coupons, and convert approved requests into orders.

@@ -1,64 +1,36 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Phase 5A defined: logged-in users can submit Requests and Testimonies with media uploads, unique IDs, and instant Admin Dashboard visibility; testimonies media displays as interactive flippable cards with hover/click behaviors.",
+  "summary": "Phase 5B: Build an Admin Dashboard & Messaging system where admins can view all customer requests, review attachments, approve/decline requests, message customers and send coupons via customer inbox, upload attachments up to 800MB, and convert approved requests into orders. All actions are timestamped, with future support for multiple admins.",
   "architectural_notes": [
-    "Require authentication to submit Requests and Testimonies.",
-    "Persist unique identifiers for each submission (Request ID, Testimony ID) in backend.",
-    "Enforce testimony media constraints: up to 5 photos + 3 videos; max 800MB per file; videos <= 5 minutes; media description text <= 1,500 characters.",
-    "Admin Dashboard must receive new submissions instantly for review/moderation.",
-    "Testimonies UI uses interactive flippable media cards with hover preview and click-to-flip behavior (video hover plays; click flips and pauses; photos click flips to description)."
+    "Support admin uploads/attachments up to 800MB per file.",
+    "Audit trail: timestamp all admin actions (approve/decline/messages/coupons/order conversion).",
+    "Design auth/roles with future multi-admin support in mind."
   ],
-  "known_issues": [
-    "Automated build/implementation attempts for Phase 5/5A repeatedly failed; needs retry via smaller scoped steps or alternative implementation approach."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-implement-media-attachment-support-for-requests-optional-media-and-testimonies-up-to-5-photos-and-3-videos-using-the-existing-backend-blob-storage-mixin-storing-media-metadata-alongside-submissions",
-      "title": "Implement media attachment support for Requests (optional media) and Testimonies (up to 5 photos and 3 videos) using the existing backend blob storage mixin, storing media metadata alongside submissions.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-customer-facing-ui-routes-and-forms-for-1-submitting-a-request-and-2-submitting-a-testimony-and-ensure-these-forms-are-only-accessible-usable-when-the-user-is-logged-in",
-      "title": "Create customer-facing UI routes and forms for (1) submitting a Request and (2) submitting a Testimony, and ensure these forms are only accessible/usable when the user is logged in.",
+      "id": "feature-support-attachments-up-to-800-mb-for-admin-to-customer-messaging-file-attachments-on-messages-storing-the-attachment-content-using-the-existing-blob-storage-mixin-and-linking-the-blob-reference-from-the-inbox-item",
+      "title": "Support attachments up to 800 MB for admin-to-customer messaging (file attachments on messages), storing the attachment content using the existing blob storage mixin and linking the blob reference from the inbox item.",
       "reqIds": [
         "REQ-4"
       ],
       "version": 1
     },
     {
-      "id": "feature-expose-the-request-and-testimony-submission-entry-points-in-the-main-navigation-and-on-the-testimonies-page-and-add-clear-call-to-action-links-in-relevant-service-product-areas-without-breaking-existing-flows",
-      "title": "Expose the Request and Testimony submission entry points in the main navigation and on the Testimonies page (and add clear call-to-action links in relevant service/product areas without breaking existing flows).",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-the-testimonies-page-to-display-testimony-media-as-interactive-flippable-cards-with-hover-and-click-effects-videos-auto-preview-on-hover-click-flips-and-pauses-to-show-description-photos-support-hover-zoom-and-click-flips-to-show-description",
-      "title": "Implement the Testimonies page to display testimony media as interactive flippable cards with hover and click effects: videos auto-preview on hover, click flips and pauses to show description; photos support hover zoom and click flips to show description.",
+      "id": "feature-upgrade-the-admin-dashboard-requests-tab-to-a-actually-load-requests-from-the-backend-b-show-a-request-detail-view-with-attachment-previews-links-c-allow-approve-decline-d-allow-sending-a-message-and-or-coupon-to-the-request-s-submitter-and-e-allow-converting-an-approved-request-into-an-order",
+      "title": "Upgrade the Admin Dashboard Requests tab to (a) actually load requests from the backend, (b) show a request detail view with attachment previews/links, (c) allow approve/decline, (d) allow sending a message and/or coupon to the request’s submitter, and (e) allow converting an approved request into an order.",
       "reqIds": [
         "REQ-6"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-admin-dashboard-ui-to-list-newly-submitted-requests-and-testimonies-showing-their-unique-ids-and-key-metadata-and-refresh-the-lists-immediately-after-a-new-submission-succeeds",
-      "title": "Add admin dashboard UI to list newly submitted Requests and Testimonies, showing their unique IDs and key metadata, and refresh the lists immediately after a new submission succeeds.",
+      "id": "feature-add-a-customer-facing-inbox-ui-accessible-to-authenticated-users-that-lists-received-messages-and-coupons-and-includes-a-manual-refresh-control-to-fetch-new-items",
+      "title": "Add a customer-facing Inbox UI (accessible to authenticated users) that lists received messages and coupons and includes a manual Refresh control to fetch new items.",
       "reqIds": [
         "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-react-query-hooks-in-the-existing-query-layer-for-creating-and-listing-requests-testimonies-and-any-required-admin-actions-following-existing-actor-based-patterns",
-      "title": "Add React Query hooks in the existing query layer for creating and listing Requests/Testimonies (and any required admin actions), following existing actor-based patterns.",
-      "reqIds": [
-        "REQ-8"
       ],
       "version": 1
     }
@@ -66,13 +38,13 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Phase 5A submission system: logged-in users submit Requests and Testimonies; Requests include contact + description + optional media + price range/Flexible; Testimonies allow up to 5 photos and 3 videos with per-file limits and media descriptions; generate unique IDs; instant Admin Dashboard listing; testimonies media shown as flippable cards with hover/click interactions.",
+      "summary": "Phase 5B Admin Dashboard & Messaging: view all requests, review/upload attachments (<=800MB), approve/decline, message customers/send coupons via inbox (manual refresh), convert approved requests to orders, and timestamp all actions; plan for multi-admin support.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Add backend data models and APIs for customer Requests and Testimonies, each generating a unique ID on creation and persisting submissions so they can be listed in the admin dashboard.",
+      "summary": "Implement canister-backed persistence and APIs for customer Requests, including: create a request with optional media attachments, list requests for admins, and fetch a single request with its attachments and status.",
       "reqIds": [
         "REQ-1"
       ],
@@ -80,22 +52,38 @@
     },
     {
       "id": "AR-3",
-      "summary": "Implement backend authorization rules so only logged-in users can submit Requests and Testimonies, and only admins can review/list submissions in the admin dashboard.",
+      "summary": "Add request moderation actions for admins: approve and decline requests, each producing an immutable action record stored on the Request (including actor principal, action type, optional note, and a timestamp).",
       "reqIds": [
         "REQ-2"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-10",
-      "summary": "If the backend schema for testimonies/quote requests must change to support multiple media items and per-media descriptions, add a conditional migration that preserves existing stored data and increments IDs safely.",
+      "id": "AR-4",
+      "summary": "Implement a customer inbox in the backend that supports (a) admin-to-customer messages, and (b) admin-to-customer coupon deliveries; both must be retrievable by the customer and scoped to the customer principal.",
       "reqIds": [
-        "REQ-9"
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Implement request-to-order conversion: allow admins to convert an approved Request into an Order, linking the created Order to the originating Request and preventing conversion unless the Request is approved.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Ensure authorization and future multi-admin support: all admin-only operations (list all requests, request moderation, sending inbox items, converting requests to orders) must be guarded by the existing admin/owner role system and work for any principal in the admin registry (not only the owner).",
+      "reqIds": [
+        "REQ-8"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Phase 5A: Logged-in Requests & Testimonies submissions with media, unique IDs, flippable cards, and Admin listing",
+  "projectName": "Phase 5B: Admin Requests Review, Messaging/Coupons Inbox, and Request-to-Order Conversion",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

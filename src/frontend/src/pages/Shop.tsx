@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useGetAllProducts, useGetShopActiveState } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
@@ -19,7 +19,7 @@ import ShopCartDrawer from '../components/shop/ShopCartDrawer';
 import { useShopFilters } from '../components/shop/useShopFilters';
 import { useLocalCart } from '../hooks/useLocalCart';
 import ErrorState from '../components/system/ErrorState';
-import type { Product } from '../backend';
+import type { Product } from '../types/common';
 
 export default function Shop() {
   const { data: products = [], isLoading, error, refetch } = useGetAllProducts();
@@ -39,7 +39,7 @@ export default function Shop() {
     sortBy,
     setSortBy,
     filteredProducts,
-  } = useShopFilters(products);
+  } = useShopFilters(products as Product[]);
 
   const cartItemCount = cart.reduce((sum, item) => sum + Number(item.quantity), 0);
 
@@ -193,8 +193,7 @@ export default function Shop() {
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="border rounded-md px-3 py-2 bg-background"
               >
-                <option value="name-asc">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
+                <option value="name">Name (A-Z)</option>
                 <option value="price-asc">Price (Low to High)</option>
                 <option value="price-desc">Price (High to Low)</option>
               </select>
@@ -204,15 +203,11 @@ export default function Shop() {
           {filteredProducts.length === 0 ? (
             <Card>
               <CardContent className="py-16 text-center">
-                <p className="text-muted-foreground">
-                  {searchQuery || inStockOnly
-                    ? 'No artifacts match your search criteria.'
-                    : 'No artifacts available at this time.'}
-                </p>
+                <p className="text-muted-foreground">No products found matching your criteria</p>
               </CardContent>
             </Card>
-          ) : viewMode === 'grid' ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          ) : (
+            <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
               {filteredProducts.map((product) => (
                 <ProductFlipCard
                   key={product.id.toString()}
@@ -221,61 +216,19 @@ export default function Shop() {
                 />
               ))}
             </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredProducts.map((product) => {
-                const effectivePrice = product.priceOverride || product.price;
-                return (
-                  <Card key={product.id.toString()} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex gap-6">
-                        <div className="w-32 h-32 flex-shrink-0">
-                          <img
-                            src={product.image.getDirectURL()}
-                            alt={product.name}
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="text-xl font-semibold">{product.name}</h3>
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {product.shortDescription}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-primary">
-                                ${(Number(effectivePrice) / 100).toFixed(2)}
-                              </div>
-                              <Badge variant={product.isInStock ? 'default' : 'secondary'}>
-                                {product.isInStock ? 'In Stock' : 'Out of Stock'}
-                              </Badge>
-                            </div>
-                          </div>
-                          <Button onClick={() => setSelectedProduct(product)} className="mt-4">
-                            View Details
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
           )}
         </section>
       </FadeInSection>
 
-      {selectedProduct && (
-        <ProductDetailsModal
-          product={selectedProduct}
-          open={!!selectedProduct}
-          onOpenChange={(open) => !open && setSelectedProduct(null)}
-          isSaved={false}
-          isAuthenticated={!!identity}
-        />
-      )}
+      <ProductDetailsModal
+        product={selectedProduct}
+        open={!!selectedProduct}
+        onOpenChange={(open) => {
+          if (!open) setSelectedProduct(null);
+        }}
+        isSaved={false}
+        isAuthenticated={!!identity}
+      />
 
       <ShopCartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </PageLayout>

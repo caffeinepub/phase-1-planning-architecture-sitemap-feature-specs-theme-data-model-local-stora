@@ -1,127 +1,95 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T23:05:48.198Z",
+  "generatedAt": "2026-02-11T00:15:39.705Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 9,
-    "implemented": 6,
+    "total": 8,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add backend data models and APIs for customer Requests and Testimonies, each generating a unique ID on creation and persisting submissions so they can be listed in the admin dashboard.",
+        "summary": "Implement canister-backed persistence and APIs for customer Requests, including: create a request with optional media attachments, list requests for admins, and fetch a single request with its attachments and status.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Implement backend authorization rules so only logged-in users can submit Requests and Testimonies, and only admins can review/list submissions in the admin dashboard.",
+        "summary": "Add request moderation actions for admins: approve and decline requests, each producing an immutable action record stored on the Request (including actor principal, action type, optional note, and a timestamp).",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Implement media attachment support for Requests (optional media) and Testimonies (up to 5 photos and 3 videos) using the existing backend blob storage mixin, storing media metadata alongside submissions.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/requests/RequestMediaPicker.tsx",
-          "frontend/src/components/testimonies/TestimonyMediaPicker.tsx",
-          "frontend/src/utils/mediaValidation.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/requests/RequestMediaPicker.tsx",
-          "frontend/src/components/testimonies/TestimonyMediaPicker.tsx",
-          "frontend/src/utils/mediaValidation.ts"
-        ]
+        "summary": "Implement a customer inbox in the backend that supports (a) admin-to-customer messages, and (b) admin-to-customer coupon deliveries; both must be retrievable by the customer and scoped to the customer principal.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-4",
-        "summary": "Create customer-facing UI routes and forms for (1) submitting a Request and (2) submitting a Testimony, and ensure these forms are only accessible/usable when the user is logged in.",
+        "summary": "Support attachments up to 800 MB for admin-to-customer messaging (file attachments on messages), storing the attachment content using the existing blob storage mixin and linking the blob reference from the inbox item.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/SubmitRequest.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/components/admin/MessageAttachmentPicker.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/Inbox.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/SubmitRequest.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/components/admin/MessageAttachmentPicker.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/Inbox.tsx"
         ]
       },
       {
         "id": "REQ-5",
-        "summary": "Expose the Request and Testimony submission entry points in the main navigation and on the Testimonies page (and add clear call-to-action links in relevant service/product areas without breaking existing flows).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/layout/HeaderNav.tsx",
-          "frontend/src/pages/Services.tsx",
-          "frontend/src/pages/Shop.tsx",
-          "frontend/src/pages/Testimonies.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/layout/HeaderNav.tsx",
-          "frontend/src/pages/Services.tsx",
-          "frontend/src/pages/Shop.tsx",
-          "frontend/src/pages/Testimonies.tsx"
-        ]
+        "summary": "Implement request-to-order conversion: allow admins to convert an approved Request into an Order, linking the created Order to the originating Request and preventing conversion unless the Request is approved.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-6",
-        "summary": "Implement the Testimonies page to display testimony media as interactive flippable cards with hover and click effects: videos auto-preview on hover, click flips and pauses to show description; photos support hover zoom and click flips to show description.",
+        "summary": "Upgrade the Admin Dashboard Requests tab to (a) actually load requests from the backend, (b) show a request detail view with attachment previews/links, (c) allow approve/decline, (d) allow sending a message and/or coupon to the request’s submitter, and (e) allow converting an approved request into an order.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-          "frontend/src/components/testimonies/useHoverVideoPreview.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/admin/AdminRequestsTab.tsx",
+          "frontend/src/components/admin/AdminRequestDetailModal.tsx",
+          "frontend/src/backend.d.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/Testimonies.tsx",
-          "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-          "frontend/src/components/testimonies/useHoverVideoPreview.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/admin/AdminRequestsTab.tsx",
+          "frontend/src/components/admin/AdminRequestDetailModal.tsx",
+          "frontend/src/backend.d.ts"
         ]
       },
       {
         "id": "REQ-7",
-        "summary": "Add admin dashboard UI to list newly submitted Requests and Testimonies, showing their unique IDs and key metadata, and refresh the lists immediately after a new submission succeeds.",
+        "summary": "Add a customer-facing Inbox UI (accessible to authenticated users) that lists received messages and coupons and includes a manual Refresh control to fetch new items.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/Admin.tsx",
-          "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-          "frontend/src/components/admin/AdminRequestsTab.tsx",
-          "frontend/src/pages/SubmitRequest.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx"
+          "frontend/src/pages/Inbox.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/HeaderNav.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/Admin.tsx",
-          "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-          "frontend/src/components/admin/AdminRequestsTab.tsx",
-          "frontend/src/pages/SubmitRequest.tsx",
-          "frontend/src/components/testimonies/CreateTestimonyDialog.tsx"
+          "frontend/src/pages/Inbox.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/HeaderNav.tsx"
         ]
       },
       {
         "id": "REQ-8",
-        "summary": "Add React Query hooks in the existing query layer for creating and listing Requests/Testimonies (and any required admin actions), following existing actor-based patterns.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/backend.d.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
-        ]
-      },
-      {
-        "id": "REQ-9",
-        "summary": "If the backend schema for testimonies/quote requests must change to support multiple media items and per-media descriptions, add a conditional migration that preserves existing stored data and increments IDs safely.",
+        "summary": "Ensure authorization and future multi-admin support: all admin-only operations (list all requests, request moderation, sending inbox items, converting requests to orders) must be guarded by the existing admin/owner role system and work for any principal in the admin registry (not only the owner).",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
@@ -136,23 +104,23 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/admin/AdminRequestDetailModal.tsx",
     "frontend/src/components/admin/AdminRequestsTab.tsx",
-    "frontend/src/components/admin/AdminTestimoniesTab.tsx",
+    "frontend/src/components/admin/MessageAttachmentPicker.tsx",
+    "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
     "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/requests/RequestMediaPicker.tsx",
-    "frontend/src/components/shop/ShopCartDrawer.tsx",
-    "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-    "frontend/src/components/testimonies/TestimonyMediaCard.tsx",
-    "frontend/src/components/testimonies/TestimonyMediaPicker.tsx",
-    "frontend/src/components/testimonies/useHoverVideoPreview.ts",
+    "frontend/src/components/shop/ProductDetailsModal.tsx",
+    "frontend/src/components/shop/ProductFlipCard.tsx",
+    "frontend/src/components/shop/useShopFilters.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Admin.tsx",
-    "frontend/src/pages/Services.tsx",
+    "frontend/src/pages/Inbox.tsx",
     "frontend/src/pages/Shop.tsx",
-    "frontend/src/pages/SubmitRequest.tsx",
-    "frontend/src/pages/Testimonies.tsx",
-    "frontend/src/types/phase5a.ts",
-    "frontend/src/utils/mediaValidation.ts",
+    "frontend/src/types/common.ts",
+    "frontend/src/types/phase5b.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

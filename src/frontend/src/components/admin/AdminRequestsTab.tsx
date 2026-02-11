@@ -1,12 +1,17 @@
-import { useListRequests } from '../../hooks/useQueries';
+import { useState } from 'react';
+import { useListAllRequests, useGetRequestById } from '../../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
+import { FileText, Paperclip } from 'lucide-react';
 import ErrorState from '../system/ErrorState';
+import AdminRequestDetailModal from './AdminRequestDetailModal';
 
 export default function AdminRequestsTab() {
-  const { data: requests = [], isLoading, error, refetch } = useListRequests();
+  const { data: requests = [], isLoading, error, refetch } = useListAllRequests();
+  const [selectedRequestId, setSelectedRequestId] = useState<bigint | null>(null);
+  const { data: selectedRequest } = useGetRequestById(selectedRequestId);
 
   if (isLoading) {
     return (
@@ -38,61 +43,72 @@ export default function AdminRequestsTab() {
   }
 
   return (
-    <div className="space-y-4">
-      {requests.map((request) => {
-        const photoCount = request.media.filter(m => m.mediaType === 'photo').length;
-        const videoCount = request.media.filter(m => m.mediaType === 'video').length;
-        const pricingText = request.pricingPreference.__kind__ === 'flexible' 
-          ? 'Flexible' 
-          : request.pricingPreference.value;
+    <>
+      <div className="space-y-4">
+        {requests.map((request) => {
+          const pricingText = request.pricingPreference.__kind__ === 'flexible' 
+            ? 'Flexible' 
+            : request.pricingPreference.value;
 
-        return (
-          <Card key={request.id.toString()}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">Request #{request.id.toString()}</CardTitle>
-                  <div className="flex gap-2 text-sm text-muted-foreground">
-                    <span>{request.name}</span>
-                    <span>•</span>
-                    <span>{request.email}</span>
+          const statusVariant = 
+            request.status.__kind__ === 'approved' ? 'default' :
+            request.status.__kind__ === 'declined' ? 'destructive' :
+            'outline';
+
+          return (
+            <Card key={request.id.toString()} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1 flex-1">
+                    <CardTitle className="text-lg">Request #{request.id.toString()}</CardTitle>
+                    <div className="flex gap-2 text-sm text-muted-foreground">
+                      <span>{request.name}</span>
+                      <span>•</span>
+                      <span>{request.email}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge variant={statusVariant}>{request.status.__kind__}</Badge>
+                    <Badge variant="outline">{pricingText}</Badge>
                   </div>
                 </div>
-                <Badge variant="outline">{pricingText}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Description:</p>
-                <p className="text-sm line-clamp-3">{request.description}</p>
-              </div>
-
-              {request.media.length > 0 && (
-                <div className="flex gap-4 text-sm text-muted-foreground">
-                  {photoCount > 0 && (
-                    <div className="flex items-center gap-1">
-                      <ImageIcon className="h-4 w-4" />
-                      <span>{photoCount} photo{photoCount !== 1 ? 's' : ''}</span>
-                    </div>
-                  )}
-                  {videoCount > 0 && (
-                    <div className="flex items-center gap-1">
-                      <VideoIcon className="h-4 w-4" />
-                      <span>{videoCount} video{videoCount !== 1 ? 's' : ''}</span>
-                    </div>
-                  )}
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Description:</p>
+                  <p className="text-sm line-clamp-3">{request.description}</p>
                 </div>
-              )}
 
-              <div className="pt-4 border-t">
-                <p className="text-xs text-muted-foreground">
-                  Submitted by: {request.submittedBy.toString()}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+                <div className="flex items-center justify-between">
+                  {request.attachmentCount > 0n && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Paperclip className="h-4 w-4" />
+                      <span>{request.attachmentCount.toString()} attachment{request.attachmentCount > 1n ? 's' : ''}</span>
+                    </div>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedRequestId(request.id)}
+                    className="ml-auto"
+                  >
+                    View Details
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <AdminRequestDetailModal
+        request={selectedRequest || null}
+        open={!!selectedRequestId}
+        onOpenChange={(open) => {
+          if (!open) setSelectedRequestId(null);
+        }}
+      />
+    </>
   );
 }

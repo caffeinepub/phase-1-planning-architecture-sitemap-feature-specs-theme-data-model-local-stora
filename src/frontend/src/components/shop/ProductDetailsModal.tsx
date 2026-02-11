@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShoppingCart, Truck, Package, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Product } from '../../backend';
+import type { Product } from '../../types/common';
 
 interface ProductDetailsModalProps {
   product: Product | null;
@@ -48,16 +48,16 @@ export default function ProductDetailsModal({
   };
 
   const getAvailabilityIcon = () => {
-    if (product.availability === 'delivery') return <Truck className="h-4 w-4" />;
-    if (product.availability === 'pickup') return <Package className="h-4 w-4" />;
-    if (product.availability === 'dropOff') return <MapPin className="h-4 w-4" />;
+    if (product.availability.__kind__ === 'delivery') return <Truck className="h-4 w-4" />;
+    if (product.availability.__kind__ === 'pickup') return <Package className="h-4 w-4" />;
+    if (product.availability.__kind__ === 'dropOff') return <MapPin className="h-4 w-4" />;
     return <Package className="h-4 w-4" />;
   };
 
   const getAvailabilityLabel = () => {
-    if (product.availability === 'delivery') return 'Delivery Available';
-    if (product.availability === 'pickup') return 'Pickup Available';
-    if (product.availability === 'dropOff') return 'Drop-off Available';
+    if (product.availability.__kind__ === 'delivery') return 'Delivery Available';
+    if (product.availability.__kind__ === 'pickup') return 'Pickup Available';
+    if (product.availability.__kind__ === 'dropOff') return 'Drop-off Available';
     return 'Available';
   };
 

@@ -1,183 +1,179 @@
 {
   "kind": "build_request",
-  "title": "Phase 5A: Logged-in Requests & Testimonies submissions with media, unique IDs, flippable cards, and Admin listing",
+  "title": "Phase 5B: Admin Requests Review, Messaging/Coupons Inbox, and Request-to-Order Conversion",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add backend data models and APIs for customer Requests and Testimonies, each generating a unique ID on creation and persisting submissions so they can be listed in the admin dashboard.",
+      "text": "Implement canister-backed persistence and APIs for customer Requests, including: create a request with optional media attachments, list requests for admins, and fetch a single request with its attachments and status.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "Logged-in customers can submit requests or testimonies... All submissions get a unique ID and appear in the admin dashboard."
+          "Admins see all requests, review attachments, approve/decline... attach files ≤800 MB... convert approved requests into orders."
         ]
       },
       "acceptanceCriteria": [
-        "Calling the backend create-request method returns a newly created Request containing a unique, non-zero ID.",
-        "Calling the backend create-testimony method returns a newly created Testimony containing a unique, non-zero ID.",
-        "Admin-only list methods return all stored Requests and all stored Testimonies (including newly submitted ones) in a consistent order (e.g., newest-first or id-desc).",
-        "Unauthorized callers (non-admin) cannot access admin list methods (backend traps or returns an authorization error)."
+        "A logged-in user can create a Request via a new backend method (no frontend placeholder throws) and the Request is persisted across reloads.",
+        "An admin can list all Requests via a new backend query method and receives a stable array of Request records with ids, submitter principal, status, and attachment metadata.",
+        "An admin can fetch a single Request by id and receive the full Request including attachment references/metadata."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Implement backend authorization rules so only logged-in users can submit Requests and Testimonies, and only admins can review/list submissions in the admin dashboard.",
+      "text": "Add request moderation actions for admins: approve and decline requests, each producing an immutable action record stored on the Request (including actor principal, action type, optional note, and a timestamp).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "Logged-in customers can submit requests or testimonies."
+          "approve/decline",
+          "All actions are timestamped."
         ]
       },
       "acceptanceCriteria": [
-        "Submitting a Request/Testimony while unauthenticated fails with a clear authorization error from the backend.",
-        "Submitting a Request/Testimony while authenticated succeeds and persists the submission.",
-        "Admin-only endpoints (list/review actions) reject non-admin callers."
+        "Backend exposes admin-only methods to approve and decline a request by id.",
+        "Each approve/decline call appends an action-history entry to the Request that includes: admin principal, action type, and a non-zero timestamp value (when supported).",
+        "Non-admin callers are rejected for moderation methods."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Implement media attachment support for Requests (optional media) and Testimonies (up to 5 photos and 3 videos) using the existing backend blob storage mixin, storing media metadata alongside submissions.",
-      "target": "both",
+      "text": "Implement a customer inbox in the backend that supports (a) admin-to-customer messages, and (b) admin-to-customer coupon deliveries; both must be retrievable by the customer and scoped to the customer principal.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "Requests include ... optional media... Testimonies allow up to 5 photos and 3 videos (≤800\u000fMB, videos ≤5\u000fmin) with descriptions ≤1,500 characters."
+          "send messages or coupons to the customer inbox (refresh to see)"
         ]
       },
       "acceptanceCriteria": [
-        "Request submission supports zero or more media attachments and stores references/metadata for each attachment.",
-        "Testimony submission enforces the maximum counts: ≤5 photos and ≤3 videos.",
-        "Each testimony media item stores a per-item description that is limited to 1,500 characters.",
-        "Frontend validates file size ≤800 MB per file before attempting upload.",
-        "Frontend captures and submits video duration metadata and blocks videos longer than 5 minutes (client-side validation)."
+        "Backend exposes an authenticated user method to list the caller’s inbox items (messages and coupons).",
+        "Backend exposes admin-only methods to send a message to a target customer principal and to send a coupon to a target customer principal.",
+        "Inbox items are persisted and returned in reverse-chronological order (newest first) based on stored timestamps."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Create customer-facing UI routes and forms for (1) submitting a Request and (2) submitting a Testimony, and ensure these forms are only accessible/usable when the user is logged in.",
-      "target": "frontend",
+      "text": "Support attachments up to 800 MB for admin-to-customer messaging (file attachments on messages), storing the attachment content using the existing blob storage mixin and linking the blob reference from the inbox item.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "Logged-in customers can submit requests or testimonies. Requests include name, email, description, optional media, and a price range or “Flexible.”"
+          "attach files ≤800 MB"
         ]
       },
       "acceptanceCriteria": [
-        "A dedicated Request submission page/route exists and presents fields: name, email, description, optional media, and pricing preference (either price range input or a “Flexible” selection).",
-        "A dedicated Testimony submission page/route or dialog exists and supports uploading up to 5 photos and 3 videos, with a description per media item (≤1,500 chars).",
-        "When unauthenticated, attempting to access submission UI shows the existing login prompt behavior (via RequireAuth) instead of the form.",
-        "When authenticated, name and email are prefilled from the existing user profile when available, while still allowing the user to edit before submitting."
+        "Admin UI allows selecting one or more files for a message and enforces a per-file max size of 800 MB before attempting upload.",
+        "Uploaded message attachments are stored via the canister’s blob storage utilities and can be downloaded/opened by the customer from their inbox.",
+        "If an admin attempts to attach a file > 800 MB, the UI blocks submission with a clear English validation error."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Expose the Request and Testimony submission entry points in the main navigation and on the Testimonies page (and add clear call-to-action links in relevant service/product areas without breaking existing flows).",
-      "target": "frontend",
+      "text": "Implement request-to-order conversion: allow admins to convert an approved Request into an Order, linking the created Order to the originating Request and preventing conversion unless the Request is approved.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "The Quote / Custom Request form and the Testimonies form are accessible from the main navigation, testimonies page, and relevant product or service pages."
+          "convert approved requests into orders"
         ]
       },
       "acceptanceCriteria": [
-        "Header navigation includes links to the Request submission page and the Testimonies page.",
-        "The Testimonies page includes a prominent logged-in-only call-to-action to submit a new testimony.",
-        "Services and Shop experiences include at least one non-intrusive call-to-action link/button that routes to the Request submission page (while preserving existing layouts and interactions)."
+        "Backend exposes an admin-only method to convert a Request id into an Order.",
+        "Conversion fails with a clear error if the Request is not in an approved state.",
+        "After conversion, the Request record indicates it has been converted and includes the created Order id (or an equivalent link)."
       ]
     },
     {
       "id": "REQ-6",
-      "text": "Implement the Testimonies page to display testimony media as interactive flippable cards with hover and click effects: videos auto-preview on hover, click flips and pauses to show description; photos support hover zoom and click flips to show description.",
+      "text": "Upgrade the Admin Dashboard Requests tab to (a) actually load requests from the backend, (b) show a request detail view with attachment previews/links, (c) allow approve/decline, (d) allow sending a message and/or coupon to the request’s submitter, and (e) allow converting an approved request into an order.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "Media appears as flippable cards with hover and click effects."
+          "Admins see all requests, review attachments, approve/decline, send messages or coupons... and convert approved requests into orders."
         ]
       },
       "acceptanceCriteria": [
-        "Testimonies page is implemented (not empty) and renders a grid/list of media cards.",
-        "Each card uses the existing FlipCard component behavior for click-to-flip and keyboard accessibility.",
-        "Video cards: hovering starts playback preview (muted), clicking flips to the back and pauses playback; flipping back returns to the front state.",
-        "Photo cards: hovering provides a zoom-in interaction, clicking flips to show the description on the back.",
-        "Reduced-motion preference is respected (no forced animation beyond what FlipCard already supports)."
+        "The Requests tab no longer uses disabled placeholder hooks; it loads from backend and renders a non-empty list when requests exist.",
+        "Selecting a request shows a detail panel/modal that includes description, submitter principal, and a list of attachments with open/download actions.",
+        "Approve/Decline actions trigger backend mutations and the UI updates status after success (via React Query invalidation/refetch).",
+        "The UI provides controls to send a message/coupon to the request’s customer and shows success/error feedback in English.",
+        "The UI provides a Convert to Order action that is only enabled when the request is approved and shows the created Order id/link after success."
       ]
     },
     {
       "id": "REQ-7",
-      "text": "Add admin dashboard UI to list newly submitted Requests and Testimonies, showing their unique IDs and key metadata, and refresh the lists immediately after a new submission succeeds.",
-      "target": "both",
+      "text": "Add a customer-facing Inbox UI (accessible to authenticated users) that lists received messages and coupons and includes a manual Refresh control to fetch new items.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "All submissions get a unique ID and appear in the admin dashboard."
+          "customer inbox (refresh to see)"
         ]
       },
       "acceptanceCriteria": [
-        "Admin page (existing /admin route) contains sections/tabs/panels for Requests and Testimonies listings (not just placeholders).",
-        "Each Request row shows at minimum: Request ID, submitter name/email, pricing preference (range or Flexible), and a truncated description preview.",
-        "Each Testimony row shows at minimum: Testimony ID, submitter identity label (from profile/name), counts of attached photos/videos, and approval status if present.",
-        "After a successful submission, navigating to /admin shows the new item present without requiring a hard reload (React Query invalidation/refetch is sufficient)."
+        "Authenticated users can navigate to an Inbox section/page and see a list of inbox items (messages and coupons) from the backend.",
+        "The Inbox UI includes a Refresh button that triggers a React Query refetch and updates the list without a full page reload.",
+        "Inbox items display at minimum: type (Message/Coupon), sender (admin principal or label), body/code, and timestamp (when available)."
       ]
     },
     {
       "id": "REQ-8",
-      "text": "Add React Query hooks in the existing query layer for creating and listing Requests/Testimonies (and any required admin actions), following existing actor-based patterns.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ]
-      },
-      "acceptanceCriteria": [
-        "New hooks exist for: createRequest, createTestimony, listRequests (admin), listTestimonies (admin/public as needed).",
-        "Hooks are wired to backend actor methods and use query keys consistent with the existing useQueries.ts patterns.",
-        "Successful mutations invalidate the relevant list queries so the admin listings update predictably."
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "text": "If the backend schema for testimonies/quote requests must change to support multiple media items and per-media descriptions, add a conditional migration that preserves existing stored data and increments IDs safely.",
+      "text": "Ensure authorization and future multi-admin support: all admin-only operations (list all requests, request moderation, sending inbox items, converting requests to orders) must be guarded by the existing admin/owner role system and work for any principal in the admin registry (not only the owner).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
+        ],
+        "quotes": [
+          "Multiple admins possible in the future."
         ]
       },
       "acceptanceCriteria": [
-        "On upgrade, any existing stored testimonies/quote requests remain accessible and are mapped into the new structure without trapping.",
-        "ID counters (nextTestimonyId / nextQuoteRequestId or equivalents) remain correct and do not reset or collide.",
-        "A clean deploy with no prior state still initializes correctly and passes basic create/list operations."
+        "All admin-only backend methods reject non-admin callers.",
+        "All admin-only backend methods allow both the owner and any promoted admin in the admin registry to execute successfully.",
+        "No logic relies on a single hard-coded admin principal."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister with all logic in backend/main.mo (no additional backend services).",
-    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and frontend/src/components/ui/* (compose instead).",
-    "All user-facing UI text must be in English."
+    "Backend must remain a single Motoko actor (all logic in backend/main.mo).",
+    "Do not edit any files under frontend/src/components/ui or other immutable frontend paths specified by SYSTEM_CONTEXT.",
+    "Use English for all user-facing text.",
+    "Do not introduce external databases or third-party auth; use existing Internet Identity + canister storage patterns."
   ],
   "nonGoals": [
-    "Admin-to-customer in-dashboard messaging/chat is out of scope for this phase.",
-    "Automatic conversion of Requests into Shop Orders is out of scope unless it already exists elsewhere and can be triggered without new workflow design."
+    "Real-time inbox updates (no websockets/push); manual refresh only as requested.",
+    "Building a full coupon creation workflow in the admin dashboard beyond sending existing coupons (unless already required by current backend capabilities).",
+    "Implementing a multi-canister architecture or external file hosting/CDN."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
