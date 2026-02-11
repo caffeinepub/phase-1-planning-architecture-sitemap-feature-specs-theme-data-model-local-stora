@@ -1,130 +1,123 @@
 {
   "kind": "build_request",
-  "title": "Phase 5D — Customer order tracking in Dashboard with admin-controlled status, timestamps, locations, and pop-up notes",
+  "title": "Phase 5F Unified Backend + Phase 6A Admin Access Code Gate with Audit Logging",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Extend the backend order data model to persist order-tracking information per order, including: (a) a tracking status with the allowed values pending, processing, ready for pickup, out for delivery, completed; (b) a status-change history with timestamps for each change; (c) a list of manual admin-entered location updates with timestamps (no GPS); (d) a list of admin-authored pop-up notes/messages with timestamps; and (e) a fulfillment method that can represent delivery vs pickup vs drop-off, with pickup/drop-off intended only for the Ashland/Westwood Kentucky area.",
-      "target": "backend",
+      "text": "Implement Phase 6A Admin Access Page and gating so that entering the master access code \"7583A\" is required before an admin can enter the administrative dashboard, with incorrect entries denied.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-7",
-          "recent-10",
-          "recent-12"
+          "user-1"
         ],
         "quotes": [
-          "Status: pending, processing, ready for pickup, out for delivery, completed.",
-          "Replace it with manual admin entered location updates instead!",
-          "pick up and drop off is only available for the Ashland Westwood Kentucky area,  we should be pop up messages that admins custom make!"
+          "Create a secure Admin Access Page that requires a five-digit master access code (7583A) to enter the administrative dashboard. If the correct code is entered, full dashboard access is granted; incorrect entries deny access."
         ]
       },
       "acceptanceCriteria": [
-        "Backend can store and return tracking status, status-change history (with timestamps), location updates, and pop-up notes for every order.",
-        "Tracking status is restricted to exactly the specified set of statuses.",
-        "Location updates are purely manual text entries (no GPS, no external APIs).",
-        "Fulfillment method supports delivery/pickup/drop-off; pickup/drop-off can be recorded for an order and is labeled as Ashland/Westwood Kentucky area-specific in returned data."
+        "A new route/page exists for Admin Access (e.g., \"/admin-access\") with an input for the master access code and a submit action.",
+        "Attempting to open the admin dashboard route (currently \"/admin\") without a successful master-code validation sends the user to the Admin Access page (or shows a blocking gate).",
+        "Submitting any code other than \"7583A\" shows an explicit Access Denied state and does not unlock admin dashboard access.",
+        "Submitting the correct code unlocks access and then allows the user to enter the existing Admin Dashboard UI at \"/admin\"."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add backend admin-only methods to manage order tracking: admins can (a) set/update an order’s tracking status; (b) add a manual location update to an order; and (c) add a custom pop-up note/message to an order. Each mutation must append an entry with a timestamp to the appropriate history/log so customers can see when changes happened.",
+      "text": "Add a backend API to verify the master access code \"7583A\" for admin principals and record a successful-login audit log entry containing the caller principal and a timestamp, and expose an admin-only query to read these audit log entries.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "recent-7",
-          "recent-10",
-          "recent-12"
+          "user-1"
         ],
         "quotes": [
-          "admins should be able to change these automatically whenever they want",
-          "Replace it with manual admin entered location updates instead!",
-          "we should be pop up messages that admins custom make!"
+          "Each successful login is timestamped and logged."
         ]
       },
       "acceptanceCriteria": [
-        "Non-admin callers are rejected when attempting to update any order’s tracking status, location updates, or pop-up notes.",
-        "Each admin change creates an immutable history entry with a timestamp (for status changes, location updates, and pop-up notes).",
-        "A customer can only read tracking information for their own orders; admins can read tracking information for all orders."
+        "Backend exposes a shared method to verify the submitted master access code \"7583A\" and returns a success/failure result.",
+        "Only authenticated admins can successfully verify/unlock via this method (non-admin callers are rejected).",
+        "On each successful verification, the backend persists a log entry with (at minimum) caller principal and a timestamp value.",
+        "Backend exposes an admin-only query to list the successful admin-access log entries.",
+        "Successful verifications are also recorded via the existing event logging mechanism (or an equivalent persistent audit log) without requiring the frontend to call logEvent directly."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update backend order read APIs used by the frontend so that the customer order list and admin order list include the tracking data needed for Phase 5D (current status, the computed/derived next status, timestamps/history, location updates, pop-up notes, and fulfillment method). Updates must appear for customers when they refresh (no real-time push).",
-      "target": "backend",
+      "text": "Wire the Admin Access Page to the backend verification API and persist the unlocked state on the client so that a page refresh does not immediately re-lock during the same session (while still allowing lockout on explicit logout).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-5",
-          "recent-7"
-        ],
-        "quotes": [
-          "Updates appear on refresh.",
-          "Customers track orders via dashboard or link."
+          "user-1"
         ]
       },
       "acceptanceCriteria": [
-        "Refreshing the Dashboard orders query after an admin update returns the updated tracking status and histories.",
-        "No real-time mechanism is added (no websockets, no GPS, no push updates).",
-        "Existing order listing queries remain functional and now return tracking information needed by the UI."
+        "Admin Access Page calls the backend verify method and only unlocks on a successful response.",
+        "Unlocked state is stored in session-scoped browser storage (e.g., sessionStorage) and is checked by the admin-gating logic before rendering \"/admin\".",
+        "Logging out of Internet Identity clears the unlocked state so the user must re-enter the master code after the next login to access \"/admin\"."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Implement a customer-facing order tracking view inside the existing customer Dashboard (dashboard-only access): for each order, show the current tracking status prominently, show the next status as locked/preview until the admin advances the order, and display timestamps for each status change. Also display the latest admin pop-up note(s) and the list of manual location updates (each with timestamp).",
-      "target": "frontend",
+      "text": "Complete Phase 5F Unified Backend by ensuring requests, testimonies, messages, coupons, and orders are handled in the single Motoko backend actor with consistent, end-to-end workflows that match the frontend’s existing React Query hooks and admin UI flows.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-7",
-          "recent-12"
+          "user-1"
         ],
         "quotes": [
-          "Through the customer dashboard only",
-          "Customers see the current status and then the next one only after admins update it. ... Timestamps will be recorded for each status change.",
-          "we should be pop up messages that admins custom make!"
+          "Requests, testimonies, messages, coupons, and orders all run in one backend for smooth admin and customer workflow."
         ]
       },
       "acceptanceCriteria": [
-        "Order tracking is accessible only via the existing Dashboard page (no public tracking link is added).",
-        "For each order, the UI shows: current status; the next status (if any) as not-yet-active until the order is advanced by an admin; and a status history with timestamps.",
-        "The UI shows admin-authored pop-up note messages for the order (at minimum the most recent one) and manual location updates with timestamps.",
-        "Data updates are visible after manual refresh/refetch (consistent with current React Query patterns)."
+        "All canister methods currently invoked by the frontend hooks in `frontend/src/hooks/useQueries.ts` for requests/inbox messaging/coupons/testimonies/orders exist in `backend/main.mo` and return data in the shapes the frontend expects.",
+        "Admin request workflow supports: list all requests, view request by id, approve/decline, convert an approved request into an order, and write request action history updates.",
+        "Admin messaging workflow supports: sending a message with attachments to a customer and sending a coupon code to a customer, and these appear in the customer’s Inbox (`/inbox`) via a list-caller-inbox API.",
+        "Testimonies workflow supports: submit testimony, list approved testimonies for the public page, and list/moderate testimonies for admins (approve/reject).",
+        "All of the above live in the existing single actor (`backend/main.mo`) rather than introducing additional backend services/canisters."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Enhance the Admin orders experience so admins can update order tracking from the admin dashboard: provide a per-order detail UI to (a) change the tracking status, (b) add a manual location update, and (c) add a custom pop-up note/message. Ensure the admin UI makes it clear that customers only see progression after admin updates.",
+      "text": "Update the admin dashboard entry UX to clearly communicate the two-step security requirement (Internet Identity admin role + master access code) using English user-facing text, without modifying read-only/immutable frontend paths.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-7",
-          "recent-12"
-        ],
-        "quotes": [
-          "admins should be able to change these automatically whenever they want",
-          "we should be pop up messages that admins custom make!"
+          "user-1"
         ]
       },
       "acceptanceCriteria": [
-        "From the Admin page orders tab, an admin can select an order and submit tracking updates (status, location update, pop-up note).",
-        "After a successful admin mutation, relevant React Query caches are invalidated/refetched so both admin and customer views reflect the change on refresh.",
-        "Admin inputs are validated client-side for empty strings where applicable (e.g., note body/location text)."
+        "If a user is not logged in, they are prompted to log in via the existing authentication flow before they can use the Admin Access Page.",
+        "If a user is logged in but not an admin, they see an Access Denied state (reusing the existing `RequireAdmin` behavior) and cannot proceed to code entry.",
+        "If a user is an admin but has not entered the master code in the current session, the UI clearly instructs them to enter the master code to continue to the dashboard.",
+        "No changes are requested to files listed in `SYSTEM_CONTEXT.frontend.immutablePaths` (any new gating is implemented via new components/pages and composition)."
       ]
     }
   ],
   "constraints": [
-    "Do not add GPS, geolocation, maps, or any real-time location tracking; location updates must be manual admin-entered text.",
-    "Do not integrate any weather API; pickup/drop-off area handling must be represented without external services.",
-    "Keep all Motoko logic in the single backend actor (backend/main.mo).",
-    "Do not edit files under frontend immutablePaths (including frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and frontend/src/components/ui)."
+    "Backend must remain a single-actor Motoko canister with all logic in `backend/main.mo` (no additional backend services).",
+    "Do not edit frontend immutable paths: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, and anything under `frontend/src/components/ui`.",
+    "All user-facing text must be in English.",
+    "Preserve the exact master access code value: \"7583A\"."
   ],
   "nonGoals": [
-    "Public order-tracking links outside the customer Dashboard.",
-    "Real-time updates (WebSockets/push notifications/live driver tracking).",
-    "Automatic status progression based on external delivery systems or GPS.",
-    "Weather display or weather-based logic."
+    "Do not add third-party authentication providers (only Internet Identity).",
+    "Do not implement real-time features (no WebSockets/chat).",
+    "Do not add external databases or off-chain storage; use canister state only.",
+    "Do not redesign the existing admin dashboard tabs beyond adding the new access gate flow."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

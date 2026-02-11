@@ -3,71 +3,81 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { AlertCircle, DollarSign, Eye, EyeOff, Package } from 'lucide-react';
-import { useGetAllProductsAdmin, useSetShopActiveState, useGetShopActiveState, useOverrideProductPrice, useClearProductPriceOverride, useSetProductVisibility } from '../../hooks/useQueries';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertCircle, DollarSign, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import type { ProductVisibility } from '../../types/common';
+import { useGetAllProductsAdmin, useSetShopActiveState, useGetShopActiveState, useOverrideProductPrice, useClearProductPriceOverride, useSetProductVisibility } from '../../hooks/useQueries';
+import type { Product, ProductVisibility } from '../../types/common';
 
 export default function AdvancedShopControlsSection() {
-  const { data: shopActive = true, isLoading: shopStateLoading } = useGetShopActiveState();
   const { data: products = [], isLoading: productsLoading } = useGetAllProductsAdmin();
+  const { data: shopActive = true } = useGetShopActiveState();
   const setShopActive = useSetShopActiveState();
   const overridePriceMutation = useOverrideProductPrice();
   const clearPriceOverride = useClearProductPriceOverride();
   const setVisibility = useSetProductVisibility();
 
-  const [priceOverrides, setPriceOverrides] = useState<Record<string, string>>({});
+  const [selectedProductId, setSelectedProductId] = useState<string>('');
+  const [newPriceInput, setNewPriceInput] = useState('');
 
-  const handleShopToggle = async (active: boolean) => {
+  const handleToggleShop = async () => {
     try {
-      await setShopActive.mutateAsync(active);
-      toast.success(active ? 'Shop enabled' : 'Shop disabled');
+      await setShopActive.mutateAsync(!shopActive);
+      toast.success(shopActive ? 'Shop disabled' : 'Shop enabled');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update shop status');
+      toast.error(error.message || 'Failed to toggle shop state');
     }
   };
 
-  const handlePriceOverride = async (productId: bigint) => {
-    const priceStr = priceOverrides[productId.toString()];
-    if (!priceStr || !priceStr.trim()) {
-      toast.error('Please enter a price');
+  const handleOverridePrice = async () => {
+    if (!selectedProductId) {
+      toast.error('Please select a product');
       return;
     }
 
-    const priceFloat = parseFloat(priceStr);
-    if (isNaN(priceFloat) || priceFloat < 0) {
+    const price = parseFloat(newPriceInput);
+    if (isNaN(price) || price < 0) {
       toast.error('Please enter a valid price');
       return;
     }
 
-    const priceCents = BigInt(Math.round(priceFloat * 100));
+    const productId = BigInt(selectedProductId);
+    const priceCents = BigInt(Math.floor(price * 100));
 
     try {
-      await overridePriceMutation.mutateAsync({ productId, newPrice: priceCents });
+      await overridePriceMutation.mutateAsync({ productId, price: priceCents });
       toast.success('Price override applied');
-      setPriceOverrides(prev => {
-        const updated = { ...prev };
-        delete updated[productId.toString()];
-        return updated;
-      });
+      setNewPriceInput('');
     } catch (error: any) {
       toast.error(error.message || 'Failed to override price');
     }
   };
 
-  const handleClearPriceOverride = async (productId: bigint) => {
+  const handleClearPriceOverride = async () => {
+    if (!selectedProductId) {
+      toast.error('Please select a product');
+      return;
+    }
+
+    const productId = BigInt(selectedProductId);
+
     try {
-      await clearPriceOverride.mutateAsync(productId);
+      await clearPriceOverride.mutateAsync({ productId, price: null });
       toast.success('Price override cleared');
     } catch (error: any) {
       toast.error(error.message || 'Failed to clear price override');
     }
   };
 
-  const handleVisibilityChange = async (productId: bigint, visibility: ProductVisibility) => {
+  const handleSetVisibility = async (visibility: ProductVisibility) => {
+    if (!selectedProductId) {
+      toast.error('Please select a product');
+      return;
+    }
+
+    const productId = BigInt(selectedProductId);
+
     try {
       await setVisibility.mutateAsync({ productId, visibility });
       toast.success('Product visibility updated');
@@ -76,195 +86,149 @@ export default function AdvancedShopControlsSection() {
     }
   };
 
-  const getVisibilityBadge = (visibility: ProductVisibility) => {
-    if (visibility.__kind__ === 'visible') return <Badge variant="default">Visible</Badge>;
-    if (visibility.__kind__ === 'hidden') return <Badge variant="secondary">Hidden</Badge>;
-    if (visibility.__kind__ === 'outOfStock') return <Badge variant="destructive">Out of Stock</Badge>;
-    return <Badge>Unknown</Badge>;
-  };
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Package className="h-5 w-5" />
-          Advanced Shop Controls
-        </CardTitle>
-        <CardDescription>
-          Emergency shop disable, price overrides, and forced stock states
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Emergency Shop Disable */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label className="text-base font-semibold">Emergency Shop Disable</Label>
+    <div className="space-y-6">
+      {/* Emergency Shop Disable */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            Emergency Shop Controls
+          </CardTitle>
+          <CardDescription>
+            Instantly disable the entire shop for maintenance or emergencies
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div>
+              <p className="font-medium">Shop Status</p>
               <p className="text-sm text-muted-foreground">
-                Temporarily close the shop for all customers
+                {shopActive ? 'Shop is currently active' : 'Shop is currently disabled'}
               </p>
             </div>
             <Switch
               checked={shopActive}
-              onCheckedChange={handleShopToggle}
-              disabled={shopStateLoading || setShopActive.isPending}
+              onCheckedChange={handleToggleShop}
+              disabled={setShopActive.isPending}
             />
           </div>
-          {!shopActive && (
-            <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-              <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
-              <p className="text-sm text-destructive">
-                Shop is currently disabled. Customers will see a maintenance message.
-              </p>
-            </div>
-          )}
-        </div>
+        </CardContent>
+      </Card>
 
-        <Separator />
+      {/* Product Price Override */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-arcane-gold" />
+            Product Price Override
+          </CardTitle>
+          <CardDescription>
+            Temporarily override product prices without editing the product
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="product-select">Select Product</Label>
+            <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+              <SelectTrigger id="product-select">
+                <SelectValue placeholder="Choose a product..." />
+              </SelectTrigger>
+              <SelectContent>
+                {products.map((product: Product) => (
+                  <SelectItem key={product.id.toString()} value={product.id.toString()}>
+                    {product.name} - {Number(product.price) / 100} ICP
+                    {product.priceOverride && ' (Override Active)'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Price Overrides */}
-        <div className="space-y-4">
-          <div>
-            <Label className="text-base font-semibold">Price Overrides</Label>
-            <p className="text-sm text-muted-foreground mt-1">
-              Override product prices without changing base prices
+          <div className="space-y-2">
+            <Label htmlFor="new-price">New Price (ICP)</Label>
+            <Input
+              id="new-price"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="e.g., 10.50"
+              value={newPriceInput}
+              onChange={(e) => setNewPriceInput(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              onClick={handleOverridePrice}
+              disabled={!selectedProductId || !newPriceInput || overridePriceMutation.isPending}
+              className="flex-1"
+            >
+              Apply Override
+            </Button>
+            <Button
+              onClick={handleClearPriceOverride}
+              disabled={!selectedProductId || clearPriceOverride.isPending}
+              variant="outline"
+              className="flex-1"
+            >
+              Clear Override
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Product Visibility Control */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5 text-primary" />
+            Product Visibility Control
+          </CardTitle>
+          <CardDescription>
+            Control which products are visible in the shop
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Selected Product</Label>
+            <p className="text-sm text-muted-foreground">
+              {selectedProductId 
+                ? products.find((p: Product) => p.id.toString() === selectedProductId)?.name || 'Unknown'
+                : 'No product selected'}
             </p>
           </div>
 
-          {productsLoading ? (
-            <p className="text-sm text-muted-foreground">Loading products...</p>
-          ) : products.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No products available</p>
-          ) : (
-            <div className="space-y-3">
-              {products.map((product: any) => {
-                const basePrice = Number(product.price) / 100;
-                const productOverridePrice = product.priceOverride ? Number(product.priceOverride) / 100 : null;
-                const effectivePrice = productOverridePrice || basePrice;
-
-                return (
-                  <div key={product.id.toString()} className="p-3 border rounded-md space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="font-medium">{product.name}</p>
-                        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                          <span>Base: ${basePrice.toFixed(2)}</span>
-                          {productOverridePrice && (
-                            <>
-                              <span>→</span>
-                              <span className="text-primary font-medium">
-                                Override: ${productOverridePrice.toFixed(2)}
-                              </span>
-                            </>
-                          )}
-                          <span>•</span>
-                          <span className="font-semibold">Effective: ${effectivePrice.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="New price"
-                        value={priceOverrides[product.id.toString()] || ''}
-                        onChange={(e) => setPriceOverrides(prev => ({
-                          ...prev,
-                          [product.id.toString()]: e.target.value
-                        }))}
-                        className="flex-1"
-                      />
-                      <Button
-                        size="sm"
-                        onClick={() => handlePriceOverride(product.id)}
-                        disabled={overridePriceMutation.isPending}
-                      >
-                        <DollarSign className="h-4 w-4 mr-1" />
-                        Override
-                      </Button>
-                      {productOverridePrice && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleClearPriceOverride(product.id)}
-                          disabled={clearPriceOverride.isPending}
-                        >
-                          Clear
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <Separator />
-
-        {/* Forced Stock States */}
-        <div className="space-y-4">
-          <div>
-            <Label className="text-base font-semibold">Forced Stock States</Label>
-            <p className="text-sm text-muted-foreground mt-1">
-              Override product visibility regardless of actual stock
-            </p>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleSetVisibility({ __kind__: 'visible' })}
+              disabled={!selectedProductId || setVisibility.isPending}
+              variant="outline"
+              className="flex-1"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Visible
+            </Button>
+            <Button
+              onClick={() => handleSetVisibility({ __kind__: 'hidden' })}
+              disabled={!selectedProductId || setVisibility.isPending}
+              variant="outline"
+              className="flex-1"
+            >
+              <EyeOff className="h-4 w-4 mr-2" />
+              Hidden
+            </Button>
+            <Button
+              onClick={() => handleSetVisibility({ __kind__: 'outOfStock' })}
+              disabled={!selectedProductId || setVisibility.isPending}
+              variant="outline"
+              className="flex-1"
+            >
+              Out of Stock
+            </Button>
           </div>
-
-          {productsLoading ? (
-            <p className="text-sm text-muted-foreground">Loading products...</p>
-          ) : products.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No products available</p>
-          ) : (
-            <div className="space-y-3">
-              {products.map((product: any) => (
-                <div key={product.id.toString()} className="p-3 border rounded-md">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex-1">
-                      <p className="font-medium">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Stock: {product.stock.toString()} • {getVisibilityBadge(product.visibility)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleVisibilityChange(product.id, { __kind__: 'visible' })}
-                      disabled={setVisibility.isPending}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Visible
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleVisibilityChange(product.id, { __kind__: 'outOfStock' })}
-                      disabled={setVisibility.isPending}
-                    >
-                      <Package className="h-4 w-4 mr-1" />
-                      Out of Stock
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleVisibilityChange(product.id, { __kind__: 'hidden' })}
-                      disabled={setVisibility.isPending}
-                    >
-                      <EyeOff className="h-4 w-4 mr-1" />
-                      Hidden
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

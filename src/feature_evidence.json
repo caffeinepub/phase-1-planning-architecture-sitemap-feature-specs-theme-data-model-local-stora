@@ -2,13 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-a-customer-facing-order-tracking-view-inside-the-existing-customer-dashboard-dashboard-only-access-for-each-order-show-the-current-tracking-status-prominently-show-the-next-status-as-locked-preview-until-the-admin-advances-the-order-and-display-timestamps-for-each-status-change-also-display-the-latest-admin-pop-up-note-s-and-the-list-of-manual-location-updates-each-with-timestamp",
-      "featureTitle": "Implement a customer-facing order tracking view inside the existing customer Dashboard (dashboard-only access): for each order, show the current tracking status prominently, show the next status as locked/preview until the admin advances the order, and display timestamps for each status change. Also display the latest admin pop-up note(s) and the list of manual location updates (each with timestamp).",
+      "featureId": "feature-implement-phase-6a-admin-access-page-and-gating-so-that-entering-the-master-access-code-7583a-is-required-before-an-admin-can-enter-the-administrative-dashboard-with-incorrect-entries-denied",
+      "featureTitle": "Implement Phase 6A Admin Access Page and gating so that entering the master access code \"7583A\" is required before an admin can enter the administrative dashboard, with incorrect entries denied.",
       "files": [
-        "frontend/src/components/dashboard/OrderTrackingPanel.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/Dashboard.tsx",
-        "frontend/src/types/orderTracking.ts"
+        "frontend/src/App.tsx",
+        "frontend/src/components/auth/RequireAdminAccessGate.tsx",
+        "frontend/src/pages/Admin.tsx",
+        "frontend/src/pages/AdminAccess.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,17 +20,39 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-enhance-the-admin-orders-experience-so-admins-can-update-order-tracking-from-the-admin-dashboard-provide-a-per-order-detail-ui-to-a-change-the-tracking-status-b-add-a-manual-location-update-and-c-add-a-custom-pop-up-note-message-ensure-the-admin-ui-makes-it-clear-that-customers-only-see-progression-after-admin-updates",
-      "featureTitle": "Enhance the Admin orders experience so admins can update order tracking from the admin dashboard: provide a per-order detail UI to (a) change the tracking status, (b) add a manual location update, and (c) add a custom pop-up note/message. Ensure the admin UI makes it clear that customers only see progression after admin updates.",
+      "featureId": "feature-wire-the-admin-access-page-to-the-backend-verification-api-and-persist-the-unlocked-state-on-the-client-so-that-a-page-refresh-does-not-immediately-re-lock-during-the-same-session-while-still-allowing-lockout-on-explicit-logout",
+      "featureTitle": "Wire the Admin Access Page to the backend verification API and persist the unlocked state on the client so that a page refresh does not immediately re-lock during the same session (while still allowing lockout on explicit logout).",
       "files": [
-        "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
-        "frontend/src/components/admin/AdminOrdersTab.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/components/auth/LoginButton.tsx",
+        "frontend/src/components/auth/RequireAdminAccessGate.tsx",
+        "frontend/src/lib/adminAccessSession.ts",
+        "frontend/src/pages/AdminAccess.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-admin-dashboard-entry-ux-to-clearly-communicate-the-two-step-security-requirement-internet-identity-admin-role-master-access-code-using-english-user-facing-text-without-modifying-read-only-immutable-frontend-paths",
+      "featureTitle": "Update the admin dashboard entry UX to clearly communicate the two-step security requirement (Internet Identity admin role + master access code) using English user-facing text, without modifying read-only/immutable frontend paths.",
+      "files": [
+        "frontend/src/components/layout/HeaderNav.tsx",
+        "frontend/src/pages/AdminAccess.tsx"
       ],
       "components": [
         "authorization@4.0.0",

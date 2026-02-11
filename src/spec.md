@@ -1,13 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Add customer-facing order tracking in the Dashboard and admin-controlled tracking management, including statuses, timestamped history, manual location updates, and admin-authored pop-up notes.
+**Goal:** Add a two-step admin entry gate (Internet Identity admin role + master access code) with backend verification and persistent audit logging, and complete the unified single-actor backend so existing frontend admin/customer workflows function end-to-end.
 
 **Planned changes:**
-- Extend the backend order model to store: tracking status (pending, processing, ready for pickup, out for delivery, completed), timestamped status-change history, manual admin-entered location updates with timestamps, admin-authored pop-up notes with timestamps, and a fulfillment method (delivery/pickup/drop-off) labeled as Ashland/Westwood Kentucky area-specific for pickup/drop-off.
-- Add admin-only backend methods to update tracking status, add a location update, and add a pop-up note; each change appends an immutable timestamped entry.
-- Update existing backend order read APIs so customer and admin order lists include all tracking data needed by the UI (current status, derived next status, histories, location updates, pop-up notes, fulfillment method), visible on refresh (no real-time push).
-- Update the customer Dashboard to display per-order tracking: current status, next status as locked/preview until advanced by an admin, status-change timestamps/history, latest admin pop-up note(s), and manual location updates with timestamps.
-- Enhance the admin orders UI to allow per-order tracking updates (status, location update, pop-up note) and refetch/invalidate data after mutations, with basic client-side validation for empty inputs.
+- Add a new Admin Access page/route (e.g., `/admin-access`) that requires entering the master access code `7583A` before allowing access to the existing admin dashboard at `/admin`.
+- Gate the `/admin` route so admins who haven’t successfully entered the master code in the current session are redirected/blocked and guided to the Admin Access page.
+- Implement backend methods in the single Motoko actor (`backend/main.mo`) to verify the master code for admin principals only, persist a successful-login audit entry (principal + timestamp), and provide an admin-only query to list these audit log entries.
+- Wire the Admin Access page to call the backend verification method; store the unlocked state in session-scoped browser storage so refreshes don’t re-lock during the same session, and clear this unlocked state on explicit logout.
+- Ensure unified backend coverage for requests, testimonies, messages/inbox, coupons, and orders in `backend/main.mo` so the frontend’s existing React Query hooks and admin UI flows work with consistent method shapes and workflows.
+- Update admin entry UX messaging (English) to clearly communicate the two-step security requirement, while avoiding edits to immutable frontend paths by using new pages/components and composition.
 
-**User-visible outcome:** Customers can track their orders from the Dashboard with clear status progression, timestamps, location updates, and admin notes; admins can manage and post these tracking updates from the admin orders area, with changes appearing after refresh/refetch.
+**User-visible outcome:** Admins must log in with Internet Identity, then enter the master access code `7583A` to access the admin dashboard; successful unlocks are recorded and viewable via an admin-only audit log, and the existing admin/customer workflows for requests, inbox/messages, coupons, testimonies, and orders work through the unified backend.

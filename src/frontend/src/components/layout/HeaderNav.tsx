@@ -73,7 +73,7 @@ export default function HeaderNav() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate({ to: '/admin' })}
+              onClick={() => navigate({ to: '/admin-access' })}
             >
               <Shield className="h-5 w-5" />
             </Button>
@@ -129,7 +129,7 @@ export default function HeaderNav() {
             
             {isAdmin && (
               <Link
-                to="/admin"
+                to="/admin-access"
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >

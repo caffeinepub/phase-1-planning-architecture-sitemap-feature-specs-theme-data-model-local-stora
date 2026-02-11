@@ -43,6 +43,7 @@ export default function AdminOrderTrackingDetailModal({
 }: AdminOrderTrackingDetailModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [locationText, setLocationText] = useState('');
+  const [locationDescription, setLocationDescription] = useState('');
   const [noteText, setNoteText] = useState('');
 
   const updateStatus = useUpdateOrderTrackingStatus();
@@ -64,7 +65,7 @@ export default function AdminOrderTrackingDetailModal({
     try {
       await updateStatus.mutateAsync({
         orderId: order.id,
-        status: selectedStatus,
+        newStatus: selectedStatus,
       });
       toast.success('Status updated successfully');
       setSelectedStatus('');
@@ -83,9 +84,11 @@ export default function AdminOrderTrackingDetailModal({
       await addLocation.mutateAsync({
         orderId: order.id,
         location: locationText.trim(),
+        description: locationDescription.trim() || locationText.trim(),
       });
       toast.success('Location update added');
       setLocationText('');
+      setLocationDescription('');
     } catch (error: any) {
       toast.error(error.message || 'Failed to add location update');
     }
@@ -192,12 +195,22 @@ export default function AdminOrderTrackingDetailModal({
             </div>
             <div className="space-y-3">
               <div>
-                <Label htmlFor="location-input">Location Description</Label>
+                <Label htmlFor="location-input">Location</Label>
                 <Textarea
                   id="location-input"
-                  placeholder="e.g., Package at sorting facility, En route to Ashland, KY..."
+                  placeholder="e.g., Sorting facility, Ashland, KY..."
                   value={locationText}
                   onChange={(e) => setLocationText(e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <div>
+                <Label htmlFor="location-description">Description (Optional)</Label>
+                <Textarea
+                  id="location-description"
+                  placeholder="e.g., Package at sorting facility, En route..."
+                  value={locationDescription}
+                  onChange={(e) => setLocationDescription(e.target.value)}
                   rows={2}
                 />
               </div>

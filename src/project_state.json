@@ -1,27 +1,32 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project now includes Phase 5D: an order-tracking system for customers via the customer dashboard, with admin-controlled status progression, timestamps, manual location updates, area-specific pickup/drop-off, and admin-authored pop-up notes.",
+  "summary": "Build a website platform with unified backend workflows (requests, testimonies, messages, coupons, orders) and a secured admin access page for dashboard entry with audit logging.",
   "architectural_notes": [
-    "Order tracking is accessible only via the customer dashboard (no public tracking link).",
-    "Real-time GPS is not used; delivery location updates are manually entered by admins.",
-    "Pickup/drop-off availability is restricted to the Ashland/Westwood, Kentucky area.",
-    "Customers see only the current status and the next status becomes visible only after an admin updates the order."
+    "Admin access requires a master access code; successful logins must be timestamped and logged (audit trail)."
   ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-implement-a-customer-facing-order-tracking-view-inside-the-existing-customer-dashboard-dashboard-only-access-for-each-order-show-the-current-tracking-status-prominently-show-the-next-status-as-locked-preview-until-the-admin-advances-the-order-and-display-timestamps-for-each-status-change-also-display-the-latest-admin-pop-up-note-s-and-the-list-of-manual-location-updates-each-with-timestamp",
-      "title": "Implement a customer-facing order tracking view inside the existing customer Dashboard (dashboard-only access): for each order, show the current tracking status prominently, show the next status as locked/preview until the admin advances the order, and display timestamps for each status change. Also display the latest admin pop-up note(s) and the list of manual location updates (each with timestamp).",
+      "id": "feature-implement-phase-6a-admin-access-page-and-gating-so-that-entering-the-master-access-code-7583a-is-required-before-an-admin-can-enter-the-administrative-dashboard-with-incorrect-entries-denied",
+      "title": "Implement Phase 6A Admin Access Page and gating so that entering the master access code \"7583A\" is required before an admin can enter the administrative dashboard, with incorrect entries denied.",
       "reqIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-enhance-the-admin-orders-experience-so-admins-can-update-order-tracking-from-the-admin-dashboard-provide-a-per-order-detail-ui-to-a-change-the-tracking-status-b-add-a-manual-location-update-and-c-add-a-custom-pop-up-note-message-ensure-the-admin-ui-makes-it-clear-that-customers-only-see-progression-after-admin-updates",
-      "title": "Enhance the Admin orders experience so admins can update order tracking from the admin dashboard: provide a per-order detail UI to (a) change the tracking status, (b) add a manual location update, and (c) add a custom pop-up note/message. Ensure the admin UI makes it clear that customers only see progression after admin updates.",
+      "id": "feature-wire-the-admin-access-page-to-the-backend-verification-api-and-persist-the-unlocked-state-on-the-client-so-that-a-page-refresh-does-not-immediately-re-lock-during-the-same-session-while-still-allowing-lockout-on-explicit-logout",
+      "title": "Wire the Admin Access Page to the backend verification API and persist the unlocked state on the client so that a page refresh does not immediately re-lock during the same session (while still allowing lockout on explicit logout).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-dashboard-entry-ux-to-clearly-communicate-the-two-step-security-requirement-internet-identity-admin-role-master-access-code-using-english-user-facing-text-without-modifying-read-only-immutable-frontend-paths",
+      "title": "Update the admin dashboard entry UX to clearly communicate the two-step security requirement (Internet Identity admin role + master access code) using English user-facing text, without modifying read-only/immutable frontend paths.",
       "reqIds": [
         "REQ-5"
       ],
@@ -31,36 +36,35 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Phase 5D — Order Tracking: customer-dashboard-only tracking; admin updates statuses (pending/processing/ready for pickup/out for delivery/completed) and customers only see current + next step after admin update; timestamps per status; manual admin-entered location updates (no GPS); pickup/drop-off only for Ashland/Westwood KY area; admin-created custom pop-up notes/messages per order.",
+      "summary": "Phase 5F — Unified Backend: unify requests, testimonies, messages, coupons, and orders into one backend for smooth admin/customer workflow",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Extend the backend order data model to persist order-tracking information per order, including: (a) a tracking status with the allowed values pending, processing, ready for pickup, out for delivery, completed; (b) a status-change history with timestamps for each change; (c) a list of manual admin-entered location updates with timestamps (no GPS); (d) a list of admin-authored pop-up notes/messages with timestamps; and (e) a fulfillment method that can represent delivery vs pickup vs drop-off, with pickup/drop-off intended only for the Ashland/Westwood Kentucky area.",
-      "reqIds": [
-        "REQ-1"
-      ],
+      "summary": "Phase 6A — Admin Access Page: require master access code to enter admin dashboard; deny incorrect entries; log successful logins with timestamps",
+      "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-3",
-      "summary": "Add backend admin-only methods to manage order tracking: admins can (a) set/update an order’s tracking status; (b) add a manual location update to an order; and (c) add a custom pop-up note/message to an order. Each mutation must append an entry with a timestamp to the appropriate history/log so customers can see when changes happened.",
+      "id": "AR-4",
+      "summary": "Add a backend API to verify the master access code \"7583A\" for admin principals and record a successful-login audit log entry containing the caller principal and a timestamp, and expose an admin-only query to read these audit log entries.",
       "reqIds": [
         "REQ-2"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-4",
-      "summary": "Update backend order read APIs used by the frontend so that the customer order list and admin order list include the tracking data needed for Phase 5D (current status, the computed/derived next status, timestamps/history, location updates, pop-up notes, and fulfillment method). Updates must appear for customers when they refresh (no real-time push).",
+      "id": "AR-6",
+      "summary": "Complete Phase 5F Unified Backend by ensuring requests, testimonies, messages, coupons, and orders are handled in the single Motoko backend actor with consistent, end-to-end workflows that match the frontend’s existing React Query hooks and admin UI flows.",
       "reqIds": [
-        "REQ-3"
+        "REQ-4"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Phase 5D — Customer order tracking in Dashboard with admin-controlled status, timestamps, locations, and pop-up notes",
+  "gameProjectType": "none",
+  "projectName": "Phase 5F Unified Backend + Phase 6A Admin Access Code Gate with Audit Logging",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

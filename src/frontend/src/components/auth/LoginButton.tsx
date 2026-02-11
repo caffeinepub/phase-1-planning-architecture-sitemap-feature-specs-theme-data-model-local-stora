@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { LogIn, LogOut, Loader2 } from 'lucide-react';
 import { clearSessionStorage } from '../../lib/localStorage';
+import { clearAdminAccessUnlocked } from '../../lib/adminAccessSession';
 
 export default function LoginButton() {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
@@ -17,6 +18,7 @@ export default function LoginButton() {
       await clear();
       queryClient.clear();
       clearSessionStorage();
+      clearAdminAccessUnlocked(); // Clear admin access gate
     } else {
       try {
         await login();

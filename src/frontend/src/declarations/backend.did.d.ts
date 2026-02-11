@@ -10,6 +10,12 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AdminLoginAttempt {
+  'id' : bigint,
+  'principal' : Principal,
+  'timestamp' : bigint,
+  'successful' : boolean,
+}
 export interface Event {
   'id' : bigint,
   'principal' : Principal,
@@ -29,6 +35,7 @@ export interface HealthStatus {
   'deployedVersion' : string,
 }
 export interface PageFeatures { 'features' : Array<Feature>, 'page' : string }
+export interface UserProfile { 'name' : string, 'email' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -62,13 +69,18 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignAdminRole' : ActorMethod<[Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getEvents' : ActorMethod<[], Array<Event>>,
   'getFeatureSpecification' : ActorMethod<[], Array<PageFeatures>>,
+  'getLoginAttempts' : ActorMethod<[], Array<AdminLoginAttempt>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'healthCheck' : ActorMethod<[], HealthStatus>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'logEvent' : ActorMethod<[string, string], undefined>,
   'removeAdminRole' : ActorMethod<[Principal], undefined>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'verifyAdminAccess' : ActorMethod<[string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -1,18 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useGetCallerUserProfile, useCreateTestimony } from '../../hooks/useQueries';
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
-import TestimonyMediaPicker, { TestimonyMediaItem } from './TestimonyMediaPicker';
+import { Label } from '@/components/ui/label';
+import { Star } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Testimony } from '../../types/phase5a';
+import { useSubmitTestimony } from '../../hooks/useQueries';
+import TestimonyMediaPicker, { type TestimonyMediaItem } from './TestimonyMediaPicker';
 
 interface CreateTestimonyDialogProps {
   open: boolean;
@@ -20,26 +13,16 @@ interface CreateTestimonyDialogProps {
 }
 
 export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTestimonyDialogProps) {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile } = useGetCallerUserProfile();
-  const createTestimony = useCreateTestimony();
-
+  const [rating, setRating] = useState<number>(0);
+  const [hoveredRating, setHoveredRating] = useState<number>(0);
   const [photos, setPhotos] = useState<TestimonyMediaItem[]>([]);
   const [videos, setVideos] = useState<TestimonyMediaItem[]>([]);
 
-  useEffect(() => {
-    if (!open) {
-      // Reset form when dialog closes
-      setPhotos([]);
-      setVideos([]);
-    }
-  }, [open]);
+  const submitTestimony = useSubmitTestimony();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!identity) {
-      toast.error('You must be logged in to submit a testimony');
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast.error('Please select a star rating');
       return;
     }
 
@@ -48,82 +31,102 @@ export default function CreateTestimonyDialog({ open, onOpenChange }: CreateTest
       return;
     }
 
-    // Validate all media has descriptions
-    const allMedia = [...photos, ...videos];
-    const missingDescriptions = allMedia.some(m => !m.description.trim());
-    if (missingDescriptions) {
-      toast.error('Please add descriptions to all media items');
-      return;
-    }
-
     try {
-      const testimonyData: Testimony = {
-        id: 0n, // Will be set by backend
-        submittedBy: identity.getPrincipal(),
-        photos: photos.map(p => ({
-          blob: p.blob,
-          description: p.description.trim(),
-        })),
-        videos: videos.map(v => ({
-          blob: v.blob,
-          description: v.description.trim(),
-        })),
-        approved: false,
+      const testimonyData = {
+        rating,
+        photos: photos.map(p => ({ blob: p.blob, description: p.description })),
+        videos: videos.map(v => ({ blob: v.blob, description: v.description })),
       };
 
-      await createTestimony.mutateAsync(testimonyData);
-      toast.success('Testimony submitted successfully! It will appear after admin approval.');
+      await submitTestimony.mutateAsync(testimonyData);
+      toast.success('Testimony submitted! It will appear after admin approval.');
+      
+      // Reset form
+      setRating(0);
+      setPhotos([]);
+      setVideos([]);
       onOpenChange(false);
     } catch (error: any) {
       console.error('Failed to submit testimony:', error);
-      toast.error(error.message || 'Failed to submit testimony. This feature will be available once the backend is updated.');
+      toast.error(error.message || 'Failed to submit testimony');
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Submit a Testimony</DialogTitle>
+          <DialogTitle>Create Testimony</DialogTitle>
           <DialogDescription>
-            Share your experience with photos and videos. All submissions require admin approval before appearing publicly.
+            Share your experience with photos, videos, and a star rating. Your testimony will be reviewed before appearing publicly.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <TestimonyMediaPicker
-            photos={photos}
-            videos={videos}
-            onPhotosChange={setPhotos}
-            onVideosChange={setVideos}
-            disabled={createTestimony.isPending}
-          />
+        <div className="space-y-6">
+          {/* Star Rating */}
+          <div className="space-y-2">
+            <Label>Star Rating *</Label>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoveredRating(star)}
+                  onMouseLeave={() => setHoveredRating(0)}
+                  className="transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={`h-8 w-8 ${
+                      star <= (hoveredRating || rating)
+                        ? 'fill-arcane-gold text-arcane-gold'
+                        : 'text-muted-foreground'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            {rating > 0 && (
+              <p className="text-sm text-muted-foreground">
+                {rating} {rating === 1 ? 'star' : 'stars'} selected
+              </p>
+            )}
+          </div>
 
+          {/* Photos and Videos */}
+          <div className="space-y-2">
+            <Label>Photos & Videos</Label>
+            <TestimonyMediaPicker
+              photos={photos}
+              videos={videos}
+              onPhotosChange={setPhotos}
+              onVideosChange={setVideos}
+            />
+          </div>
+
+          {/* Submit */}
           <div className="flex gap-4">
             <Button
-              type="submit"
-              disabled={createTestimony.isPending || (photos.length === 0 && videos.length === 0)}
+              onClick={handleSubmit}
+              disabled={submitTestimony.isPending || rating === 0 || (photos.length === 0 && videos.length === 0)}
               className="flex-1"
             >
-              {createTestimony.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                'Submit Testimony'
-              )}
+              {submitTestimony.isPending ? 'Submitting...' : 'Submit Testimony'}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={createTestimony.isPending}
+              disabled={submitTestimony.isPending}
             >
               Cancel
             </Button>
           </div>
-        </form>
+
+          <p className="text-xs text-muted-foreground text-center">
+            Your testimony will be reviewed by an administrator before appearing publicly.
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

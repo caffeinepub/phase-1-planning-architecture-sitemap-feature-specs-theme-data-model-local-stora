@@ -24,6 +24,10 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const UserProfile = IDL.Record({
+  'name' : IDL.Text,
+  'email' : IDL.Text,
+});
 export const Event = IDL.Record({
   'id' : IDL.Nat,
   'principal' : IDL.Principal,
@@ -38,6 +42,12 @@ export const Feature = IDL.Record({
 export const PageFeatures = IDL.Record({
   'features' : IDL.Vec(Feature),
   'page' : IDL.Text,
+});
+export const AdminLoginAttempt = IDL.Record({
+  'id' : IDL.Nat,
+  'principal' : IDL.Principal,
+  'timestamp' : IDL.Nat,
+  'successful' : IDL.Bool,
 });
 export const HealthStatus = IDL.Record({
   'status' : IDL.Text,
@@ -76,13 +86,22 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getFeatureSpecification' : IDL.Func([], [IDL.Vec(PageFeatures)], ['query']),
+  'getLoginAttempts' : IDL.Func([], [IDL.Vec(AdminLoginAttempt)], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
   'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'verifyAdminAccess' : IDL.Func([IDL.Text], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
@@ -104,6 +123,7 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
+  const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
   const Event = IDL.Record({
     'id' : IDL.Nat,
     'principal' : IDL.Principal,
@@ -118,6 +138,12 @@ export const idlFactory = ({ IDL }) => {
   const PageFeatures = IDL.Record({
     'features' : IDL.Vec(Feature),
     'page' : IDL.Text,
+  });
+  const AdminLoginAttempt = IDL.Record({
+    'id' : IDL.Nat,
+    'principal' : IDL.Principal,
+    'timestamp' : IDL.Nat,
+    'successful' : IDL.Bool,
   });
   const HealthStatus = IDL.Record({
     'status' : IDL.Text,
@@ -156,6 +182,7 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignAdminRole' : IDL.Func([IDL.Principal], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getFeatureSpecification' : IDL.Func(
@@ -163,10 +190,18 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(PageFeatures)],
         ['query'],
       ),
+    'getLoginAttempts' : IDL.Func([], [IDL.Vec(AdminLoginAttempt)], ['query']),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
     'healthCheck' : IDL.Func([], [HealthStatus], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'logEvent' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'removeAdminRole' : IDL.Func([IDL.Principal], [], []),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'verifyAdminAccess' : IDL.Func([IDL.Text], [IDL.Bool], []),
   });
 };
 

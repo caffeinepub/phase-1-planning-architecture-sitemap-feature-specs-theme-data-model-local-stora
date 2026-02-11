@@ -1,16 +1,19 @@
 import Runtime "mo:core/Runtime";
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
-import Array "mo:core/Array";
 import Text "mo:core/Text";
-import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
+import Principal "mo:core/Principal";
+import Array "mo:core/Array";
+import Migration "migration";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
+// Auto-migrate on upgrade!
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -33,6 +36,7 @@ actor {
   var adminRegistry = Map.empty<Principal, AdminRole>();
   var adminCredentials = Map.empty<Principal, AdminCredentials>();
   var inbox = Map.empty<Principal, [InboxItem]>();
+  var adminLogins = Map.empty<Nat, AdminLoginAttempt>();
 
   // Persistent ID counters
   var nextUserId = 1;
@@ -46,6 +50,7 @@ actor {
   var nextQuoteRequestId = 1;
   var nextExpandedProductId = 1;
   var nextInboxItemId = 1;
+  var nextLoginId = 1; // Counter for login attempts
 
   var ownerPrincipal : ?Principal = null;
   var storeConfig : StoreConfig = {
@@ -72,6 +77,51 @@ actor {
     deploymentInfo;
   };
 
+  // Secure Admin Login Tracking
+  public type AdminLoginAttempt = {
+    id : Nat;
+    principal : Principal;
+    timestamp : Nat;
+    successful : Bool;
+  };
+
+  var nextLoginAttemptId = 1;
+
+  // PIN Verification and Audit Logging
+  public shared ({ caller }) func verifyAdminAccess(inputCode : Text) : async Bool {
+    let masterCode = "7583A";
+    let isValid = inputCode == masterCode;
+
+    // Log the attempt regardless of outcome
+    let attempt : AdminLoginAttempt = {
+      id = nextLoginAttemptId;
+      principal = caller;
+      timestamp = 0; // Use 0 as timestamp until time_import is supported for Internet Computer
+      successful = isValid;
+    };
+
+    adminLogins.add(nextLoginAttemptId, attempt);
+    nextLoginAttemptId += 1;
+
+    // If code is valid, grant admin role and return true
+    if (isValid) {
+      // Grant admin role to the caller
+      AccessControl.assignRole(accessControlState, caller, caller, #admin);
+      return true;
+    };
+
+    // If code is invalid, return false (don't trap, just return false)
+    return false;
+  };
+
+  // Admin-only endpoint to query login attempts
+  public query ({ caller }) func getLoginAttempts() : async [AdminLoginAttempt] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view login attempts");
+    };
+    adminLogins.values().toArray();
+  };
+
   // Event Logging
   public type Event = {
     id : Nat;
@@ -85,13 +135,21 @@ actor {
   var events = Map.empty<Nat, Event>();
 
   public shared ({ caller }) func logEvent(message : Text, level : Text) : async () {
-    if (level == "admin" and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Authorization Failed: Only admins can log admin-level events.");
+    // Validate level
+    let validLevels = ["info", "warning", "error", "admin"];
+    var isValidLevel = false;
+    for (lvl in validLevels.vals()) {
+      if (lvl == level) {
+        isValidLevel := true;
+      };
+    };
+    if (not isValidLevel) {
+      Runtime.trap("Invalid event level: " # level);
     };
 
-    let validLevels = ["info", "warning", "error", "admin"];
-    if (not validLevels.any(func(lvl) { lvl == level })) {
-      Runtime.trap("Invalid event level: " # level);
+    // Admin-level events require admin permission
+    if (level == "admin" and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can log admin-level events");
     };
 
     let event : Event = {
@@ -111,6 +169,32 @@ actor {
       Runtime.trap("Unauthorized: Only admins can view events");
     };
     events.values().toArray();
+  };
+
+  ////////////////////////////////////////////////////
+  // User Profile Management (Required by Frontend)
+  ////////////////////////////////////////////////////
+
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can access profiles");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    // Users can only view their own profile, admins can view any profile
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
   };
 
   ////////////////////////////////////////////////////
@@ -327,7 +411,7 @@ actor {
   };
 
   ////////////////////////////////////////////////////
-  // Deprecated Role Management (Retained for compatibility)
+  // Role Management (Admin-only)
   ////////////////////////////////////////////////////
   public shared ({ caller }) func assignAdminRole(user : Principal) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
@@ -343,4 +427,3 @@ actor {
     AccessControl.assignRole(accessControlState, caller, user, #user);
   };
 };
-

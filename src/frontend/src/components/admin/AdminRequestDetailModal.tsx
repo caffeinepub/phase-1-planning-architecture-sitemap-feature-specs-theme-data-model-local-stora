@@ -28,6 +28,7 @@ export default function AdminRequestDetailModal({
   const [messageBody, setMessageBody] = useState('');
   const [messageAttachments, setMessageAttachments] = useState<MessageAttachment[]>([]);
   const [couponCode, setCouponCode] = useState('');
+  const [orderPrice, setOrderPrice] = useState('');
 
   const approveRequest = useApproveRequest();
   const declineRequest = useDeclineRequest();
@@ -52,7 +53,10 @@ export default function AdminRequestDetailModal({
 
   const handleDecline = async () => {
     try {
-      await declineRequest.mutateAsync(request.id);
+      await declineRequest.mutateAsync({
+        requestId: request.id,
+        reason: 'Declined by admin',
+      });
       toast.success('Request declined');
     } catch (error: any) {
       toast.error(error.message || 'Failed to decline request');
@@ -68,6 +72,7 @@ export default function AdminRequestDetailModal({
     try {
       await sendMessage.mutateAsync({
         customerId: request.submittedBy,
+        subject: `Re: Request #${request.id.toString()}`,
         body: messageBody,
         attachments: messageAttachments,
       });
@@ -98,9 +103,24 @@ export default function AdminRequestDetailModal({
   };
 
   const handleConvertToOrder = async () => {
+    if (!orderPrice.trim()) {
+      toast.error('Please enter an order price');
+      return;
+    }
+
+    const price = parseFloat(orderPrice);
+    if (isNaN(price) || price <= 0) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+
     try {
-      const orderId = await convertToOrder.mutateAsync(request.id);
+      const orderId = await convertToOrder.mutateAsync({
+        requestId: request.id,
+        price: BigInt(Math.floor(price * 100)), // Convert to cents
+      });
       toast.success(`Request converted to Order #${orderId.toString()}`);
+      setOrderPrice('');
     } catch (error: any) {
       toast.error(error.message || 'Failed to convert to order');
     }
@@ -164,24 +184,39 @@ export default function AdminRequestDetailModal({
                 )}
 
                 {isApproved && !request.convertedOrderId && (
-                  <Button
-                    onClick={handleConvertToOrder}
-                    disabled={convertToOrder.isPending}
-                    className="w-full"
-                  >
-                    {convertToOrder.isPending ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                    )}
-                    Convert to Order
-                  </Button>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="order-price">Order Price (in ICP)</Label>
+                      <Input
+                        id="order-price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="e.g., 10.50"
+                        value={orderPrice}
+                        onChange={(e) => setOrderPrice(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      onClick={handleConvertToOrder}
+                      disabled={convertToOrder.isPending || !orderPrice.trim()}
+                      className="w-full"
+                    >
+                      {convertToOrder.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                      )}
+                      Convert to Order
+                    </Button>
+                  </div>
                 )}
 
                 {request.convertedOrderId && (
                   <div className="p-3 bg-muted rounded-md">
-                    <p className="text-sm font-medium">
-                      Converted to Order #{request.convertedOrderId.toString()}
+                    <p className="text-sm">
+                      <span className="font-medium">Converted to Order:</span>{' '}
+                      #{request.convertedOrderId.toString()}
                     </p>
                   </div>
                 )}
@@ -193,73 +228,80 @@ export default function AdminRequestDetailModal({
               <CardHeader>
                 <CardTitle className="text-base">Request Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Customer</Label>
-                  <p className="text-sm font-medium">{request.name}</p>
-                  <p className="text-sm text-muted-foreground">{request.email}</p>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Name</p>
+                    <p className="font-medium">{request.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-medium">{request.email}</p>
+                  </div>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-muted-foreground">Principal</Label>
-                  <p className="text-xs font-mono break-all">{request.submittedBy.toString()}</p>
+                  <p className="text-sm text-muted-foreground mb-1">Pricing Preference</p>
+                  <Badge variant="outline">{pricingText}</Badge>
                 </div>
 
                 <Separator />
 
                 <div>
-                  <Label className="text-xs text-muted-foreground">Pricing Preference</Label>
-                  <p className="text-sm">{pricingText}</p>
+                  <p className="text-sm text-muted-foreground mb-2">Description</p>
+                  <p className="text-sm whitespace-pre-wrap">{request.description}</p>
                 </div>
 
+                {request.attachments.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Attachments ({request.attachments.length})
+                      </p>
+                      <div className="space-y-2">
+                        {request.attachments.map((item, idx) => {
+                          const url = item.blob.getDirectURL();
+                          return (
+                            <div key={idx} className="flex items-center justify-between p-2 border rounded-md">
+                              <span className="text-sm truncate flex-1">{item.filename}</span>
+                              <div className="flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => window.open(url, '_blank')}
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = item.filename;
+                                    a.click();
+                                  }}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <Separator />
+
                 <div>
-                  <Label className="text-xs text-muted-foreground">Description</Label>
-                  <p className="text-sm whitespace-pre-wrap">{request.description}</p>
+                  <p className="text-sm text-muted-foreground">Submitted By</p>
+                  <p className="text-xs font-mono break-all">{request.submittedBy.toString()}</p>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Attachments */}
-            {request.attachments.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Attachments ({request.attachments.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {request.attachments.map((attachment, idx) => {
-                      const url = attachment.blob.getDirectURL();
-                      return (
-                        <div key={idx} className="flex items-center justify-between p-2 border rounded-md">
-                          <span className="text-sm truncate flex-1">{attachment.filename}</span>
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => window.open(url, '_blank')}
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = attachment.filename;
-                                a.click();
-                              }}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Action History */}
             {request.actionHistory.length > 0 && (
@@ -270,15 +312,11 @@ export default function AdminRequestDetailModal({
                 <CardContent>
                   <div className="space-y-2">
                     {request.actionHistory.map((action, idx) => (
-                      <div key={idx} className="text-sm">
-                        <span className="font-medium">{action.actionType}</span>
-                        <span className="text-muted-foreground"> by </span>
-                        <span className="font-mono text-xs">{action.admin.toString().slice(0, 10)}...</span>
-                        {action.timestamp > 0n && (
-                          <span className="text-muted-foreground text-xs ml-2">
-                            {new Date(Number(action.timestamp)).toLocaleString()}
-                          </span>
-                        )}
+                      <div key={idx} className="text-sm p-2 rounded bg-muted/30 border border-border/20">
+                        <p>{action.actionType}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {action.timestamp > 0n ? new Date(Number(action.timestamp)).toLocaleString() : 'N/A'}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -289,33 +327,34 @@ export default function AdminRequestDetailModal({
             {/* Send Message */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Send Message to Customer</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Send Message to Customer
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
                   <Label htmlFor="message-body">Message</Label>
                   <Textarea
                     id="message-body"
+                    placeholder="Type your message here..."
                     value={messageBody}
                     onChange={(e) => setMessageBody(e.target.value)}
-                    placeholder="Type your message here..."
                     rows={4}
-                    disabled={sendMessage.isPending}
                   />
                 </div>
 
                 <div>
-                  <Label>Attachments (optional)</Label>
+                  <Label>Attachments (Optional)</Label>
                   <MessageAttachmentPicker
                     attachments={messageAttachments}
                     onChange={setMessageAttachments}
-                    disabled={sendMessage.isPending}
                   />
                 </div>
 
                 <Button
                   onClick={handleSendMessage}
-                  disabled={sendMessage.isPending || !messageBody.trim()}
+                  disabled={!messageBody.trim() || sendMessage.isPending}
                   className="w-full"
                 >
                   {sendMessage.isPending ? (
@@ -331,24 +370,27 @@ export default function AdminRequestDetailModal({
             {/* Send Coupon */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Send Coupon to Customer</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Gift className="h-4 w-4" />
+                  Send Coupon to Customer
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
                   <Label htmlFor="coupon-code">Coupon Code</Label>
                   <Input
                     id="coupon-code"
+                    placeholder="e.g., SAVE20"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="Enter coupon code"
-                    disabled={sendCoupon.isPending}
                   />
                 </div>
 
                 <Button
                   onClick={handleSendCoupon}
-                  disabled={sendCoupon.isPending || !couponCode.trim()}
+                  disabled={!couponCode.trim() || sendCoupon.isPending}
                   className="w-full"
+                  variant="outline"
                 >
                   {sendCoupon.isPending ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
