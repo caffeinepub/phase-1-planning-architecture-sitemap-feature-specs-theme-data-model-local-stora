@@ -2,10 +2,14 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-a-protected-admin-access-page-at-route-admin-access-that-prompts-for-the-five-character-master-access-code-7583a-and-on-correct-entry-immediately-grants-access-to-the-existing-admin-dashboard-on-success-unlock-the-existing-admin-access-gate-for-the-current-browser-session-and-route-the-user-to-admin-on-failure-including-backend-errors-deny-access-and-display-only-the-exact-user-facing-message-access-denied-no-extra-details-ensure-the-input-enforces-exactly-5-characters-ui-maxlength-5-and-ui-copy-must-refer-to-a-five-character-code-not-a-digit-only-pin-do-not-display-any-security-implementation-details-e-g-do-not-mention-multi-step-verification-logging-mechanics-principals-roles-etc-on-this-page",
-      "featureTitle": "Implement a protected Admin Access Page at route \"/admin-access\" that prompts for the five-character master access code \"7583A\" and, on correct entry, immediately grants access to the existing Admin Dashboard.\n\n- On success: unlock the existing admin access gate for the current browser session and route the user to \"/admin\".\n- On failure (including backend errors): deny access and display only the exact user-facing message \"Access Denied\" (no extra details).\n- Ensure the input enforces exactly 5 characters (UI maxLength=5, and UI copy must refer to a five-character code, not a digit-only PIN).\n- Do not display any security implementation details (e.g., do not mention multi-step verification, logging mechanics, principals, roles, etc.) on this page.",
+      "featureId": "feature-expand-the-existing-admin-dashboard-so-that-after-internet-identity-login-successful-admin-access-unlock-admins-can-access-a-single-control-center-ui-that-includes-sections-for-requests-orders-testimonies-messaging-coupons-analytics-and-system-settings",
+      "featureTitle": "Expand the existing /admin dashboard so that after Internet Identity login + successful Admin Access unlock, admins can access a single control-center UI that includes sections for: Requests, Orders, Testimonies, Messaging, Coupons, Analytics, and System Settings.",
       "files": [
-        "frontend/src/pages/AdminAccess.tsx"
+        "frontend/src/components/admin/AdminAnalyticsTab.tsx",
+        "frontend/src/components/admin/AdminCouponsTab.tsx",
+        "frontend/src/components/admin/AdminMessagingTab.tsx",
+        "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
+        "frontend/src/pages/Admin.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -22,10 +26,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-site-header-navigation-so-the-admin-access-page-link-placement-matches-the-requested-responsive-behavior-mobile-devices-ensure-an-admin-link-appears-in-the-top-right-hamburger-menu-desktop-computer-tv-screens-ensure-an-admin-link-appears-in-the-main-top-navigation-bar-alongside-the-other-website-pages-labeled-exactly-admin-the-link-must-navigate-to-admin-access-and-must-extend-existing-navigation-behavior-rather-than-replacing-it",
-      "featureTitle": "Update the site header navigation so the Admin Access Page link placement matches the requested responsive behavior:\n\n- Mobile devices: ensure an \"Admin\" link appears in the top-right hamburger menu.\n- Desktop/computer/TV screens: ensure an \"Admin\" link appears in the main top navigation bar alongside the other website pages, labeled exactly \"Admin\".\n\nThe link must navigate to \"/admin-access\" and must extend existing navigation behavior rather than replacing it.",
+      "featureId": "feature-implement-an-admin-messaging-section-in-the-admin-dashboard-that-lets-admins-review-customer-inbox-items-and-send-new-admin-to-customer-messages-including-attachments-if-supported-by-existing-attachment-components",
+      "featureTitle": "Implement an Admin Messaging section in the admin dashboard that lets admins review customer inbox items and send new admin-to-customer messages (including attachments if supported by existing attachment components).",
       "files": [
-        "frontend/src/components/layout/HeaderNav.tsx"
+        "frontend/src/components/admin/AdminMessagingTab.tsx",
+        "frontend/src/hooks/useAdminMessaging.ts",
+        "frontend/src/types/adminMessaging.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -42,10 +48,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-admin-dashboard-route-admin-remains-protected-by-the-existing-authentication-and-admin-access-gate-systems-such-that-users-cannot-access-the-admin-dashboard-unless-they-have-successfully-entered-the-master-access-code-during-the-current-browser-session-this-gating-behavior-must-extend-existing-mechanisms-e-g-the-current-gate-session-approach-rather-than-replacing-the-admin-dashboard-implementation",
-      "featureTitle": "Ensure the Admin Dashboard route \"/admin\" remains protected by the existing authentication and admin access gate systems, such that:\n\n- Users cannot access the Admin Dashboard unless they have successfully entered the master access code during the current browser session.\n- This gating behavior must extend existing mechanisms (e.g., the current gate/session approach) rather than replacing the admin dashboard implementation.",
+      "featureId": "feature-implement-an-admin-coupons-section-in-the-admin-dashboard-that-allows-admins-to-view-coupons-and-perform-coupon-management-actions-already-supported-by-the-backend-e-g-create-coupon-toggle-validity-and-to-send-coupons-to-customers-when-supported-by-existing-workflows",
+      "featureTitle": "Implement an Admin Coupons section in the admin dashboard that allows admins to view coupons and perform coupon management actions already supported by the backend (e.g., create coupon, toggle validity) and to send coupons to customers when supported by existing workflows.",
       "files": [
-        "frontend/src/components/auth/RequireAdminAccessGate.tsx"
+        "frontend/src/components/admin/AdminCouponsTab.tsx",
+        "frontend/src/hooks/useAdminCoupons.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -62,10 +69,31 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-logging-out-clears-any-session-scoped-admin-access-unlocked-state-so-that-after-logout-the-browser-session-no-longer-has-access-gate-unlock-privileges-until-the-master-code-is-re-entered",
-      "featureTitle": "Ensure logging out clears any session-scoped \"admin access unlocked\" state so that, after logout, the browser session no longer has access-gate unlock privileges until the master code is re-entered.",
+      "featureId": "feature-implement-an-admin-analytics-section-in-the-admin-dashboard-that-displays-an-analytics-snapshot-using-existing-analytics-query-mutation-patterns-with-clear-loading-error-states",
+      "featureTitle": "Implement an Admin Analytics section in the admin dashboard that displays an analytics snapshot using existing analytics query/mutation patterns, with clear loading/error states.",
       "files": [
-        "frontend/src/components/auth/LoginButton.tsx"
+        "frontend/src/components/admin/AdminAnalyticsTab.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-system-settings-section-in-the-admin-dashboard-that-centralizes-system-level-tools-e-g-store-configuration-health-status-audit-logs-and-enforces-appropriate-permissions-for-sensitive-actions",
+      "featureTitle": "Implement a System Settings section in the admin dashboard that centralizes system-level tools (e.g., store configuration, health/status, audit logs) and enforces appropriate permissions for sensitive actions.",
+      "files": [
+        "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
+        "frontend/src/hooks/useSystemSettings.ts"
       ],
       "components": [
         "authorization@4.0.0",

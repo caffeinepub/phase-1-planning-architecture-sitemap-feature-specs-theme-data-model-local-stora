@@ -1,84 +1,110 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T02:25:20.705Z",
+  "generatedAt": "2026-02-11T02:45:20.939Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 4,
+    "total": 6,
+    "implemented": 5,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement a protected Admin Access Page at route \"/admin-access\" that prompts for the five-character master access code \"7583A\" and, on correct entry, immediately grants access to the existing Admin Dashboard.\n\n- On success: unlock the existing admin access gate for the current browser session and route the user to \"/admin\".\n- On failure (including backend errors): deny access and display only the exact user-facing message \"Access Denied\" (no extra details).\n- Ensure the input enforces exactly 5 characters (UI maxLength=5, and UI copy must refer to a five-character code, not a digit-only PIN).\n- Do not display any security implementation details (e.g., do not mention multi-step verification, logging mechanics, principals, roles, etc.) on this page.",
+        "summary": "Expand the existing /admin dashboard so that after Internet Identity login + successful Admin Access unlock, admins can access a single control-center UI that includes sections for: Requests, Orders, Testimonies, Messaging, Coupons, Analytics, and System Settings.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/AdminAccess.tsx"
+          "frontend/src/pages/Admin.tsx",
+          "frontend/src/components/admin/AdminMessagingTab.tsx",
+          "frontend/src/components/admin/AdminCouponsTab.tsx",
+          "frontend/src/components/admin/AdminAnalyticsTab.tsx",
+          "frontend/src/components/admin/AdminSystemSettingsTab.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/AdminAccess.tsx"
+          "frontend/src/pages/Admin.tsx",
+          "frontend/src/components/admin/AdminMessagingTab.tsx",
+          "frontend/src/components/admin/AdminCouponsTab.tsx",
+          "frontend/src/components/admin/AdminAnalyticsTab.tsx",
+          "frontend/src/components/admin/AdminSystemSettingsTab.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update the site header navigation so the Admin Access Page link placement matches the requested responsive behavior:\n\n- Mobile devices: ensure an \"Admin\" link appears in the top-right hamburger menu.\n- Desktop/computer/TV screens: ensure an \"Admin\" link appears in the main top navigation bar alongside the other website pages, labeled exactly \"Admin\".\n\nThe link must navigate to \"/admin-access\" and must extend existing navigation behavior rather than replacing it.",
+        "summary": "Implement an Admin Messaging section in the admin dashboard that lets admins review customer inbox items and send new admin-to-customer messages (including attachments if supported by existing attachment components).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/layout/HeaderNav.tsx"
+          "frontend/src/components/admin/AdminMessagingTab.tsx",
+          "frontend/src/hooks/useAdminMessaging.ts",
+          "frontend/src/types/adminMessaging.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/layout/HeaderNav.tsx"
+          "frontend/src/components/admin/AdminMessagingTab.tsx",
+          "frontend/src/hooks/useAdminMessaging.ts",
+          "frontend/src/types/adminMessaging.ts"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Ensure the Admin Dashboard route \"/admin\" remains protected by the existing authentication and admin access gate systems, such that:\n\n- Users cannot access the Admin Dashboard unless they have successfully entered the master access code during the current browser session.\n- This gating behavior must extend existing mechanisms (e.g., the current gate/session approach) rather than replacing the admin dashboard implementation.",
+        "summary": "Implement an Admin Coupons section in the admin dashboard that allows admins to view coupons and perform coupon management actions already supported by the backend (e.g., create coupon, toggle validity) and to send coupons to customers when supported by existing workflows.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-          "frontend/src/pages/Admin.tsx"
+          "frontend/src/components/admin/AdminCouponsTab.tsx",
+          "frontend/src/hooks/useAdminCoupons.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/auth/RequireAdminAccessGate.tsx"
+          "frontend/src/components/admin/AdminCouponsTab.tsx",
+          "frontend/src/hooks/useAdminCoupons.ts"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "Update the backend admin access verification so that every successful master-code verification is automatically timestamped and stored in a persistent Admin Access Log for auditing.\n\n- Store at least: unique log entry id, caller principal, and a real timestamp (do not use a placeholder value).\n- Only successful verifications must be recorded in this Admin Access Log.\n- Keep (or provide) an admin-only query endpoint to retrieve the Admin Access Log for auditing purposes (do not expose this log publicly).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Implement an Admin Analytics section in the admin dashboard that displays an analytics snapshot using existing analytics query/mutation patterns, with clear loading/error states.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/admin/AdminAnalyticsTab.tsx",
+          "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/admin/AdminAnalyticsTab.tsx"
+        ]
       },
       {
         "id": "REQ-5",
-        "summary": "Ensure logging out clears any session-scoped \"admin access unlocked\" state so that, after logout, the browser session no longer has access-gate unlock privileges until the master code is re-entered.",
+        "summary": "Implement a System Settings section in the admin dashboard that centralizes system-level tools (e.g., store configuration, health/status, audit logs) and enforces appropriate permissions for sensitive actions.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/auth/LoginButton.tsx",
-          "frontend/src/lib/adminAccessSession.ts"
+          "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
+          "frontend/src/hooks/useSystemSettings.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/auth/LoginButton.tsx"
+          "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
+          "frontend/src/hooks/useSystemSettings.ts"
         ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Add/verify backend canister methods required by the new Admin dashboard sections (Messaging, Coupons, Analytics, System Settings), ensuring they are admin-gated and return stable, frontend-consumable types.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/auth/LoginButton.tsx",
-    "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-    "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/pages/AdminAccess.tsx",
+    "frontend/src/components/admin/AdminAnalyticsTab.tsx",
+    "frontend/src/components/admin/AdminCouponsTab.tsx",
+    "frontend/src/components/admin/AdminMessagingTab.tsx",
+    "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
+    "frontend/src/hooks/useAdminCoupons.ts",
+    "frontend/src/hooks/useAdminMessaging.ts",
+    "frontend/src/hooks/useSystemSettings.ts",
+    "frontend/src/pages/Admin.tsx",
+    "frontend/src/types/adminMessaging.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,79 +1,131 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Phase 6A (Frontend): Admin access gateway page, responsive Admin nav link, session gate protection, and logout gate reset",
+  "title": "Phase 6B: Admin Dashboard Control Center (full tabs after login) — Frontend",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Harden /admin-access UI to verify the five-character master code and set a session unlock flag, showing only \"Access Denied\" on any failure without disclosing security details.",
+      "summary": "Expand /admin into a single control-center UI with 7 sections (Requests, Orders, Testimonies, Messaging, Coupons, Analytics, System Settings) after admin login + Admin Access unlock, keeping existing tab behavior unchanged.",
       "acceptanceCriteria": [
-        "Visiting /admin-access shows a form with a single code input limited to 5 characters.",
-        "Submitting an incorrect code results in only the text \"Access Denied\" being shown; no other explanatory text is displayed.",
-        "Submitting the correct code routes the user to /admin and the admin dashboard renders in the same session without re-entering the code.",
-        "All user-facing text on the page is in English and does not disclose security/audit details (no mention of roles, principals, timestamps, logging, or multi-step verification)."
+        "Visiting /admin as a logged-in admin who has unlocked Admin Access (via /admin-access) shows a dashboard with navigation for all 7 sections: Requests, Orders, Testimonies, Messaging, Coupons, Analytics, System Settings.",
+        "The existing sections (Orders, Requests, Testimonies) remain functional and unchanged in behavior.",
+        "All user-facing labels for the new sections are in English and consistent with the existing admin UI tone."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminAccess.tsx",
+          "path": "frontend/src/pages/Admin.tsx",
           "operation": "modify",
-          "description": "Update the Admin Access Page UI copy and validation to enforce exactly 5 characters (maxLength=5 and submit disabled until length is 5). On any failure (invalid code, empty/short code submission, or verification error), render only the exact message \"Access Denied\" (no prefixes/suffixes, no extra help text). Remove any text that reveals security implementation/audit details (e.g., two-step verification, logging, principals, roles). Keep success behavior: call verifyAdminAccess, set the session unlock via setAdminAccessUnlocked(), then navigate to /admin. Use the authorization component’s existing frontend auth patterns via the existing RequireAdmin wrapper to ensure only authenticated admins can reach this page; verify the component's usage instructions before implementing."
+          "description": "Expand the existing Tabs UI to include additional tab triggers/contents for Messaging, Coupons, Analytics, and System Settings while preserving the existing Orders/Requests/Testimonies tabs and their behavior. Leverage existing admin gating (Use the authorization component via RequireAdmin + RequireAdminAccessGate to ensure admin-only access after unlock). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminMessagingTab.tsx",
+          "operation": "create",
+          "description": "Create a new Messaging tab component to be rendered from /admin. Use existing admin UI patterns (cards, lists, loading/error states) consistent with other admin tabs. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminCouponsTab.tsx",
+          "operation": "create",
+          "description": "Create a new Coupons tab component to be rendered from /admin, with list and management actions wired to existing React Query patterns/hooks. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminAnalyticsTab.tsx",
+          "operation": "create",
+          "description": "Create a new Analytics tab component to be rendered from /admin that shows an analytics snapshot with clear loading/error states and a manual refresh action. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
+          "operation": "create",
+          "description": "Create a new System Settings tab component to be rendered from /admin that centralizes health/status and audit views, and conditionally exposes sensitive tools for the owner only. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Add an \"Admin\" navigation link that routes to /admin-access in both desktop top nav and mobile hamburger menu without disrupting existing navigation.",
+      "summary": "Add an Admin Messaging section allowing admins to review customer inbox items/threads and send admin-to-customer messages, optionally including attachments using existing attachment UI and validation.",
       "acceptanceCriteria": [
-        "On narrow viewports, opening the hamburger menu shows an \"Admin\" link that navigates to /admin-access.",
-        "On large viewports, the top nav link row includes an \"Admin\" text link (not icon-only) that navigates to /admin-access.",
-        "Existing navigation links and behavior remain intact."
+        "Admins can open the Messaging section and see a list of message threads or inbox items that clearly identifies the customer (Principal) and message content/type/time (where available).",
+        "Admins can send a message to a selected customer; successful send results in the new message appearing in the UI after refresh or automatic query invalidation.",
+        "If attachments are enabled in the UI, invalid files are rejected using the existing validation behavior and the UI shows upload/progress states consistent with existing patterns (e.g., MessageAttachmentPicker)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
+          "path": "frontend/src/components/admin/AdminMessagingTab.tsx",
           "operation": "modify",
-          "description": "Extend (do not replace) existing navigation by adding a text link labeled exactly \"Admin\" pointing to /admin-access in (1) the desktop main navigation link row and (2) the mobile hamburger menu list. Ensure the desktop presentation is text (not icon-only). Keep existing links and behavior intact; if an admin-only icon button remains, it must not be the only desktop route to /admin-access. Verify the authorization component’s usage instructions before implementing any auth-aware visibility rules."
+          "description": "Implement the Messaging UI: (1) fetch and render an admin-view list of customer inbox items/threads (grouped or flat), showing customer Principal, message type, preview, and timestamp when available; (2) provide a compose/send panel targeting a selected customer Principal; (3) integrate attachment selection and upload states using the existing MessageAttachmentPicker component. Use the blob-storage component capability (ExternalBlob for attachment representation + direct URL access where needed) only through the existing attachment flow and types. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminMessaging.ts",
+          "operation": "create",
+          "description": "Create dedicated React Query hooks for admin messaging (admin inbox listing + send message). These hooks should use useActor() and follow existing query invalidation/refetch patterns so sent messages appear after refresh/invalidations. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/types/adminMessaging.ts",
+          "operation": "create",
+          "description": "Add frontend-only TypeScript types for the admin messaging view model (e.g., admin inbox row/thread shape, send payload shape) to keep UI components typed and stable even if backend-returned shapes evolve. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Ensure /admin stays protected by the existing session-based admin access gate so the dashboard cannot render unless the gate is unlocked in the current browser session.",
+      "summary": "Add an Admin Coupons section allowing admins to view coupons, create coupons, toggle validity, and (when supported) send coupons to customers using existing workflows so they appear in the customer Inbox.",
       "acceptanceCriteria": [
-        "Direct navigation to /admin without having unlocked the access gate during the current session redirects the user to /admin-access or otherwise prevents rendering of the dashboard content.",
-        "After a successful unlock, navigating to /admin works for the remainder of the browser session (until session end or explicit logout/session clear).",
-        "No existing Admin Dashboard tabs/features are removed or replaced."
+        "Admins can open the Coupons section and see a list of coupons with code, discount, and validity status.",
+        "Admins can create a coupon and the coupons list updates after creation.",
+        "Admins can toggle coupon validity and the UI reflects the updated status after the mutation completes.",
+        "If sending coupons to customers is supported by existing backend/workflows, the Coupons section provides a way to select a customer and send a coupon, and the customer receives a corresponding inbox item visible on the customer Inbox page."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/auth/RequireAdminAccessGate.tsx",
+          "path": "frontend/src/components/admin/AdminCouponsTab.tsx",
           "operation": "modify",
-          "description": "Confirm and tighten the existing gate behavior so that when admin access is not unlocked it reliably prevents dashboard rendering and navigates to /admin-access, including on direct navigation/refresh. Keep the implementation as an extension of the existing session gate (isAdminAccessUnlocked) rather than replacing the Admin dashboard. Verify the authorization component’s usage instructions before implementing."
+          "description": "Implement Coupons UI using existing hooks/patterns: list coupons (code/discount/validity), create coupon, and toggle validity with mutation pending states and post-mutation list refresh. Add a guarded 'Send to customer' panel that is shown only if the backend actor exposes a coupon-send function at runtime; otherwise show a clear English message that sending is unavailable. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/Admin.tsx",
+          "path": "frontend/src/hooks/useAdminCoupons.ts",
+          "operation": "create",
+          "description": "Create focused admin coupon hooks to wrap existing coupon hooks (list/create/toggle) and (optionally) coupon-send if available, including query invalidation keys to keep the list in sync and to prompt customer inbox refresh flows where applicable. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add an Admin Analytics section that displays an analytics snapshot with clear loading/error states and a manual refresh action using existing React Query patterns.",
+      "acceptanceCriteria": [
+        "Admins can open the Analytics section and see an analytics snapshot card/grid with key metrics returned by the backend.",
+        "The section shows a non-blocking loading state while data is fetched and a recoverable error state if fetching fails.",
+        "A manual refresh action is available and triggers a refetch (or React Query invalidation) for the analytics snapshot."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/admin/AdminAnalyticsTab.tsx",
           "operation": "modify",
-          "description": "Ensure the Admin Dashboard remains wrapped with the existing RequireAdmin and RequireAdminAccessGate wrappers so /admin cannot render without both admin role authorization and a session-unlocked access gate. Preserve all existing dashboard tabs/features. Verify the authorization component’s usage instructions before implementing."
+          "description": "Implement analytics snapshot rendering and manual refresh. Prefer reusing existing adminplus AnalyticsSnapshotSection for consistent UI/behavior; wrap it in admin-facing framing if needed and ensure loading/error states remain recoverable for admin users (including unauthorized errors). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
+          "operation": "modify",
+          "description": "Adjust the analytics snapshot section (if necessary) to behave well when used from /admin: keep non-blocking loading UI, provide recoverable errors, and ensure refresh triggers React Query invalidation/refetch without crashing on unauthorized responses. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-5",
-      "summary": "Clear session-scoped \"admin access unlocked\" state on logout so subsequent sessions require re-entering the master code.",
+      "summary": "Add a System Settings section consolidating system status and audit views, and enforce owner-only access for sensitive tools while allowing admins to view non-sensitive settings.",
       "acceptanceCriteria": [
-        "After successfully unlocking admin access, logging out and then logging back in requires re-entering the master code before /admin can be accessed in that session.",
-        "No other session/local-storage state unrelated to the admin access gate is unintentionally cleared beyond current logout behavior."
+        "Admins can open System Settings and view system status information (e.g., health check info) and admin audit data that is already collected (e.g., admin access log, login attempts, event logs) where supported by the backend.",
+        "Sensitive mutations (e.g., changing global store configuration, admin registry changes, password resets) are either (a) available only to the owner, or (b) clearly blocked with an explicit English message indicating owner-only access, while still allowing admins to view non-sensitive settings.",
+        "All settings/audit panels have consistent empty/loading/error states and do not crash if a particular endpoint is unavailable."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/auth/LoginButton.tsx",
+          "path": "frontend/src/components/admin/AdminSystemSettingsTab.tsx",
           "operation": "modify",
-          "description": "Verify logout behavior continues to clear the admin access gate state by calling clearAdminAccessUnlocked() as part of the existing logout flow (alongside existing cache/session clearing), without clearing unrelated storage beyond current behavior. Verify the authorization component’s usage instructions before implementing."
+          "description": "Implement System Settings UI panels: (1) Health/Status using healthCheck(); (2) Audit views using getAdminAccessLog(), getLoginAttempts(), getEvents(); each with consistent empty/loading/error states. For sensitive tools, use the authorization component’s owner check pattern (useIsCallerOwner / RequireOwner-style gating) to either render owner-only sections (e.g., existing AdminRegistrySection, AdminPasswordResetSection, AdvancedShopControlsSection) or show a clear English 'Owner-only' blocked message while keeping read-only panels visible to admins. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/lib/adminAccessSession.ts",
-          "operation": "modify",
-          "description": "Confirm the session gate utilities continue to use session-scoped browser storage and provide a reliable clear function used on logout. Ensure naming/behavior matches the existing gate mechanism and remains session-scoped. Verify the authorization component’s usage instructions before implementing."
+          "path": "frontend/src/hooks/useSystemSettings.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for system status and audit data (health check, admin access log, login attempts, events), including safe error handling and refetch helpers used by the System Settings tab. Verify the component's usage instructions before implementing."
         }
       ]
     }

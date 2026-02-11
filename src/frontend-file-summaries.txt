@@ -4,7 +4,7 @@
   "frontend/tailwind.config.js": "Tailwind configuration with dark fantasy theme colors, custom fonts, standardized animation keyframes using OKLCH colors, and extended utilities for consistent interactions.",
   "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including testimony submission with rating/description, product/order/request management, tracking updates, and all missing hook exports with consistent naming aliases for backward compatibility.",
   "frontend/src/components/auth/RequireAdmin.tsx": "Admin guard component that checks authentication and role status with improved actor dependency handling to prevent UI flicker during loading states.",
-  "frontend/src/pages/Admin.tsx": "Admin dashboard with tabs for Orders, Requests, and Testimonies management, wrapped in RequireAdmin guard and RequireAdminAccessGate for two-step security verification.",
+  "frontend/src/pages/Admin.tsx": "Admin dashboard with 7 tabs (Orders, Requests, Testimonies, Messaging, Coupons, Analytics, System Settings) wrapped in RequireAdmin and RequireAdminAccessGate for two-step security verification.",
   "frontend/src/components/auth/LoginButton.tsx": "Login/logout button component that properly clears React Query cache, session storage, and admin access unlock state on logout to prevent data leakage between users.",
   "frontend/docs/data-architecture.md": "Documentation of the frontend-visible auth/role model, first-admin bootstrap mechanism, domain entities, and data consistency strategy using React Query invalidation.",
   "frontend/docs/local-storage-strategy.md": "Documentation of local storage categories including offline drafts for feedback, offline mutation queue with feedback support, and canister-backed feedback persistence with React Query invalidation.",
@@ -104,5 +104,13 @@
   "frontend/src/lib/adminAccessSession.ts": "Session-scoped helper module for managing admin access unlock state using sessionStorage, with read/write/clear functions for the master access code gate.",
   "frontend/src/pages/AdminAccess.tsx": "Admin access page requiring Internet Identity admin role and five-character master access code entry with backend verification, session unlock, and navigation to admin dashboard on success, showing only \"Access Denied\" on any failure.",
   "frontend/src/components/auth/RequireAdminAccessGate.tsx": "Gate component that checks session-scoped admin access unlock state and redirects to /admin-access with replace flag if not unlocked, protecting the admin dashboard route.",
-  "frontend/src/components/testimonies/HalfStarRatingInput.tsx": "Interactive star rating input component supporting half-star increments (0.5 to 5.0) with hover preview, click selection, and keyboard accessibility."
+  "frontend/src/components/testimonies/HalfStarRatingInput.tsx": "Interactive star rating input component supporting half-star increments (0.5 to 5.0) with hover preview, click selection, and keyboard accessibility.",
+  "frontend/src/components/admin/AdminMessagingTab.tsx": "Admin messaging interface for viewing customer inbox items and sending messages with optional attachments to specific customers using Principal validation and the existing MessageAttachment type from phase5b.",
+  "frontend/src/components/admin/AdminCouponsTab.tsx": "Admin coupon management UI with create, list, toggle validity, and conditional send-to-customer functionality with proper validation and loading states.",
+  "frontend/src/components/admin/AdminAnalyticsTab.tsx": "Admin analytics tab that wraps the existing AnalyticsSnapshotSection component for consistent analytics display with manual refresh capability.",
+  "frontend/src/components/admin/AdminSystemSettingsTab.tsx": "System settings tab displaying health status, admin access log, login attempts, and events with owner-only sections for admin registry, password resets, and advanced shop controls.",
+  "frontend/src/hooks/useAdminMessaging.ts": "React Query hooks for admin messaging operations including inbox listing and message sending using the existing MessageAttachment type from phase5b with proper query invalidation patterns.",
+  "frontend/src/hooks/useAdminCoupons.ts": "React Query hooks for admin coupon operations including list, create, toggle validity, and send to customer with proper query invalidation.",
+  "frontend/src/hooks/useSystemSettings.ts": "React Query hooks for system status and audit data including health check, admin access log, login attempts, and events.",
+  "frontend/src/types/adminMessaging.ts": "TypeScript type definitions for admin messaging including inbox items, message attachments, and send message payload structures."
 }

@@ -1,112 +1,129 @@
 {
   "kind": "build_request",
-  "title": "Phase 6A: Secure Admin Access Page gateway with master code verification, audit logging, and responsive navigation",
+  "title": "Phase 6B: Admin Dashboard Control Center (full tabs after login)",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement a protected Admin Access Page at route \"/admin-access\" that prompts for the five-character master access code \"7583A\" and, on correct entry, immediately grants access to the existing Admin Dashboard.\n\n- On success: unlock the existing admin access gate for the current browser session and route the user to \"/admin\".\n- On failure (including backend errors): deny access and display only the exact user-facing message \"Access Denied\" (no extra details).\n- Ensure the input enforces exactly 5 characters (UI maxLength=5, and UI copy must refer to a five-character code, not a digit-only PIN).\n- Do not display any security implementation details (e.g., do not mention multi-step verification, logging mechanics, principals, roles, etc.) on this page.",
+      "text": "Expand the existing /admin dashboard so that after Internet Identity login + successful Admin Access unlock, admins can access a single control-center UI that includes sections for: Requests, Orders, Testimonies, Messaging, Coupons, Analytics, and System Settings.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Create a secure Admin Access Page... five-character master access code (7583A)",
-          "If the code is incorrect, access is denied and a simple “Access Denied” message is shown without revealing any security details."
+          "Phase 6B — Admin Dashboard Control Center After login, admins gain access to the complete dashboard including requests, orders, testimonies, messaging, coupons, analytics, and system settings. Build."
         ]
       },
       "acceptanceCriteria": [
-        "Visiting /admin-access shows a form with a single code input limited to 5 characters.",
-        "Submitting an incorrect code results in only the text \"Access Denied\" being shown; no other explanatory text is displayed.",
-        "Submitting the correct code routes the user to /admin and the admin dashboard renders in the same session without re-entering the code.",
-        "All user-facing text on the page is in English and does not disclose security/audit details (no mention of roles, principals, timestamps, logging, or multi-step verification)."
+        "Visiting /admin as a logged-in admin who has unlocked Admin Access (via /admin-access) shows a dashboard with navigation for all 7 sections: Requests, Orders, Testimonies, Messaging, Coupons, Analytics, System Settings.",
+        "The existing sections (Orders, Requests, Testimonies) remain functional and unchanged in behavior.",
+        "All user-facing labels for the new sections are in English and consistent with the existing admin UI tone."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the site header navigation so the Admin Access Page link placement matches the requested responsive behavior:\n\n- Mobile devices: ensure an \"Admin\" link appears in the top-right hamburger menu.\n- Desktop/computer/TV screens: ensure an \"Admin\" link appears in the main top navigation bar alongside the other website pages, labeled exactly \"Admin\".\n\nThe link must navigate to \"/admin-access\" and must extend existing navigation behavior rather than replacing it.",
-      "target": "frontend",
+      "text": "Implement an Admin Messaging section in the admin dashboard that lets admins review customer inbox items and send new admin-to-customer messages (including attachments if supported by existing attachment components).",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Mobile devices: The Admin Page link must appear in the top-right hamburger menu.",
-          "Desktop, computer, and TV screens: The Admin Page must appear in the main top navigation bar alongside the other website pages, labeled clearly as “Admin.”"
+          "...including ... messaging ..."
         ]
       },
       "acceptanceCriteria": [
-        "On narrow viewports, opening the hamburger menu shows an \"Admin\" link that navigates to /admin-access.",
-        "On large viewports, the top nav link row includes an \"Admin\" text link (not icon-only) that navigates to /admin-access.",
-        "Existing navigation links and behavior remain intact."
+        "Admins can open the Messaging section and see a list of message threads or inbox items that clearly identifies the customer (Principal) and message content/type/time (where available).",
+        "Admins can send a message to a selected customer; successful send results in the new message appearing in the UI after refresh or automatic query invalidation.",
+        "If attachments are enabled in the UI, invalid files are rejected using the existing validation behavior and the UI shows upload/progress states consistent with existing patterns (e.g., MessageAttachmentPicker)."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Ensure the Admin Dashboard route \"/admin\" remains protected by the existing authentication and admin access gate systems, such that:\n\n- Users cannot access the Admin Dashboard unless they have successfully entered the master access code during the current browser session.\n- This gating behavior must extend existing mechanisms (e.g., the current gate/session approach) rather than replacing the admin dashboard implementation.",
-      "target": "frontend",
+      "text": "Implement an Admin Coupons section in the admin dashboard that allows admins to view coupons and perform coupon management actions already supported by the backend (e.g., create coupon, toggle validity) and to send coupons to customers when supported by existing workflows.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "This Admin Access Page must integrate with the existing authentication and dashboard systems, extending current functionality rather than replacing any existing systems, and must act solely as the secure entry gateway to the Administrative Dashboard."
+          "...including ... coupons ..."
         ]
       },
       "acceptanceCriteria": [
-        "Direct navigation to /admin without having unlocked the access gate during the current session redirects the user to /admin-access or otherwise prevents rendering of the dashboard content.",
-        "After a successful unlock, navigating to /admin works for the remainder of the browser session (until session end or explicit logout/session clear).",
-        "No existing Admin Dashboard tabs/features are removed or replaced."
+        "Admins can open the Coupons section and see a list of coupons with code, discount, and validity status.",
+        "Admins can create a coupon and the coupons list updates after creation.",
+        "Admins can toggle coupon validity and the UI reflects the updated status after the mutation completes.",
+        "If sending coupons to customers is supported by existing backend/workflows, the Coupons section provides a way to select a customer and send a coupon, and the customer receives a corresponding inbox item visible on the customer Inbox page."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Update the backend admin access verification so that every successful master-code verification is automatically timestamped and stored in a persistent Admin Access Log for auditing.\n\n- Store at least: unique log entry id, caller principal, and a real timestamp (do not use a placeholder value).\n- Only successful verifications must be recorded in this Admin Access Log.\n- Keep (or provide) an admin-only query endpoint to retrieve the Admin Access Log for auditing purposes (do not expose this log publicly).",
-      "target": "backend",
+      "text": "Implement an Admin Analytics section in the admin dashboard that displays an analytics snapshot using existing analytics query/mutation patterns, with clear loading/error states.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Every successful login must be automatically timestamped and stored in an Admin Access Log for auditing purposes."
+          "...including ... analytics ..."
         ]
       },
       "acceptanceCriteria": [
-        "Submitting the correct code causes the canister to persist a new Admin Access Log entry containing the caller principal and a non-zero timestamp.",
-        "Submitting an incorrect code does not create a new Admin Access Log entry.",
-        "Only authorized admins can query/retrieve the Admin Access Log; unauthorized callers are rejected.",
-        "Existing verification behavior continues to work with the master code \"7583A\"."
+        "Admins can open the Analytics section and see an analytics snapshot card/grid with key metrics returned by the backend.",
+        "The section shows a non-blocking loading state while data is fetched and a recoverable error state if fetching fails.",
+        "A manual refresh action is available and triggers a refetch (or React Query invalidation) for the analytics snapshot."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Ensure logging out clears any session-scoped \"admin access unlocked\" state so that, after logout, the browser session no longer has access-gate unlock privileges until the master code is re-entered.",
-      "target": "frontend",
+      "text": "Implement a System Settings section in the admin dashboard that centralizes system-level tools (e.g., store configuration, health/status, audit logs) and enforces appropriate permissions for sensitive actions.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Create a secure Admin Access Page... protected gateway to the Administrative Dashboard."
+          "...including ... system settings."
         ]
       },
       "acceptanceCriteria": [
-        "After successfully unlocking admin access, logging out and then logging back in requires re-entering the master code before /admin can be accessed in that session.",
-        "No other session/local-storage state unrelated to the admin access gate is unintentionally cleared beyond current logout behavior."
+        "Admins can open System Settings and view system status information (e.g., health check info) and admin audit data that is already collected (e.g., admin access log, login attempts, event logs) where supported by the backend.",
+        "Sensitive mutations (e.g., changing global store configuration, admin registry changes, password resets) are either (a) available only to the owner, or (b) clearly blocked with an explicit English message indicating owner-only access, while still allowing admins to view non-sensitive settings.",
+        "All settings/audit panels have consistent empty/loading/error states and do not crash if a particular endpoint is unavailable."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Add/verify backend canister methods required by the new Admin dashboard sections (Messaging, Coupons, Analytics, System Settings), ensuring they are admin-gated and return stable, frontend-consumable types.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "...complete dashboard including ... messaging, coupons, analytics, and system settings."
+        ]
+      },
+      "acceptanceCriteria": [
+        "All admin-only query/mutation endpoints used by the new tabs enforce admin checks (and owner checks where required) and trap with clear unauthorized messages when violated.",
+        "Messaging endpoints support listing relevant inbox items across customers (admin view) and sending an inbox item/message to a customer.",
+        "Coupon endpoints support listing, creating, and toggling validity; if coupon-sending is supported, it creates a customer inbox item consistently.",
+        "Analytics/system endpoints support returning a snapshot and basic system status/audit log data (e.g., healthCheck, getAdminAccessLog, getLoginAttempts, getEvents)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
-    "Do not edit files under frontend/src/components/ui or any paths listed in frontend.immutablePaths (compose instead).",
-    "Use English for all user-facing UI text."
+    "Backend must remain a single-actor Motoko canister with all logic in backend/main.mo; add backend/migration.mo only if existing stable state must be upgraded.",
+    "Do not edit files under frontend/src/components/ui (read-only).",
+    "Do not edit immutable frontend hook files listed in SYSTEM_CONTEXT (compose via new hooks/components instead)."
   ],
   "nonGoals": [
-    "Do not implement third-party authentication or replace Internet Identity.",
-    "Do not add multi-factor authentication beyond the specified five-character master access code.",
-    "Do not build a full admin audit-log UI unless explicitly required; retrieving logs via existing admin-only endpoint is sufficient.",
-    "Do not introduce external databases or off-canister logging/storage."
+    "Implementing Phase 6C multi-admin adjustable permission levels (separate phase).",
+    "Third-party auth providers (only Internet Identity).",
+    "Real-time messaging via WebSockets or push notifications.",
+    "Introducing external databases or non-Motoko backend services."
   ],
   "imageRequirements": {
     "required": [],

@@ -1,42 +1,46 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Build Phase 6A: a secure Admin Access Page gateway to the Administrative Dashboard, protected by a 5-character master code and logging successful access for auditing, with responsive navigation placement.",
-  "architectural_notes": [
-    "Admin Access Page must integrate with existing authentication and Administrative Dashboard systems (extend, do not replace).",
-    "Successful admin access events must be timestamped and stored in an Admin Access Log for auditing.",
-    "On incorrect master code, display only a generic 'Access Denied' message without security details."
-  ],
+  "summary": "Build an Admin Dashboard Control Center accessible after login, covering requests, orders, testimonies, messaging, coupons, analytics, and system settings, plus support for adding multiple admins with adjustable permission levels while the owner retains full control.",
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-implement-a-protected-admin-access-page-at-route-admin-access-that-prompts-for-the-five-character-master-access-code-7583a-and-on-correct-entry-immediately-grants-access-to-the-existing-admin-dashboard-on-success-unlock-the-existing-admin-access-gate-for-the-current-browser-session-and-route-the-user-to-admin-on-failure-including-backend-errors-deny-access-and-display-only-the-exact-user-facing-message-access-denied-no-extra-details-ensure-the-input-enforces-exactly-5-characters-ui-maxlength-5-and-ui-copy-must-refer-to-a-five-character-code-not-a-digit-only-pin-do-not-display-any-security-implementation-details-e-g-do-not-mention-multi-step-verification-logging-mechanics-principals-roles-etc-on-this-page",
-      "title": "Implement a protected Admin Access Page at route \"/admin-access\" that prompts for the five-character master access code \"7583A\" and, on correct entry, immediately grants access to the existing Admin Dashboard.\n\n- On success: unlock the existing admin access gate for the current browser session and route the user to \"/admin\".\n- On failure (including backend errors): deny access and display only the exact user-facing message \"Access Denied\" (no extra details).\n- Ensure the input enforces exactly 5 characters (UI maxLength=5, and UI copy must refer to a five-character code, not a digit-only PIN).\n- Do not display any security implementation details (e.g., do not mention multi-step verification, logging mechanics, principals, roles, etc.) on this page.",
+      "id": "feature-expand-the-existing-admin-dashboard-so-that-after-internet-identity-login-successful-admin-access-unlock-admins-can-access-a-single-control-center-ui-that-includes-sections-for-requests-orders-testimonies-messaging-coupons-analytics-and-system-settings",
+      "title": "Expand the existing /admin dashboard so that after Internet Identity login + successful Admin Access unlock, admins can access a single control-center UI that includes sections for: Requests, Orders, Testimonies, Messaging, Coupons, Analytics, and System Settings.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-site-header-navigation-so-the-admin-access-page-link-placement-matches-the-requested-responsive-behavior-mobile-devices-ensure-an-admin-link-appears-in-the-top-right-hamburger-menu-desktop-computer-tv-screens-ensure-an-admin-link-appears-in-the-main-top-navigation-bar-alongside-the-other-website-pages-labeled-exactly-admin-the-link-must-navigate-to-admin-access-and-must-extend-existing-navigation-behavior-rather-than-replacing-it",
-      "title": "Update the site header navigation so the Admin Access Page link placement matches the requested responsive behavior:\n\n- Mobile devices: ensure an \"Admin\" link appears in the top-right hamburger menu.\n- Desktop/computer/TV screens: ensure an \"Admin\" link appears in the main top navigation bar alongside the other website pages, labeled exactly \"Admin\".\n\nThe link must navigate to \"/admin-access\" and must extend existing navigation behavior rather than replacing it.",
+      "id": "feature-implement-an-admin-messaging-section-in-the-admin-dashboard-that-lets-admins-review-customer-inbox-items-and-send-new-admin-to-customer-messages-including-attachments-if-supported-by-existing-attachment-components",
+      "title": "Implement an Admin Messaging section in the admin dashboard that lets admins review customer inbox items and send new admin-to-customer messages (including attachments if supported by existing attachment components).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-admin-dashboard-route-admin-remains-protected-by-the-existing-authentication-and-admin-access-gate-systems-such-that-users-cannot-access-the-admin-dashboard-unless-they-have-successfully-entered-the-master-access-code-during-the-current-browser-session-this-gating-behavior-must-extend-existing-mechanisms-e-g-the-current-gate-session-approach-rather-than-replacing-the-admin-dashboard-implementation",
-      "title": "Ensure the Admin Dashboard route \"/admin\" remains protected by the existing authentication and admin access gate systems, such that:\n\n- Users cannot access the Admin Dashboard unless they have successfully entered the master access code during the current browser session.\n- This gating behavior must extend existing mechanisms (e.g., the current gate/session approach) rather than replacing the admin dashboard implementation.",
+      "id": "feature-implement-an-admin-coupons-section-in-the-admin-dashboard-that-allows-admins-to-view-coupons-and-perform-coupon-management-actions-already-supported-by-the-backend-e-g-create-coupon-toggle-validity-and-to-send-coupons-to-customers-when-supported-by-existing-workflows",
+      "title": "Implement an Admin Coupons section in the admin dashboard that allows admins to view coupons and perform coupon management actions already supported by the backend (e.g., create coupon, toggle validity) and to send coupons to customers when supported by existing workflows.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-logging-out-clears-any-session-scoped-admin-access-unlocked-state-so-that-after-logout-the-browser-session-no-longer-has-access-gate-unlock-privileges-until-the-master-code-is-re-entered",
-      "title": "Ensure logging out clears any session-scoped \"admin access unlocked\" state so that, after logout, the browser session no longer has access-gate unlock privileges until the master code is re-entered.",
+      "id": "feature-implement-an-admin-analytics-section-in-the-admin-dashboard-that-displays-an-analytics-snapshot-using-existing-analytics-query-mutation-patterns-with-clear-loading-error-states",
+      "title": "Implement an Admin Analytics section in the admin dashboard that displays an analytics snapshot using existing analytics query/mutation patterns, with clear loading/error states.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-system-settings-section-in-the-admin-dashboard-that-centralizes-system-level-tools-e-g-store-configuration-health-status-audit-logs-and-enforces-appropriate-permissions-for-sensitive-actions",
+      "title": "Implement a System Settings section in the admin dashboard that centralizes system-level tools (e.g., store configuration, health/status, audit logs) and enforces appropriate permissions for sensitive actions.",
       "reqIds": [
         "REQ-5"
       ],
@@ -46,26 +50,26 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement Admin Access Page gateway requiring master access code (7583A), showing only 'Access Denied' on failure, granting dashboard access on success, and logging successful access with timestamp.",
+      "summary": "Phase 6B: Admin Dashboard Control Center (requests, orders, testimonies, messaging, coupons, analytics, system settings) accessible after admin login",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Add responsive navigation entry for Admin: in mobile top-right hamburger menu; on desktop/TV in main top navigation bar labeled 'Admin'.",
+      "summary": "Phase 6C: Multi-admin management with adjustable permission levels; owner retains full control",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-6",
-      "summary": "Update the backend admin access verification so that every successful master-code verification is automatically timestamped and stored in a persistent Admin Access Log for auditing.\n\n- Store at least: unique log entry id, caller principal, and a real timestamp (do not use a placeholder value).\n- Only successful verifications must be recorded in this Admin Access Log.\n- Keep (or provide) an admin-only query endpoint to retrieve the Admin Access Log for auditing purposes (do not expose this log publicly).",
+      "id": "AR-8",
+      "summary": "Add/verify backend canister methods required by the new Admin dashboard sections (Messaging, Coupons, Analytics, System Settings), ensuring they are admin-gated and return stable, frontend-consumable types.",
       "reqIds": [
-        "REQ-4"
+        "REQ-6"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Phase 6A: Secure Admin Access Page gateway with master code verification, audit logging, and responsive navigation",
+  "projectName": "Phase 6B: Admin Dashboard Control Center (full tabs after login)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
