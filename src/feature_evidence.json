@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-social-media-bubble-links-on-the-contact-page-so-that-clicking-each-bubble-opens-the-exact-user-provided-social-profile-url-in-a-new-tab",
-      "featureTitle": "Update the social-media bubble links on the Contact page so that clicking each bubble opens the exact user-provided social profile URL in a new tab.",
+      "featureId": "feature-replace-all-existing-content-on-the-services-page-with-the-user-provided-enchanted-services-of-the-creator-of-side-quests-copy-removing-the-current-artifact-focused-services-list-accordion-content",
+      "featureTitle": "Replace all existing content on the Services page with the user-provided “Enchanted Services of The Creator of Side Quests” copy, removing the current artifact-focused services list/accordion content.",
       "files": [
-        "frontend/src/pages/Contact.tsx"
+        "frontend/src/pages/Services.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,15 +17,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-3"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-social-media-bubbles-on-the-contact-page-are-visually-and-interactively-clickable-as-bubbles-circular-hit-area-including-clear-hover-and-keyboard-focus-states-consistent-with-the-site-theme",
-      "featureTitle": "Ensure the social-media bubbles on the Contact page are visually and interactively “clickable” as bubbles (circular hit area), including clear hover and keyboard focus states consistent with the site theme.",
+      "featureId": "feature-ensure-every-major-part-of-the-new-services-page-content-is-visually-enclosed-with-the-site-s-consistent-bordered-styling-use-the-existing-mysticalborder-styling-pattern-used-across-the-site-so-that-each-section-of-content-has-borders-like-the-rest-of-the-website",
+      "featureTitle": "Ensure every major part of the new Services page content is visually enclosed with the site’s consistent bordered styling (use the existing MysticalBorder styling pattern used across the site), so that each section of content has borders like the rest of the website.",
       "files": [
-        "frontend/src/pages/Contact.tsx"
+        "frontend/src/pages/Services.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -37,7 +37,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-4"
+        "REQ-2"
       ],
       "confidence": "high"
     }

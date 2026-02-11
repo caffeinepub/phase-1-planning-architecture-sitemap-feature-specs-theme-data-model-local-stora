@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Heart, Target } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
+import AboutIntro from '../components/intro/AboutIntro';
 
 export default function About() {
   return (
@@ -9,7 +10,14 @@ export default function About() {
       title="About The Creator of Side Quests"
       description="Forged from curiosity, chaos, and quiet magic. Discover the story, mission, and vision behind The Creator of Side Quests."
     >
-      {/* Intro Section with White Border */}
+      {/* Mystical Intro Section */}
+      <FadeInSection>
+        <section className="section-spacing px-4 sm:px-6">
+          <AboutIntro />
+        </section>
+      </FadeInSection>
+
+      {/* Creator Bio Section */}
       <FadeInSection>
         <section className="section-spacing px-4 sm:px-6">
           <div className="max-w-4xl mx-auto">
@@ -112,15 +120,15 @@ export default function About() {
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-base sm:text-lg mb-2 text-primary">Empathy & Care</h3>
+                    <h3 className="font-display font-semibold text-base sm:text-lg mb-2 text-primary">Ethical Practice</h3>
                     <p className="text-sm sm:text-base text-muted-foreground break-words">
-                      Every project is approached with patience, understanding, and genuine care for the people and ideas behind it.
+                      We operate with transparency, honesty, and respect. No hidden fees, no gatekeeping, no exploitation—just fair, human-centered service.
                     </p>
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-base sm:text-lg mb-2 text-primary">Ethical Creativity</h3>
+                    <h3 className="font-display font-semibold text-base sm:text-lg mb-2 text-primary">Creative Freedom</h3>
                     <p className="text-sm sm:text-base text-muted-foreground break-words">
-                      We believe in honest, transparent, and ethical creative work that respects boundaries, licenses, and human dignity.
+                      Every project is unique. We embrace the weird, the wonderful, and the wildly ambitious without judgment or limitation.
                     </p>
                   </div>
                 </div>

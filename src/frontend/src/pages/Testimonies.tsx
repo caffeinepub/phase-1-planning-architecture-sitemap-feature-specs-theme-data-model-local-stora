@@ -9,6 +9,7 @@ import CreateTestimonyDialog from '../components/testimonies/CreateTestimonyDial
 import TestimonyMediaCard from '../components/testimonies/TestimonyMediaCard';
 import { useListTestimonies } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import TestimoniesIntro from '../components/intro/TestimoniesIntro';
 import type { Testimony } from '../backend';
 
 export default function Testimonies() {
@@ -42,12 +43,18 @@ export default function Testimonies() {
       title="Customer Testimonies"
       description="Read what our customers have to say about their experience with Arcane Artifacts"
     >
+      {/* Mystical Intro Section */}
       <FadeInSection>
-        <div className="section-spacing space-y-8">
+        <section className="section-spacing px-4 sm:px-6">
+          <TestimoniesIntro />
+        </section>
+      </FadeInSection>
+
+      <FadeInSection delay={100}>
+        <div className="section-spacing space-y-8 px-4 sm:px-6">
           {/* Header with CTA */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-cinzel font-bold mb-2">Customer Testimonies</h1>
               <p className="text-muted-foreground">
                 Hear from our satisfied customers about their mystical experiences
               </p>

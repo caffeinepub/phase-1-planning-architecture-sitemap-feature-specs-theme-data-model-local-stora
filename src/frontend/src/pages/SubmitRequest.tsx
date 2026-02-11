@@ -13,6 +13,7 @@ import { Send } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
 import RequestMediaPicker from '../components/requests/RequestMediaPicker';
+import SubmitRequestIntro from '../components/intro/SubmitRequestIntro';
 import type { RequestMediaItem } from '../components/requests/RequestMediaPicker';
 
 export default function SubmitRequest() {
@@ -85,7 +86,14 @@ export default function SubmitRequest() {
       title="Submit Custom Request"
       description="Tell us about your custom project needs"
     >
+      {/* Mystical Intro Section */}
       <FadeInSection>
+        <section className="section-spacing px-4 sm:px-6">
+          <SubmitRequestIntro />
+        </section>
+      </FadeInSection>
+
+      <FadeInSection delay={100}>
         <section className="section-spacing px-4 sm:px-6">
           <Card className="max-w-2xl mx-auto">
             <CardHeader>

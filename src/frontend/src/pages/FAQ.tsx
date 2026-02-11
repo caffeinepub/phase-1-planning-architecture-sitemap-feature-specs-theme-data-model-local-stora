@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
+import FAQIntro from '../components/intro/FAQIntro';
 
 const faqs = [
   {
@@ -78,8 +79,15 @@ export default function FAQ() {
       title="Frequently Asked Questions"
       description="Find answers to common questions about our artifacts, services, and policies."
     >
+      {/* Mystical Intro Section */}
       <FadeInSection>
-        <section className="section-spacing">
+        <section className="section-spacing px-4 sm:px-6">
+          <FAQIntro />
+        </section>
+      </FadeInSection>
+
+      <FadeInSection delay={100}>
+        <section className="section-spacing px-4 sm:px-6">
           {/* Search */}
           <div className="relative mb-8">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

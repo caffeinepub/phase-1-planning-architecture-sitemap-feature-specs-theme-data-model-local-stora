@@ -1,178 +1,105 @@
 import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingCart, Grid3x3, List, AlertCircle, Sparkles } from 'lucide-react';
-import { useGetAllProducts, useGetShopActiveState } from '../hooks/useQueries';
-import { useLocalCart } from '../hooks/useLocalCart';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Search, Grid3x3, List, ShoppingCart, AlertCircle } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
-import ProductFlipCard from '../components/shop/ProductFlipCard';
-import ShopCartDrawer from '../components/shop/ShopCartDrawer';
-import ErrorState from '../components/system/ErrorState';
-import { useShopFilters } from '../components/shop/useShopFilters';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link } from '@tanstack/react-router';
+import ShopIntro from '../components/intro/ShopIntro';
 
 export default function Shop() {
-  const { data: products = [], isLoading, error, refetch } = useGetAllProducts();
-  const { data: shopActive = true } = useGetShopActiveState();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [cartOpen, setCartOpen] = useState(false);
-  const { items: cart, addToCart } = useLocalCart();
-
-  const {
-    searchQuery,
-    setSearchQuery,
-    inStockOnly,
-    setInStockOnly,
-    sortBy,
-    setSortBy,
-    filteredProducts,
-  } = useShopFilters(products);
-
-  const cartItemCount = cart.reduce((sum, item) => sum + Number(item.quantity), 0);
-
-  const handleProductClick = (productId: bigint) => {
-    addToCart(productId);
-  };
-
-  if (!shopActive) {
-    return (
-      <PageLayout title="Shop" description="Browse our mystical collection">
-        <FadeInSection>
-          <section className="section-spacing px-4 sm:px-6">
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                The shop is currently closed for maintenance. Please check back later.
-              </AlertDescription>
-            </Alert>
-          </section>
-        </FadeInSection>
-      </PageLayout>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <PageLayout title="Shop" description="Browse our mystical collection">
-        <FadeInSection>
-          <section className="section-spacing px-4 sm:px-6">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-80 w-full" />
-              ))}
-            </div>
-          </section>
-        </FadeInSection>
-      </PageLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <PageLayout title="Shop" description="Browse our mystical collection">
-        <FadeInSection>
-          <section className="section-spacing px-4 sm:px-6">
-            <ErrorState title="Failed to load products" onRetry={refetch} />
-          </section>
-        </FadeInSection>
-      </PageLayout>
-    );
-  }
+  const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <PageLayout title="Shop" description="Browse our mystical collection">
+    <PageLayout
+      title="Shop"
+      description="Browse our mystical collection"
+    >
+      {/* Mystical Intro Section */}
       <FadeInSection>
         <section className="section-spacing px-4 sm:px-6">
-          {/* Shop Awakening Announcement */}
-          <Card className="mb-8 border-arcane-gold/40 bg-gradient-to-br from-accent/30 to-accent/10">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-arcane-gold">
-                <Sparkles className="h-5 w-5" />
-                The Shop is Awakening…
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-foreground/90 leading-relaxed whitespace-pre-line">
-                Our enchanted marketplace is still gathering its magic, and online purchases are not quite available yet. But worry not—your quests and creations need not wait. You may request a custom quote or personalized quest directly through our website, or send a message through Facebook Messenger, Instagram, or TikTok, where we happily discuss custom items, handcrafted products, and unique freelance creations made just for you.
-              </p>
-              <p className="text-foreground/90 leading-relaxed">
-                Until the shop fully opens its doors, these pathways remain open—so step forward, share your vision, and together we will craft something extraordinary while the marketplace prepares to come to life. ✨
-              </p>
-            </CardContent>
-          </Card>
+          <ShopIntro />
+        </section>
+      </FadeInSection>
 
-          {/* Shop Controls */}
-          <div className="mb-8 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div className="flex gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid3x3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
+      {/* Shop Awakening Banner */}
+      <FadeInSection delay={100}>
+        <section className="px-4 sm:px-6 mb-8">
+          <Alert className="border-arcane-gold/50 bg-arcane-gold/5">
+            <AlertCircle className="h-5 w-5 text-arcane-gold" />
+            <AlertDescription className="text-base">
+              <strong className="font-display">The Shop is Awakening...</strong>
+              <p className="mt-2">
+                Our mystical marketplace is currently being enchanted with new artifacts and treasures. 
+                While you wait, feel free to request a custom quote for any artifact or service you desire.
+              </p>
+              <p className="mt-2">
+                Reach out via <strong>Facebook Messenger</strong>, <strong>Instagram</strong>, or <strong>TikTok</strong> to discuss your needs directly with our Keepers.
+              </p>
+            </AlertDescription>
+          </Alert>
+        </section>
+      </FadeInSection>
 
-              <Button onClick={() => setCartOpen(true)} className="relative">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Cart {cartItemCount > 0 && `(${cartItemCount})`}
+      {/* Shop Controls */}
+      <FadeInSection delay={150}>
+        <section className="px-4 sm:px-6 mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search artifacts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* View Toggle */}
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="icon"
+                onClick={() => setViewMode('grid')}
+                aria-label="Grid view"
+              >
+                <Grid3x3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="icon"
+                onClick={() => setViewMode('list')}
+                aria-label="List view"
+              >
+                <List className="h-4 w-4" />
               </Button>
             </div>
           </div>
+        </section>
+      </FadeInSection>
 
-          {/* Products Grid */}
-          {filteredProducts.length === 0 ? (
-            <Card>
-              <CardContent className="py-16 text-center">
-                <p className="text-muted-foreground">
-                  {searchQuery || inStockOnly ? 'No products match your filters' : 'No products available'}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className={viewMode === 'grid' ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
-              {filteredProducts.map((product) => (
-                <ProductFlipCard 
-                  key={product.id.toString()} 
-                  product={product}
-                  onClick={() => handleProductClick(product.id)}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Custom Request CTA */}
-          <Card className="mt-12 border-arcane-gold/30 bg-accent/20">
-            <CardHeader>
-              <CardTitle>Need Something Custom?</CardTitle>
-              <CardDescription>
-                Can't find what you're looking for? Submit a custom request and we'll create something unique for you.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex gap-4">
-              <Button asChild>
-                <Link to="/submit-request">Submit Request</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/contact">Contact Us</Link>
-              </Button>
+      {/* Empty State */}
+      <FadeInSection delay={200}>
+        <section className="px-4 sm:px-6">
+          <Card>
+            <CardContent className="py-16 text-center">
+              <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <h3 className="text-xl font-display font-bold mb-2">No Products Available Yet</h3>
+              <p className="text-muted-foreground mb-6">
+                Our shop is being prepared with mystical artifacts. Check back soon!
+              </p>
+              <Badge variant="outline" className="text-sm">
+                Coming Soon
+              </Badge>
             </CardContent>
           </Card>
         </section>
       </FadeInSection>
-
-      <ShopCartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </PageLayout>
   );
 }

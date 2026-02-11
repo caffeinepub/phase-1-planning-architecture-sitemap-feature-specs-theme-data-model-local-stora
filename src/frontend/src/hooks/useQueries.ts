@@ -158,7 +158,7 @@ export function useUpdateAdminAccessCode() {
   return useMutation({
     mutationFn: async ({ newCode, currentCode }: { newCode: string; currentCode: string }) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.updateAdminAccessCode(newCode, currentCode);
+      await actor.confirmNewCode(newCode, currentCode);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['maskedAdminAccessCode'] });
@@ -717,45 +717,43 @@ export function useMarkMessageAsRead() {
       return Promise.resolve();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customerInbox'] });
       queryClient.invalidateQueries({ queryKey: ['inbox'] });
+      queryClient.invalidateQueries({ queryKey: ['customerInbox'] });
     },
   });
 }
 
-// Analytics Queries
-export function useGetAnalytics() {
+// Shop Control Queries
+export function useOverrideProductPrice() {
   const { actor } = useActor();
+  const queryClient = useQueryClient();
 
-  return useQuery<any>({
-    queryKey: ['analytics'],
-    queryFn: async () => {
-      if (!actor) return null;
-      return null;
+  return useMutation({
+    mutationFn: async ({ productId, price }: { productId: bigint; price: bigint | null }) => {
+      if (!actor) throw new Error('Actor not available');
+      return Promise.resolve();
     },
-    enabled: !!actor,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
   });
 }
 
-export function useGetAnalyticsSnapshot() {
+export function useSetProductVisibility() {
   const { actor } = useActor();
+  const queryClient = useQueryClient();
 
-  return useQuery<any>({
-    queryKey: ['analyticsSnapshot'],
-    queryFn: async () => {
-      if (!actor) return null;
-      return {
-        totalOrders: 0n,
-        totalRevenue: 0n,
-        activeProducts: 0n,
-        totalUsers: 0n,
-      };
+  return useMutation({
+    mutationFn: async ({ productId, visibility }: { productId: bigint; visibility: ProductVisibility }) => {
+      if (!actor) throw new Error('Actor not available');
+      return Promise.resolve();
     },
-    enabled: !!actor,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
   });
 }
 
-// Store Config Queries
 export function useGetStoreConfig() {
   const { actor } = useActor();
 
@@ -797,87 +795,25 @@ export function useGetShopActiveState() {
   });
 }
 
-// Product Management Queries
-export function useOverrideProductPrice() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ productId, newPrice }: { productId: bigint; newPrice: bigint | null }) => {
-      if (!actor) throw new Error('Actor not available');
-      return Promise.resolve();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-  });
-}
-
-export function useSetProductVisibility() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ productId, visibility }: { productId: bigint; visibility: ProductVisibility }) => {
-      if (!actor) throw new Error('Actor not available');
-      return Promise.resolve();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-  });
-}
-
-// Health Check Query
-export function useHealthCheck() {
+// Analytics Queries
+export function useGetAnalyticsSnapshot() {
   const { actor } = useActor();
 
   return useQuery<any>({
-    queryKey: ['healthCheck'],
+    queryKey: ['analyticsSnapshot'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.healthCheck();
-    },
-    enabled: !!actor,
-  });
-}
-
-// Events Queries
-export function useGetEvents() {
-  const { actor } = useActor();
-
-  return useQuery<any[]>({
-    queryKey: ['events'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getEvents();
-    },
-    enabled: !!actor,
-  });
-}
-
-// Audit Log Queries
-export function useGetAuditLog() {
-  const { actor } = useActor();
-
-  return useQuery<any[]>({
-    queryKey: ['auditLog'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getAllAuditLogEntries();
-    },
-    enabled: !!actor,
-  });
-}
-
-export function useGetAuditLogStats() {
-  const { actor } = useActor();
-
-  return useQuery<any>({
-    queryKey: ['auditLogStats'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getAuditLogStats();
+      if (!actor) return {
+        totalOrders: 0n,
+        totalRevenue: 0n,
+        activeProducts: 0n,
+        totalUsers: 0n,
+      };
+      return {
+        totalOrders: 0n,
+        totalRevenue: 0n,
+        activeProducts: 0n,
+        totalUsers: 0n,
+      };
     },
     enabled: !!actor,
   });

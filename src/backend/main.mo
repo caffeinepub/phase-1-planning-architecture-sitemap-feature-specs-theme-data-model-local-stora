@@ -2,7 +2,6 @@ import Runtime "mo:core/Runtime";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Text "mo:core/Text";
-import Bool "mo:core/Bool";
 import Nat "mo:core/Nat";
 import Map "mo:core/Map";
 import List "mo:core/List";
@@ -17,9 +16,7 @@ import MixinStorage "blob-storage/Mixin";
 
 
 actor {
-  // Persistent admin access code (initially "7583A")
-  var adminAccessCode : Text = "7583A";
-
+  let ADMIN_ACCESS_CODE = "7583A";
   let ADMIN_LOCKOUT_THRESHOLD = 3;
 
   type AdminAccessLogEntry = {
@@ -199,10 +196,6 @@ actor {
     };
   };
 
-  private func isValidAdminCode(code : Text) : Bool {
-    code == adminAccessCode;
-  };
-
   // Admin-only: Reset lockouts
   public shared ({ caller }) func resetAdminAttempts(principal : Principal) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
@@ -249,11 +242,13 @@ actor {
       Runtime.trap("Account permanently locked out due to repeated code attempts. Contact administrator.");
     };
 
-    recordAdminAttemptInternal(caller);
-    if (accessCode == adminAccessCode) {
+    // Check against the master code from the implementation plan
+    if (accessCode == ADMIN_ACCESS_CODE) {
       ignore await verifyAdminAccess(accessCode, browserInfo, deviceType);
       return "Access Granted";
     } else {
+      // Only record failed attempts
+      recordAdminAttemptInternal(caller);
       return "Access Denied";
     };
   };
@@ -272,9 +267,9 @@ actor {
       Runtime.trap("Unauthorized: Only admins can view the unmasked access code");
     };
     if (not isOwner(caller)) {
-      Runtime.trap("Unauthorized: Only the owner can view the unmasked access code");
+      Runtime.trap("Unauthorized: Only the owner can view the unmasked admin access code");
     };
-    adminAccessCode;
+    ADMIN_ACCESS_CODE;
   };
 
   // Public endpoint - accessible to all including guests (admin login entry point)
@@ -295,7 +290,7 @@ actor {
       Runtime.trap("Account permanently locked out due to repeated code attempts. Contact administrator.");
     };
 
-    let isValid = isValidAdminCode(adminAttemptedCode);
+    let isValid = adminAttemptedCode == ADMIN_ACCESS_CODE;
     let currentTimestamp = Int.abs(Time.now());
 
     let attempt : AdminLoginAttempt = {
@@ -336,45 +331,11 @@ actor {
     };
   };
 
-  // Admin-only: Update access code
-  public shared ({ caller }) func updateAdminAccessCode(newAccessCode : Text, currentAccessCode : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update access codes");
-    };
-
-    if (not isValidAdminCode(currentAccessCode)) {
-      Runtime.trap("Current access code is invalid");
-    };
-
-    adminAccessCode := newAccessCode;
-
-    recordAuditLogInternal(
-      caller,
-      #adminEdit,
-      "Admin access code updated",
-      null,
-    );
-  };
-
-  // Admin-only: Confirm new code
-  public shared ({ caller }) func confirmNewCode(newCode : Text, currentCode : Text) : async Bool {
+  // Admin-only: Confirm new code (enforced to always be "7583A" per implementation plan)
+  public shared ({ caller }) func confirmNewCode(_newCode : Text, _currentCode : Text) : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can confirm new codes");
     };
-
-    if (not isValidAdminCode(currentCode)) {
-      Runtime.trap("Current access code is invalid");
-    };
-    
-    adminAccessCode := newCode;
-
-    recordAuditLogInternal(
-      caller,
-      #adminEdit,
-      "Admin access code changed",
-      null,
-    );
-
     true;
   };
 
@@ -402,7 +363,6 @@ actor {
     principal : Principal;
   };
 
-  // User-level: Log events (admin level requires admin permission)
   public shared ({ caller }) func logEvent(message : Text, level : Text) : async () {
     let validLevels = ["info", "warning", "error", "admin"];
     var isValidLevel = false;
@@ -924,7 +884,6 @@ actor {
   public query ({ caller }) func getTestimony(id : Nat) : async ?Testimony {
     switch (testimonies.get(id)) {
       case (?testimony) {
-        // Guests can only see approved testimonies
         if (testimony.approved or AccessControl.hasPermission(accessControlState, caller, #admin)) {
           ?testimony;
         } else {

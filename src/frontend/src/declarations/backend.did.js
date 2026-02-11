@@ -222,7 +222,6 @@ export const idlService = IDL.Service({
       [IDL.Text],
       [],
     ),
-  'updateAdminAccessCode' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'verifyAdminAccess' : IDL.Func(
       [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
       [IDL.Bool],
@@ -460,7 +459,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Text],
         [],
       ),
-    'updateAdminAccessCode' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'verifyAdminAccess' : IDL.Func(
         [IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
         [IDL.Bool],

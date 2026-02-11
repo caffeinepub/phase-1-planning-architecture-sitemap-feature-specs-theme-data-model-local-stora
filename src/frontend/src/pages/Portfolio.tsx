@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Image as ImageIcon, AlertCircle } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
+import PortfolioIntro from '../components/intro/PortfolioIntro';
 
 export default function Portfolio() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -21,32 +22,32 @@ export default function Portfolio() {
       title="Portfolio"
       description="Explore our completed projects and creative works"
     >
+      {/* Mystical Intro Section */}
       <FadeInSection>
-        <div className="section-spacing">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-cinzel font-bold mb-4">
-              Our Portfolio
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              A showcase of our finest creations and completed projects
-            </p>
-          </div>
+        <section className="section-spacing px-4 sm:px-6">
+          <PortfolioIntro />
+        </section>
+      </FadeInSection>
 
-          {/* Category Filters */}
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
-            {categories.map((category) => (
-              <Badge
-                key={category}
-                variant={selectedCategory === category ? 'default' : 'outline'}
-                className="cursor-pointer"
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category === 'all' ? 'All' : category.replace(/([A-Z])/g, ' $1').trim()}
-              </Badge>
-            ))}
-          </div>
+      {/* Category Filters */}
+      <FadeInSection delay={100}>
+        <div className="flex flex-wrap justify-center gap-2 mb-8 px-4 sm:px-6">
+          {categories.map((category) => (
+            <Badge
+              key={category}
+              variant={selectedCategory === category ? 'default' : 'outline'}
+              className="cursor-pointer"
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category === 'all' ? 'All' : category.replace(/([A-Z])/g, ' $1').trim()}
+            </Badge>
+          ))}
+        </div>
+      </FadeInSection>
 
-          {/* Portfolio Grid */}
+      {/* Portfolio Grid */}
+      <FadeInSection delay={150}>
+        <section className="px-4 sm:px-6">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -86,7 +87,7 @@ export default function Portfolio() {
               ))}
             </div>
           )}
-        </div>
+        </section>
       </FadeInSection>
     </PageLayout>
   );

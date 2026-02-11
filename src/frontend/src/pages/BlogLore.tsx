@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { BookOpen, Calendar } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
+import LoreKnowledgeIntro from '../components/intro/LoreKnowledgeIntro';
 
 const blogPosts = [
   {
@@ -23,18 +24,10 @@ const blogPosts = [
   },
   {
     id: 3,
-    title: 'The Rise and Fall of the Archmage Council',
-    excerpt: 'A historical account of the legendary council that once governed all magical affairs across the realms.',
+    title: 'The History of Mystical Seals',
+    excerpt: 'Explore the evolution of protective seals and their role in safeguarding powerful artifacts throughout history.',
     date: 'January 25, 2026',
     category: 'History',
-    readTime: '12 min read',
-  },
-  {
-    id: 4,
-    title: 'Identifying Authentic Mystical Artifacts',
-    excerpt: 'Learn how to distinguish genuine magical items from clever forgeries and replicas.',
-    date: 'January 20, 2026',
-    category: 'Guide',
     readTime: '6 min read',
   },
 ];
@@ -45,35 +38,38 @@ export default function BlogLore() {
       title="Lore & Knowledge"
       description="Explore the rich history, legends, and practical wisdom of the mystical world."
     >
+      {/* Mystical Intro Section */}
       <FadeInSection>
-        <section className="section-spacing">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {blogPosts.map((post, index) => (
-              <FadeInSection key={post.id} delay={index * 100}>
-                <Card className="border-border/40 hover:border-arcane-gold/50 transition-all hover-lift h-full">
-                  <CardHeader>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary" className="bg-arcane-gold/20 text-arcane-gold border-arcane-gold/30">
-                        {post.category}
-                      </Badge>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {post.date}
-                      </div>
-                    </div>
-                    <CardTitle className="text-xl">{post.title}</CardTitle>
-                    <CardDescription className="mt-2">{post.excerpt}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <BookOpen className="h-4 w-4" />
-                        {post.readTime}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </FadeInSection>
+        <section className="section-spacing px-4 sm:px-6">
+          <LoreKnowledgeIntro />
+        </section>
+      </FadeInSection>
+
+      {/* Blog Posts Grid */}
+      <FadeInSection delay={100}>
+        <section className="section-spacing px-4 sm:px-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {blogPosts.map((post) => (
+              <Card key={post.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="outline">{post.category}</Badge>
+                    <span className="text-xs text-muted-foreground">{post.readTime}</span>
+                  </div>
+                  <CardTitle className="text-xl">{post.title}</CardTitle>
+                  <CardDescription className="flex items-center gap-2 text-xs">
+                    <Calendar className="h-3 w-3" />
+                    {post.date}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground line-clamp-3">{post.excerpt}</p>
+                  <div className="mt-4 flex items-center gap-2 text-primary text-sm font-medium">
+                    <BookOpen className="h-4 w-4" />
+                    Read More
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </section>

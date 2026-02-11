@@ -115,7 +115,7 @@ export enum Variant_later_phase1 {
 export interface backendInterface {
     adminLogin(adminCode: string, codeConfirmed: boolean, browserInfo: string, deviceInfo: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    confirmNewCode(newCode: string, currentCode: string): Promise<boolean>;
+    confirmNewCode(_newCode: string, _currentCode: string): Promise<boolean>;
     getAdminAccessLog(): Promise<Array<AdminAccessLogEntry>>;
     getAdminAttempts(principal: Principal): Promise<bigint>;
     getAdminNotifications(): Promise<NotificationCounts>;
@@ -158,6 +158,5 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setOwner(owner: Principal): Promise<void>;
     submitAdminAccessAttempt(accessCode: string, browserInfo: string | null, deviceType: string | null): Promise<string>;
-    updateAdminAccessCode(newAccessCode: string, currentAccessCode: string): Promise<void>;
     verifyAdminAccess(adminAttemptedCode: string, browserInfo: string | null, deviceType: string | null): Promise<boolean>;
 }

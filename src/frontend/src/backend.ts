@@ -208,7 +208,7 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     adminLogin(adminCode: string, codeConfirmed: boolean, browserInfo: string, deviceInfo: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    confirmNewCode(newCode: string, currentCode: string): Promise<boolean>;
+    confirmNewCode(_newCode: string, _currentCode: string): Promise<boolean>;
     getAdminAccessLog(): Promise<Array<AdminAccessLogEntry>>;
     getAdminAttempts(principal: Principal): Promise<bigint>;
     getAdminNotifications(): Promise<NotificationCounts>;
@@ -251,7 +251,6 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setOwner(owner: Principal): Promise<void>;
     submitAdminAccessAttempt(accessCode: string, browserInfo: string | null, deviceType: string | null): Promise<string>;
-    updateAdminAccessCode(newAccessCode: string, currentAccessCode: string): Promise<void>;
     verifyAdminAccess(adminAttemptedCode: string, browserInfo: string | null, deviceType: string | null): Promise<boolean>;
 }
 import type { AdminAccessLogEntry as _AdminAccessLogEntry, AdminPermissions as _AdminPermissions, AuditActionType as _AuditActionType, AuditLogEntry as _AuditLogEntry, ExternalBlob as _ExternalBlob, Feature as _Feature, PageFeatures as _PageFeatures, Testimony as _Testimony, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
@@ -852,20 +851,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.submitAdminAccessAttempt(arg0, to_candid_opt_n41(this._uploadFile, this._downloadFile, arg1), to_candid_opt_n41(this._uploadFile, this._downloadFile, arg2));
-            return result;
-        }
-    }
-    async updateAdminAccessCode(arg0: string, arg1: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.updateAdminAccessCode(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.updateAdminAccessCode(arg0, arg1);
             return result;
         }
     }

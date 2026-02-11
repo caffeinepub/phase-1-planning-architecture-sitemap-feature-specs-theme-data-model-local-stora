@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
 import ContactPageFAQ from '../components/contact/ContactPageFAQ';
+import ContactIntro from '../components/intro/ContactIntro';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -44,9 +45,16 @@ export default function Contact() {
       title="Contact Us"
       description="Get in touch with our team for inquiries, support, or collaboration opportunities."
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Mystical Intro Section */}
+      <FadeInSection>
+        <section className="section-spacing px-4 sm:px-6">
+          <ContactIntro />
+        </section>
+      </FadeInSection>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-6">
         {/* Contact Form */}
-        <FadeInSection>
+        <FadeInSection delay={100}>
           <Card className="border-border/40 hover-lift">
             <CardHeader>
               <CardTitle>Send us a Message</CardTitle>
@@ -115,7 +123,7 @@ export default function Contact() {
         </FadeInSection>
 
         {/* Contact Information */}
-        <FadeInSection delay={100}>
+        <FadeInSection delay={150}>
           <div className="space-y-6">
             <Card className="border-border/40 hover-lift">
               <CardHeader>
@@ -222,7 +230,7 @@ export default function Contact() {
 
       {/* FAQ Section */}
       <FadeInSection delay={200}>
-        <section className="section-spacing">
+        <section className="section-spacing px-4 sm:px-6">
           <ContactPageFAQ />
         </section>
       </FadeInSection>

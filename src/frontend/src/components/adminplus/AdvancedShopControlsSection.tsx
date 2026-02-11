@@ -48,7 +48,7 @@ export default function AdvancedShopControlsSection() {
     const priceCents = BigInt(Math.floor(price * 100));
 
     try {
-      await overridePriceMutation.mutateAsync({ productId: selectedProductId, newPrice: priceCents });
+      await overridePriceMutation.mutateAsync({ productId: selectedProductId, price: priceCents });
       toast.success('Price override set successfully');
       setOverridePrice('');
       setSelectedProductId(null);
@@ -60,7 +60,7 @@ export default function AdvancedShopControlsSection() {
 
   const handleClearPriceOverride = async (productId: bigint) => {
     try {
-      await overridePriceMutation.mutateAsync({ productId, newPrice: null });
+      await overridePriceMutation.mutateAsync({ productId, price: null });
       toast.success('Price override cleared');
       refetchProducts();
     } catch (error: any) {

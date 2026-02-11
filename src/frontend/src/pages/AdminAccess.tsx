@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Shield, Loader2, CheckCircle, AlertCircle, LogIn } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
 import FadeInSection from '../components/effects/FadeInSection';
+import AdminAccessIntro from '../components/intro/AdminAccessIntro';
 import { useSubmitAdminAccessAttempt, useGetAdminEntryLockoutStatus } from '../hooks/useQueries';
 import { setAdminAccessUnlocked } from '../lib/adminAccessSession';
 import { getClientDetails } from '../lib/clientDetails';
@@ -36,202 +37,186 @@ export default function AdminAccess() {
     }
   }, [isAuthenticated, lockoutFetched, backendLockedOut, principalString]);
 
-  const isLockedOut = localLockedOut || (lockoutFetched && backendLockedOut);
-  const isLoggingIn = loginStatus === 'logging-in';
-  const isSessionLoading = isInitializing || actorFetching;
+  const isLockedOut = localLockedOut || backendLockedOut;
+
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Failed to log in');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
 
-    // Prevent submission if actor is not ready
-    if (!actor) {
-      setError('Loading your session...');
-      return;
-    }
-
-    const trimmedCode = accessCode.trim().toUpperCase();
-
-    if (trimmedCode.length !== 5) {
-      setError('Access code must be exactly 5 characters');
-      setAccessCode('');
+    if (!isAuthenticated) {
+      setError('Please log in first');
       return;
     }
 
     if (isLockedOut) {
-      setError('Account permanently locked out due to repeated code attempts. Contact administrator.');
+      setError('Account permanently locked out. Contact administrator.');
+      return;
+    }
+
+    const normalizedCode = accessCode.trim().toUpperCase();
+
+    if (normalizedCode.length !== 5) {
+      setError('Access code must be exactly 5 characters');
       return;
     }
 
     try {
-      const clientDetails = getClientDetails();
-      
+      const { browserInfo, deviceType } = getClientDetails();
       const result = await submitMutation.mutateAsync({
-        accessCode: trimmedCode,
-        browserInfo: clientDetails.browserInfo,
-        deviceType: clientDetails.deviceType,
+        accessCode: normalizedCode,
+        browserInfo,
+        deviceType,
       });
-      
-      // Backend returns "Access Granted" on success, "Access Denied" on failure
+
       if (result === 'Access Granted') {
         setSuccess(true);
         setAdminAccessUnlocked();
         
-        // Invalidate and refetch role/permission queries before redirect
-        await queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
-        await queryClient.invalidateQueries({ queryKey: ['callerPermissions'] });
+        queryClient.setQueryData(['isAdmin'], true);
         
-        // Wait for queries to refetch
-        await queryClient.refetchQueries({ queryKey: ['currentUserRole'] });
-        
-        // Auto-redirect to admin dashboard after queries are refreshed
-        setTimeout(() => {
-          navigate({ to: '/admin' });
-        }, 1500);
+        navigate({ to: '/admin', search: { granted: 1 } });
       } else {
-        setError('Access Denied');
-        setAccessCode('');
+        setError('Invalid access code. Please try again.');
       }
     } catch (err: any) {
-      // Differentiate between initialization errors and backend denial
-      if (err.message === 'Actor not available') {
-        setError('Loading your session...');
-      } else if (err.message && err.message.includes('locked')) {
-        if (isAuthenticated && principalString) {
+      console.error('Access attempt error:', err);
+      if (err.message?.includes('locked out')) {
+        if (principalString) {
           setAdminEntryLockedOut(principalString);
         }
-        setError('Account permanently locked out due to repeated code attempts. Contact administrator.');
+        setError('Account permanently locked out due to repeated failed attempts. Contact administrator.');
       } else {
-        setError('Access Denied');
+        setError(err.message || 'Failed to verify access code');
       }
-      setAccessCode('');
     }
   };
 
-  const handleLogin = async () => {
-    try {
-      await login();
-    } catch (error: any) {
-      console.error('Login error:', error);
-    }
-  };
+  const isLoading = isInitializing || actorFetching || submitMutation.isPending;
 
   return (
     <PageLayout
       title="Admin Access"
       description="Secure administrative access control"
     >
+      {/* Mystical Intro Section */}
       <FadeInSection>
-        <div className="section-spacing flex items-center justify-center min-h-[60vh]">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                {success ? (
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                ) : isLockedOut ? (
-                  <AlertCircle className="h-8 w-8 text-destructive" />
-                ) : !isAuthenticated ? (
-                  <LogIn className="h-8 w-8 text-primary" />
-                ) : (
+        <section className="section-spacing px-4 sm:px-6">
+          <AdminAccessIntro />
+        </section>
+      </FadeInSection>
+
+      <FadeInSection delay={100}>
+        <section className="section-spacing px-4 sm:px-6">
+          <Card className="max-w-md mx-auto border-arcane-gold/30">
+            <CardHeader>
+              <div className="flex items-center justify-center mb-4">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
                   <Shield className="h-8 w-8 text-primary" />
-                )}
+                </div>
               </div>
-              <CardTitle className="text-2xl">Administrative Access</CardTitle>
+              <CardTitle className="text-center text-2xl">Admin Access</CardTitle>
             </CardHeader>
-            <CardContent>
-              {/* Not authenticated - show login required */}
+            <CardContent className="space-y-6">
               {!isAuthenticated ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground text-center">
-                    You must be logged in with Internet Identity to access the admin dashboard.
+                <div className="text-center space-y-4">
+                  <p className="text-muted-foreground">
+                    Please log in with Internet Identity to access the admin panel
                   </p>
                   <Button
                     onClick={handleLogin}
+                    disabled={loginStatus === 'logging-in'}
                     className="w-full"
-                    disabled={isLoggingIn}
+                    size="lg"
                   >
-                    {isLoggingIn ? (
+                    {loginStatus === 'logging-in' ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         Logging in...
                       </>
                     ) : (
                       <>
-                        <LogIn className="h-4 w-4 mr-2" />
+                        <LogIn className="mr-2 h-5 w-5" />
                         Login with Internet Identity
                       </>
                     )}
                   </Button>
                 </div>
-              ) : isSessionLoading ? (
-                /* Session loading - show loading state */
+              ) : isLockedOut ? (
                 <div className="text-center space-y-4">
-                  <Loader2 className="h-8 w-8 mx-auto animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">Loading your session...</p>
+                  <div className="flex items-center justify-center">
+                    <AlertCircle className="h-12 w-12 text-destructive" />
+                  </div>
+                  <p className="text-destructive font-semibold">
+                    Account Permanently Locked
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    This account has been locked due to repeated failed access attempts. Please contact the administrator.
+                  </p>
                 </div>
               ) : success ? (
-                /* Success - show access granted */
                 <div className="text-center space-y-4">
-                  <p className="text-lg font-semibold text-green-600">Access Granted</p>
-                  <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
-                </div>
-              ) : isLockedOut ? (
-                /* Locked out - show lockout message */
-                <div className="text-center space-y-4">
-                  <p className="text-sm text-destructive font-semibold">
-                    Account permanently locked out due to repeated code attempts. Contact administrator.
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    To regain access, you must create a new account with a different Internet Identity.
-                  </p>
+                  <div className="flex items-center justify-center">
+                    <CheckCircle className="h-12 w-12 text-success" />
+                  </div>
+                  <p className="text-success font-semibold">Access Granted</p>
+                  <p className="text-sm text-muted-foreground">Redirecting to admin panel...</p>
                 </div>
               ) : (
-                /* Authenticated and ready - show code entry form */
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <label htmlFor="accessCode" className="text-sm font-medium">
-                      5-Character Access Code
+                      Access Code
                     </label>
                     <Input
                       id="accessCode"
                       type="text"
                       value={accessCode}
-                      onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                      placeholder="Enter code"
+                      onChange={(e) => setAccessCode(e.target.value)}
+                      placeholder="Enter 5-character code"
                       maxLength={5}
-                      className="text-center text-lg tracking-widest font-mono"
-                      disabled={submitMutation.isPending || !actor}
-                      autoFocus
+                      className="text-center text-lg tracking-widest uppercase"
+                      disabled={isLoading}
+                      autoComplete="off"
                     />
                   </div>
 
                   {error && (
-                    <p className="text-sm text-destructive text-center font-semibold">{error}</p>
+                    <div className="flex items-center gap-2 text-destructive text-sm">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <span>{error}</span>
+                    </div>
                   )}
 
                   <Button
                     type="submit"
+                    disabled={isLoading || accessCode.trim().length !== 5}
                     className="w-full"
-                    disabled={submitMutation.isPending || accessCode.trim().length !== 5 || !actor}
+                    size="lg"
                   >
-                    {submitMutation.isPending ? (
+                    {isLoading ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         Verifying...
                       </>
                     ) : (
-                      <>
-                        <Shield className="h-4 w-4 mr-2" />
-                        Enter Dashboard
-                      </>
+                      'Verify Access'
                     )}
                   </Button>
                 </form>
               )}
             </CardContent>
           </Card>
-        </div>
+        </section>
       </FadeInSection>
     </PageLayout>
   );

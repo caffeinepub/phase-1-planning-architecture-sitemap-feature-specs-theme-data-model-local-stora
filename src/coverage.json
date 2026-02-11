@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T11:22:21.163Z",
+  "generatedAt": "2026-02-11T12:19:45.200Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,25 +11,27 @@
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-3",
-        "summary": "Update the social-media bubble links on the Contact page so that clicking each bubble opens the exact user-provided social profile URL in a new tab.",
+        "id": "REQ-1",
+        "summary": "Replace all existing content on the Services page with the user-provided “Enchanted Services of The Creator of Side Quests” copy, removing the current artifact-focused services list/accordion content.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/Contact.tsx"
+          "frontend/src/components/services/EnchantedServicesContent.tsx",
+          "frontend/src/pages/Services.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/Contact.tsx"
+          "frontend/src/pages/Services.tsx"
         ]
       },
       {
-        "id": "REQ-4",
-        "summary": "Ensure the social-media bubbles on the Contact page are visually and interactively “clickable” as bubbles (circular hit area), including clear hover and keyboard focus states consistent with the site theme.",
+        "id": "REQ-2",
+        "summary": "Ensure every major part of the new Services page content is visually enclosed with the site’s consistent bordered styling (use the existing MysticalBorder styling pattern used across the site), so that each section of content has borders like the rest of the website.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/Contact.tsx"
+          "frontend/src/components/services/EnchantedServicesContent.tsx",
+          "frontend/src/pages/Services.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/Contact.tsx"
+          "frontend/src/pages/Services.tsx"
         ]
       }
     ]
@@ -39,7 +41,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/Contact.tsx",
+    "frontend/src/pages/Services.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

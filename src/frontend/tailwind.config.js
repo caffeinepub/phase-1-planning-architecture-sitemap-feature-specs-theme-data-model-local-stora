@@ -91,6 +91,10 @@ export default {
           '0%, 100%': { boxShadow: '0 0 20px oklch(0.75 0.15 75 / 0.3)' },
           '50%': { boxShadow: '0 0 30px oklch(0.75 0.15 75 / 0.5)' },
         },
+        'mystical-glint': {
+          '0%, 100%': { opacity: '0', transform: 'scale(0.8)' },
+          '50%': { opacity: '1', transform: 'scale(1.2)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.7s ease-out',
@@ -98,6 +102,7 @@ export default {
         'slide-in': 'slide-in 0.5s ease-out',
         float: 'float 3s ease-in-out infinite',
         glow: 'glow 2s ease-in-out infinite',
+        'mystical-glint': 'mystical-glint 3s ease-in-out infinite',
       },
       transitionDuration: {
         600: '600ms',

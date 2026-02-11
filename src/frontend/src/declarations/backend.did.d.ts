@@ -178,7 +178,6 @@ export interface _SERVICE {
     [string, [] | [string], [] | [string]],
     string
   >,
-  'updateAdminAccessCode' : ActorMethod<[string, string], undefined>,
   'verifyAdminAccess' : ActorMethod<
     [string, [] | [string], [] | [string]],
     boolean
