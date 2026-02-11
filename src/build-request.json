@@ -1,42 +1,67 @@
 {
   "kind": "build_request",
-  "title": "Add 'Shop is Awakening' announcement to top of public Shop page",
+  "title": "Make Contact page social-media bubbles link to provided profiles",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Add the provided \"Shop is Awakening\" announcement message to the existing public Shop page/tab (frontend/src/pages/Shop.tsx) and render it near the top of the page content, above the current shop controls/products content, styled consistently with the rest of the site using existing layout/components (e.g., PageLayout, FadeInSection, shadcn Card/Alert, existing theme classes). The announcement text must be displayed exactly as provided (including punctuation and the ✨).",
+      "id": "REQ-3",
+      "text": "Update the social-media bubble links on the Contact page so that clicking each bubble opens the exact user-provided social profile URL in a new tab.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-5",
-          "recent-7",
-          "recent-9"
+          "msg-6"
         ],
         "quotes": [
-          "The Shop is Awakening…\n\nOur enchanted marketplace is still gathering its magic, and online purchases are not quite available yet. But worry not—your quests and creations need not wait. You may request a custom quote or personalized quest directly through our website, or send a message through Facebook Messenger, Instagram, or TikTok, where we happily discuss custom items, handcrafted products, and unique freelance creations made just for you.\n\nUntil the shop fully opens its doors, these pathways remain open—so step forward, share your vision, and together we will craft something extraordinary while the marketplace prepares to come to life. ✨ Make sure this displays within the shop tab, the public shop.",
-          "Make sure that is displayed on the shop page slash tab somewhere at the top! Number three, I want it to be styled exactly like the rest of the website.",
-          "Build it."
+          "https://www.facebook.com/share/1NmZG6UTZQ/\n\nhttps://youtube.com/@thecreatorofsidequests?si=NDOq7CkgZu5Mxf_7\n\nhttps://www.tiktok.com/@thecreatorofsidequests?_r=1&_t=ZT-93pCF5bOGo1\n\nhttps://www.instagram.com/thecreatorofsidequests?igsh=Y2Y1OTE4ZWN1Y3I3 when clicking the contact form and clicking the bubbles I should be able to click the bubbles and directly go to my social media I have provided you with the link stage of my social media! Build it! This is within the contact page!"
         ]
       },
       "acceptanceCriteria": [
-        "Visiting the Shop page shows the full provided announcement message at the top of the page content area (above the existing Shop controls/products grid).",
-        "The announcement styling matches the site’s established dark-fantasy theme and uses existing UI components/classes (no new design system introduced).",
-        "The announcement text matches the user-provided wording exactly, including the ending ✨ character.",
-        "The Shop page remains functional (controls, product list, cart drawer) and layout does not break on mobile and desktop."
+        "In frontend/src/pages/Contact.tsx, the Facebook bubble uses href=\"https://www.facebook.com/share/1NmZG6UTZQ/\".",
+        "In frontend/src/pages/Contact.tsx, the YouTube bubble uses href=\"https://youtube.com/@thecreatorofsidequests?si=NDOq7CkgZu5Mxf_7\".",
+        "In frontend/src/pages/Contact.tsx, the TikTok bubble uses href=\"https://www.tiktok.com/@thecreatorofsidequests?_r=1&_t=ZT-93pCF5bOGo1\".",
+        "In frontend/src/pages/Contact.tsx, the Instagram bubble uses href=\"https://www.instagram.com/thecreatorofsidequests?igsh=Y2Y1OTE4ZWN1Y3I3\".",
+        "All bubbles keep target=\"_blank\" and rel=\"noopener noreferrer\" so they open safely in a new tab."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Ensure the social-media bubbles on the Contact page are visually and interactively “clickable” as bubbles (circular hit area), including clear hover and keyboard focus states consistent with the site theme.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "when clicking the contact form and clicking the bubbles I should be able to click the bubbles and directly go to my social media"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each social icon link on the Contact page has a circular clickable area (e.g., equal height/width with rounded-full) that is comfortably tappable on mobile.",
+        "Each bubble has a visible hover state and a visible keyboard focus style (e.g., focus-visible ring) without breaking existing layout.",
+        "Icons remain accessible with appropriate aria-labels and do not trigger contact form submission."
       ]
     }
   ],
   "constraints": [
-    "Frontend immutable paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui) must not be modified.",
-    "Do not add any new backend/canister APIs or schema changes for this announcement; it is a static UI addition on the Shop page."
+    "Do not edit files under frontend/src/components/ui (read-only).",
+    "Do not add or require any Facebook/Instagram/TikTok/YouTube API integration; links only."
   ],
   "nonGoals": [
-    "Implementing e-commerce checkout or enabling online purchases.",
-    "Adding new social links/integrations beyond displaying the provided static message."
+    "Implementing real contact-form submission (email service, backend storage, or messaging integration).",
+    "Adding third-party authentication or social login."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

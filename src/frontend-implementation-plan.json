@@ -1,22 +1,39 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add 'Shop is Awakening' announcement banner to Shop page",
+  "title": "Fix Contact social bubble URLs and clickable bubble interactions",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Render the provided static 'Shop is Awakening' announcement near the top of the public Shop page, styled with existing layout and shadcn/ui components.",
+      "id": "REQ-3",
+      "summary": "Point each Contact page social-media bubble to the exact user-provided profile URL and open safely in a new tab.",
       "acceptanceCriteria": [
-        "Visiting the Shop page shows the full provided announcement message at the top of the page content area (above the existing Shop controls/products grid).",
-        "The announcement styling matches the site’s established dark-fantasy theme and uses existing UI components/classes (no new design system introduced).",
-        "The announcement text matches the user-provided wording exactly, including the ending ✨ character.",
-        "The Shop page remains functional (controls, product list, cart drawer) and layout does not break on mobile and desktop."
+        "In frontend/src/pages/Contact.tsx, the Facebook bubble uses href=\"https://www.facebook.com/share/1NmZG6UTZQ/\".",
+        "In frontend/src/pages/Contact.tsx, the YouTube bubble uses href=\"https://youtube.com/@thecreatorofsidequests?si=NDOq7CkgZu5Mxf_7\".",
+        "In frontend/src/pages/Contact.tsx, the TikTok bubble uses href=\"https://www.tiktok.com/@thecreatorofsidequests?_r=1&_t=ZT-93pCF5bOGo1\".",
+        "In frontend/src/pages/Contact.tsx, the Instagram bubble uses href=\"https://www.instagram.com/thecreatorofsidequests?igsh=Y2Y1OTE4ZWN1Y3I3\".",
+        "All bubbles keep target=\"_blank\" and rel=\"noopener noreferrer\" so they open safely in a new tab."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/Shop.tsx",
+          "path": "frontend/src/pages/Contact.tsx",
           "operation": "modify",
-          "description": "Add a static announcement block above the existing shop controls within the main content section. Use existing layout/components already in use on this page (PageLayout, FadeInSection) and a shadcn/ui container (e.g., Card and/or Alert) to match the established theme. Ensure the announcement text is inserted exactly as provided (including punctuation, line breaks, and the ✨) and rendered with appropriate Tailwind utility classes (e.g., whitespace-preserving) so formatting remains readable on mobile/desktop. Verify the component's usage instructions before implementing."
+          "description": "Update the four social icon <a> tags in the Contact Information card to use the exact provided Facebook/YouTube/TikTok/Instagram profile URLs, while retaining target=\"_blank\" and rel=\"noopener noreferrer\"."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Make Contact page social-media bubbles clearly clickable with circular hit areas plus theme-consistent hover and keyboard focus states.",
+      "acceptanceCriteria": [
+        "Each social icon link on the Contact page has a circular clickable area (e.g., equal height/width with rounded-full) that is comfortably tappable on mobile.",
+        "Each bubble has a visible hover state and a visible keyboard focus style (e.g., focus-visible ring) without breaking existing layout.",
+        "Icons remain accessible with appropriate aria-labels and do not trigger contact form submission."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/Contact.tsx",
+          "operation": "modify",
+          "description": "Adjust the social icon links to render as true \"bubble\" buttons: apply circular sizing (equal width/height), rounded-full hit area, and add theme-consistent hover + focus-visible styling (including a visible focus ring) while preserving aria-label accessibility and ensuring the links remain non-submit controls (keep them as anchors outside the form)."
         }
       ]
     }

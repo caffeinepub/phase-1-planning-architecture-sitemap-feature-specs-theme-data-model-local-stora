@@ -1,32 +1,46 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T09:12:16.713Z",
-  "summary": "Diff adds a new announcement Card near the top of `frontend/src/pages/Shop.tsx`, above the shop content, using existing UI components (Card, PageLayout, FadeInSection). However, based on the truncated snippet, the announcement text does not clearly match the provided wording exactly (no visible ending ✨ and the body text appears truncated/typoed).",
+  "generatedAt": "2026-02-11T11:22:21.159Z",
+  "summary": "The diff does not include the portion of Contact.tsx where the social-media bubbles are defined, so there is no visible evidence that the required href targets, new-tab attributes, or clickable/hover/focus bubble styling were implemented. Additionally, metadata/state files were modified that were not requested in the BuildRequest.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Announcement text must be displayed exactly as provided (including punctuation and the ✨).",
-      "reason": "In the shown `Shop.tsx` snippet, the title uses an ellipsis character (\"The Shop is Awakening…\") and the body text appears cut off/typoed (\"Facebook Messenge\"), and there is no visible ending ✨ in the provided excerpt. With only this diff evidence, exact text fidelity cannot be confirmed and appears violated.",
+      "id": "REQ-3",
+      "requirement": "Update the social-media bubble links on the Contact page so that clicking each bubble opens the exact user-provided social profile URL in a new tab (Facebook/YouTube/TikTok/Instagram), keeping target=\"_blank\" and rel=\"noopener noreferrer\".",
+      "reason": "The provided Contact.tsx diff is truncated before any social-media bubble/link markup; no evidence shows the specified href values or target/rel attributes were added/updated.",
       "evidence": [
-        "frontend/src/pages/Shop.tsx"
+        "frontend/src/pages/Contact.tsx (truncated before social links)"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Ensure the social-media bubbles are visually and interactively clickable (circular hit area) with clear hover and keyboard focus states, accessible aria-labels, and do not submit the contact form.",
+      "reason": "The truncated diff does not show any social icon link elements or their className/aria-label/focus/hover styling, so there is no confirmable implementation evidence.",
+      "evidence": [
+        "frontend/src/pages/Contact.tsx (truncated before social links)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Updated/added project metadata and summaries unrelated to the Shop page UI change.",
-      "reason": "The BuildRequest only asks for a static UI addition on the Shop page and does not request changes to project tracking/summary files.",
+      "description": "Project metadata/state tracking update describing the feature as 'pending' in project_state.json.",
+      "reason": "BuildRequest requirements only mention implementing Contact page social link behavior and styling; it does not request modifying repository/project state metadata files.",
       "evidence": [
-        "frontend-file-summaries.txt",
         "project_state.json"
+      ]
+    },
+    {
+      "description": "Updated/added repository file summary content (frontend-file-summaries.txt).",
+      "reason": "BuildRequest does not request generating or updating file summary documentation; this change is outside stated requirements.",
+      "evidence": [
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.66,
+  "confidence": 0.55,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/pages/Shop.tsx",
+    "frontend/src/pages/Contact.tsx",
     "project_state.json"
   ]
 }

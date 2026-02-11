@@ -135,41 +135,41 @@ export default function Contact() {
                   </p>
                 </div>
 
-                {/* Social Media Links */}
+                {/* Social Media Bubbles */}
                 <div className="flex gap-4 items-center justify-start flex-wrap">
                   <a
-                    href="https://facebook.com"
+                    href="https://www.facebook.com/share/1NmZG6UTZQ/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-arcane-gold transition-colors"
-                    aria-label="Facebook Messenger"
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-muted/50 text-muted-foreground hover:bg-arcane-gold/20 hover:text-arcane-gold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcane-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background touch-manipulation"
+                    aria-label="Visit our Facebook page"
                   >
                     <SiFacebook className="h-6 w-6" />
                   </a>
                   <a
-                    href="https://instagram.com"
+                    href="https://www.instagram.com/thecreatorofsidequests?igsh=Y2Y1OTE4ZWN1Y3I3"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-arcane-gold transition-colors"
-                    aria-label="Instagram"
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-muted/50 text-muted-foreground hover:bg-arcane-gold/20 hover:text-arcane-gold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcane-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background touch-manipulation"
+                    aria-label="Visit our Instagram profile"
                   >
                     <SiInstagram className="h-6 w-6" />
                   </a>
                   <a
-                    href="https://tiktok.com"
+                    href="https://www.tiktok.com/@thecreatorofsidequests?_r=1&_t=ZT-93pCF5bOGo1"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-arcane-gold transition-colors"
-                    aria-label="TikTok"
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-muted/50 text-muted-foreground hover:bg-arcane-gold/20 hover:text-arcane-gold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcane-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background touch-manipulation"
+                    aria-label="Visit our TikTok profile"
                   >
                     <SiTiktok className="h-6 w-6" />
                   </a>
                   <a
-                    href="https://youtube.com"
+                    href="https://youtube.com/@thecreatorofsidequests?si=NDOq7CkgZu5Mxf_7"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-arcane-gold transition-colors"
-                    aria-label="YouTube"
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-muted/50 text-muted-foreground hover:bg-arcane-gold/20 hover:text-arcane-gold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcane-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background touch-manipulation"
+                    aria-label="Visit our YouTube channel"
                   >
                     <SiYoutube className="h-6 w-6" />
                   </a>

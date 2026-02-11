@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-the-provided-shop-is-awakening-announcement-message-to-the-existing-public-shop-page-tab-frontend-src-pages-shop-tsx-and-render-it-near-the-top-of-the-page-content-above-the-current-shop-controls-products-content-styled-consistently-with-the-rest-of-the-site-using-existing-layout-components-e-g-pagelayout-fadeinsection-shadcn-card-alert-existing-theme-classes-the-announcement-text-must-be-displayed-exactly-as-provided-including-punctuation-and-the",
-      "featureTitle": "Add the provided \"Shop is Awakening\" announcement message to the existing public Shop page/tab (frontend/src/pages/Shop.tsx) and render it near the top of the page content, above the current shop controls/products content, styled consistently with the rest of the site using existing layout/components (e.g., PageLayout, FadeInSection, shadcn Card/Alert, existing theme classes). The announcement text must be displayed exactly as provided (including punctuation and the ✨).",
+      "featureId": "feature-update-the-social-media-bubble-links-on-the-contact-page-so-that-clicking-each-bubble-opens-the-exact-user-provided-social-profile-url-in-a-new-tab",
+      "featureTitle": "Update the social-media bubble links on the Contact page so that clicking each bubble opens the exact user-provided social profile URL in a new tab.",
       "files": [
-        "frontend/src/pages/Shop.tsx"
+        "frontend/src/pages/Contact.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,7 +17,27 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-social-media-bubbles-on-the-contact-page-are-visually-and-interactively-clickable-as-bubbles-circular-hit-area-including-clear-hover-and-keyboard-focus-states-consistent-with-the-site-theme",
+      "featureTitle": "Ensure the social-media bubbles on the Contact page are visually and interactively “clickable” as bubbles (circular hit area), including clear hover and keyboard focus states consistent with the site theme.",
+      "files": [
+        "frontend/src/pages/Contact.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

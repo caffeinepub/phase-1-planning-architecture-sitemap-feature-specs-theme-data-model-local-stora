@@ -1,16 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Add a styled announcement message to the top of the existing public Shop tab/page indicating online purchases are not yet available and directing users to request custom quotes via website and social channels.",
+  "summary": "Website update: add clickable social-media bubbles on the Contact page that link directly to provided social profiles.",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-add-the-provided-shop-is-awakening-announcement-message-to-the-existing-public-shop-page-tab-frontend-src-pages-shop-tsx-and-render-it-near-the-top-of-the-page-content-above-the-current-shop-controls-products-content-styled-consistently-with-the-rest-of-the-site-using-existing-layout-components-e-g-pagelayout-fadeinsection-shadcn-card-alert-existing-theme-classes-the-announcement-text-must-be-displayed-exactly-as-provided-including-punctuation-and-the",
-      "title": "Add the provided \"Shop is Awakening\" announcement message to the existing public Shop page/tab (frontend/src/pages/Shop.tsx) and render it near the top of the page content, above the current shop controls/products content, styled consistently with the rest of the site using existing layout/components (e.g., PageLayout, FadeInSection, shadcn Card/Alert, existing theme classes). The announcement text must be displayed exactly as provided (including punctuation and the ✨).",
+      "id": "feature-update-the-social-media-bubble-links-on-the-contact-page-so-that-clicking-each-bubble-opens-the-exact-user-provided-social-profile-url-in-a-new-tab",
+      "title": "Update the social-media bubble links on the Contact page so that clicking each bubble opens the exact user-provided social profile URL in a new tab.",
       "reqIds": [
-        "REQ-1"
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-social-media-bubbles-on-the-contact-page-are-visually-and-interactively-clickable-as-bubbles-circular-hit-area-including-clear-hover-and-keyboard-focus-states-consistent-with-the-site-theme",
+      "title": "Ensure the social-media bubbles on the Contact page are visually and interactively “clickable” as bubbles (circular hit area), including clear hover and keyboard focus states consistent with the site theme.",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
@@ -18,12 +26,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Display the provided 'Shop is Awakening' announcement message at the top of the existing public Shop tab/page, styled consistently with the rest of the website.",
+      "summary": "Add clickable social-media bubbles on the Contact page that open the provided Facebook, YouTube, TikTok, and Instagram links.",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Add 'Shop is Awakening' announcement to top of public Shop page",
+  "projectName": "Make Contact page social-media bubbles link to provided profiles",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
