@@ -2,12 +2,37 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-admin-access-page-admin-access-so-it-does-not-require-an-internet-identity-login-users-should-be-able-to-type-the-5-character-access-code-submit-it-see-access-granted-and-be-automatically-redirected-into-the-full-admin-dashboard-ui",
-      "featureTitle": "Update the Admin Access page (/admin-access) so it does NOT require an Internet Identity login. Users should be able to type the 5-character access code, submit it, see “Access Granted,” and be automatically redirected into the full admin dashboard UI.",
+      "featureId": "feature-perform-a-full-site-audit-and-fix-all-runtime-errors-broken-navigation-links-layout-overlaps-styling-conflicts-and-script-js-conflicts-across-every-page-and-component-ensure-consistent-text-rendering-from-the-header-navigation-through-the-footer-including-the-hamburger-menu-with-no-overlapping-elements-broken-responsive-states-or-console-errors-during-normal-navigation-and-interactions",
+      "featureTitle": "Perform a full-site audit and fix all runtime errors, broken navigation/links, layout overlaps, styling conflicts, and script/JS conflicts across every page and component. Ensure consistent text rendering from the header navigation through the footer (including the hamburger menu), with no overlapping elements, broken responsive states, or console errors during normal navigation and interactions.",
       "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
+        "frontend/src/components/adminDashboard/AdminSidebarNav.tsx",
+        "frontend/src/components/layout/Footer.tsx",
+        "frontend/src/components/layout/HeaderNav.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-fix-the-mismatch-between-navigation-links-and-router-paths-so-that-the-top-navigation-and-footer-links-always-load-the-intended-pages-in-particular-ensure-the-lore-knowledge-navigation-item-routes-to-the-actual-lore-page-route-currently-implemented-as-bloglore",
+      "featureTitle": "Fix the mismatch between navigation links and router paths so that the top navigation and footer links always load the intended pages. In particular, ensure the “Lore & Knowledge” navigation item routes to the actual Lore page route (currently implemented as BlogLore).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/layout/Footer.tsx",
         "frontend/src/components/layout/HeaderNav.tsx",
-        "frontend/src/lib/adminAccessCode.ts",
-        "frontend/src/pages/AdminAccess.tsx"
+        "frontend/src/lib/routePaths.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -24,12 +49,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-admin-dashboard-route-admin-gating-so-that-entering-the-correct-admin-access-code-is-sufficient-to-render-the-full-admin-dashboard-ui-with-all-existing-tools-features-without-requiring-internet-identity-login",
-      "featureTitle": "Update the Admin Dashboard route (/admin) gating so that entering the correct admin access code is sufficient to render the full admin dashboard UI with all existing tools/features, without requiring Internet Identity login.",
+      "featureId": "feature-update-the-header-navigation-so-the-user-can-click-an-explicit-admin-item-in-the-top-navigation-desktop-and-mobile-hamburger-menu-this-must-open-the-admin-access-screen-admin-access-keep-existing-lockout-behavior-hide-disable-admin-entry-when-locked-out-but-ensure-the-entry-point-is-clearly-labeled-admin-as-requested",
+      "featureTitle": "Update the header navigation so the user can click an explicit “Admin” item in the top navigation (desktop and mobile hamburger menu). This must open the Admin access screen (/admin-access). Keep existing lockout behavior (hide/disable Admin entry when locked out), but ensure the entry point is clearly labeled “Admin” as requested.",
       "files": [
-        "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/Admin.tsx"
+        "frontend/src/components/layout/HeaderNav.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -42,6 +65,71 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-admin-access-screen-to-match-the-requested-flow-after-clicking-admin-the-form-label-must-read-administrator-access-the-action-button-must-read-submit-and-when-the-user-enters-access-code-7583a-and-submits-the-ui-must-display-access-granted-and-immediately-redirect-to-the-admin-dashboard-admin-without-an-artificial-delay",
+      "featureTitle": "Update the Admin access screen to match the requested flow: after clicking “Admin”, the form label must read “Administrator Access”, the action button must read “Submit”, and when the user enters access code 7583A and submits, the UI must display “Access Granted” and immediately redirect to the Admin Dashboard (/admin) without an artificial delay.",
+      "files": [
+        "frontend/src/pages/AdminAccess.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-admin-dashboard-admin-loads-reliably-after-a-successful-access-code-submission-and-that-all-dashboard-sections-render-without-broken-components-missing-imports-empty-blank-views-or-runtime-errors-any-sections-that-are-not-backed-by-implemented-backend-functionality-must-still-render-a-stable-ui-state-without-throwing-and-must-not-appear-broken-no-empty-files-rendered-no-crashes-no-unresolved-promises",
+      "featureTitle": "Ensure the Admin Dashboard (/admin) loads reliably after a successful access code submission and that all dashboard sections render without broken components, missing imports, empty/blank views, or runtime errors. Any sections that are not backed by implemented backend functionality must still render a stable UI state without throwing and must not appear “broken” (no empty files rendered, no crashes, no unresolved promises).",
+      "files": [
+        "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
+        "frontend/src/components/adminDashboard/AdminSidebarNav.tsx",
+        "frontend/src/components/adminDashboard/AdminTopBar.tsx",
+        "frontend/src/components/auth/RequireAdminAccessGate.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-run-and-apply-the-project-s-manual-qa-checklist-for-navigation-mobile-menu-admin-access-and-core-pages-and-address-any-issues-discovered-during-that-pass-including-responsive-layout-regressions-and-focus-keyboard-usability-issues-that-cause-functional-problems-use-the-existing-qa-plan-document-as-the-baseline",
+      "featureTitle": "Run and apply the project’s manual QA checklist for navigation & mobile menu, admin access, and core pages, and address any issues discovered during that pass (including responsive layout regressions and focus/keyboard usability issues that cause functional problems). Use the existing QA plan document as the baseline.",
+      "files": [
+        "frontend/src/components/auth/RequireAdminAccessGate.tsx",
+        "frontend/src/components/layout/HeaderNav.tsx",
+        "frontend/src/pages/AdminAccess.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
       ],
       "confidence": "high"
     }

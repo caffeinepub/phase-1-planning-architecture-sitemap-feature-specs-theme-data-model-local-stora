@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { isAdminAccessUnlocked, clearAdminAccessUnlocked } from '../../lib/adminAccessSession';
 import { useIsCallerAdmin } from '../../hooks/useQueries';
 import { Loader2 } from 'lucide-react';
+import { ROUTE_PATHS } from '../../lib/routePaths';
 
 interface RequireAdminAccessGateProps {
   children: React.ReactNode;
@@ -21,14 +22,14 @@ export default function RequireAdminAccessGate({ children }: RequireAdminAccessG
   useEffect(() => {
     // If session is not unlocked, redirect to admin access page
     if (!isUnlocked) {
-      navigate({ to: '/admin-access', replace: true });
+      navigate({ to: ROUTE_PATHS.adminAccess, replace: true });
       return;
     }
 
     // If we've fetched the admin status and it's false, clear unlock and redirect
-    if (isFetched && !isAdmin) {
+    if (isFetched && isAdmin === false) {
       clearAdminAccessUnlocked();
-      navigate({ to: '/admin-access', replace: true });
+      navigate({ to: ROUTE_PATHS.adminAccess, replace: true });
     }
   }, [isUnlocked, isAdmin, isFetched, navigate]);
 

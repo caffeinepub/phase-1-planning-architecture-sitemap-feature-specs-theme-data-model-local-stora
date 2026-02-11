@@ -3,10 +3,13 @@ import { useNavigate } from '@tanstack/react-router';
 import { clearAdminAccessUnlocked } from '../../lib/adminAccessSession';
 import type { DashboardSection } from '../../pages/Admin';
 import { cn } from '../../lib/utils';
+import { ROUTE_PATHS } from '../../lib/routePaths';
 
 interface AdminSidebarNavProps {
   activeSection: DashboardSection;
   onSectionChange: (section: DashboardSection) => void;
+  isMobileOpen: boolean;
+  onMobileClose: () => void;
 }
 
 interface NavItem {
@@ -26,21 +29,39 @@ const navItems: NavItem[] = [
   { id: 'security', label: 'Security Settings', icon: Shield },
 ];
 
-export default function AdminSidebarNav({ activeSection, onSectionChange }: AdminSidebarNavProps) {
+export default function AdminSidebarNav({ 
+  activeSection, 
+  onSectionChange,
+  isMobileOpen,
+  onMobileClose,
+}: AdminSidebarNavProps) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     clearAdminAccessUnlocked();
-    navigate({ to: '/admin-access' });
+    navigate({ to: ROUTE_PATHS.adminAccess });
+  };
+
+  const handleNavClick = (section: DashboardSection) => {
+    onSectionChange(section);
+    onMobileClose();
   };
 
   return (
     <>
       {/* Mobile overlay */}
-      <div className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-40" />
+      {isMobileOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
+          onClick={onMobileClose}
+        />
+      )}
       
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-screen w-64 bg-card border-r border-border z-50 flex flex-col">
+      <aside className={cn(
+        "fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-card border-r border-border z-50 flex flex-col transition-transform duration-300 lg:translate-x-0",
+        isMobileOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
         <div className="p-6 border-b border-border">
           <h2 className="text-xl font-bold">Admin Dashboard</h2>
           <p className="text-sm text-muted-foreground mt-1">Control Panel</p>
@@ -54,7 +75,7 @@ export default function AdminSidebarNav({ activeSection, onSectionChange }: Admi
             return (
               <button
                 key={item.id}
-                onClick={() => onSectionChange(item.id)}
+                onClick={() => handleNavClick(item.id)}
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all',
                   isActive

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Shield, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import PageLayout from '../components/layout/PageLayout';
@@ -15,6 +16,7 @@ import { useActor } from '../hooks/useActor';
 import { isAdminEntryLockedOut, setAdminEntryLockedOut } from '../lib/adminEntryLockout';
 import { useQueryClient } from '@tanstack/react-query';
 import { normalizeAccessCode, isValidCodeFormat } from '../lib/adminAccessCode';
+import { ROUTE_PATHS } from '../lib/routePaths';
 
 export default function AdminAccess() {
   const [accessCode, setAccessCode] = useState('');
@@ -74,10 +76,8 @@ export default function AdminAccess() {
         await queryClient.invalidateQueries({ queryKey: ['callerPermissions'] });
         await queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
         
-        // Small delay to show success message, then redirect
-        setTimeout(() => {
-          navigate({ to: '/admin', search: { granted: '1' } });
-        }, 1500);
+        // Navigate immediately after showing success
+        navigate({ to: ROUTE_PATHS.admin, search: { granted: '1' } });
       } else {
         setError('Invalid access code. Please try again.');
       }
@@ -111,82 +111,85 @@ export default function AdminAccess() {
       <FadeInSection delay={100}>
         <section className="section-spacing px-4 sm:px-6">
           <Card className="max-w-md mx-auto border-arcane-gold/30">
-            <CardHeader>
-              <div className="flex items-center justify-center mb-4">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Shield className="h-8 w-8 text-primary" />
-                </div>
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Shield className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle className="text-center text-2xl">Administrative Access</CardTitle>
-              <p className="text-center text-sm text-muted-foreground mt-2">
-                5-Character Access Code
-              </p>
+              <CardTitle className="text-2xl">Administrator Access</CardTitle>
+              <CardDescription>
+                Enter your access code to continue
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent>
               {isLockedOut ? (
                 <div className="text-center space-y-4">
-                  <div className="flex items-center justify-center">
-                    <AlertCircle className="h-12 w-12 text-destructive" />
+                  <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                    <p className="text-sm text-destructive font-medium">
+                      Account Locked
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      This account has been permanently locked due to repeated failed access attempts.
+                      Please contact the administrator.
+                    </p>
                   </div>
-                  <p className="text-destructive font-semibold">
-                    Account Permanently Locked
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    This account has been locked due to repeated failed access attempts. Please contact the administrator.
-                  </p>
                 </div>
               ) : success ? (
                 <div className="text-center space-y-4">
-                  <div className="flex items-center justify-center">
-                    <CheckCircle className="h-12 w-12 text-success" />
+                  <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
+                    <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                      Access Granted
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Redirecting to admin dashboard...
+                    </p>
                   </div>
-                  <p className="text-success font-semibold text-lg">Access Granted</p>
-                  <p className="text-sm text-muted-foreground">Redirecting to admin dashboard...</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="accessCode" className="text-sm font-medium">
-                      Enter code
-                    </label>
+                    <Label htmlFor="accessCode">Administrator Access</Label>
                     <Input
                       id="accessCode"
                       type="text"
+                      placeholder="Enter 5-character code"
                       value={accessCode}
                       onChange={(e) => setAccessCode(e.target.value)}
-                      placeholder="Enter code"
                       maxLength={5}
-                      className="text-center text-lg tracking-widest uppercase"
                       disabled={isLoading}
+                      className="text-center text-lg tracking-widest uppercase"
                       autoComplete="off"
                     />
-                    <p className="text-xs text-muted-foreground text-center">
-                      Code is case-insensitive
-                    </p>
                   </div>
 
                   {error && (
-                    <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-md">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                      <span>{error}</span>
+                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <p className="text-sm text-destructive flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                        {error}
+                      </p>
                     </div>
                   )}
 
                   <Button
                     type="submit"
-                    disabled={isLoading || accessCode.trim().length !== 5}
                     className="w-full"
-                    size="lg"
+                    disabled={isLoading || accessCode.length !== 5}
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Verifying...
                       </>
                     ) : (
-                      'Enter Dashboard'
+                      'Submit'
                     )}
                   </Button>
+
+                  <p className="text-xs text-center text-muted-foreground">
+                    Access code is case-insensitive and must be exactly 5 characters
+                  </p>
                 </form>
               )}
             </CardContent>

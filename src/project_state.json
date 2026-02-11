@@ -1,28 +1,56 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Implement an admin access flow that bypasses Internet Identity by using a backend-canister verified 5-character admin code, showing “Access Granted,” then redirecting users into the full admin dashboard UI with all tools enabled.",
-  "architectural_notes": [
-    "Admin access code must be verified in the backend canister (not frontend-only) and grant access to the full admin dashboard without Internet Identity authentication."
-  ],
-  "known_issues": [
-    "User reports they have never been able to access/enter the admin dashboard UI."
-  ],
+  "summary": "Audit and debug an existing website in the Caffeine project to resolve layout/content/link/JS/functionality issues site-wide, and update the Admin access flow to grant access with code 7583A and redirect to a fully functional Admin Dashboard.",
+  "architectural_notes": [],
+  "known_issues": [],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-admin-access-page-admin-access-so-it-does-not-require-an-internet-identity-login-users-should-be-able-to-type-the-5-character-access-code-submit-it-see-access-granted-and-be-automatically-redirected-into-the-full-admin-dashboard-ui",
-      "title": "Update the Admin Access page (/admin-access) so it does NOT require an Internet Identity login. Users should be able to type the 5-character access code, submit it, see “Access Granted,” and be automatically redirected into the full admin dashboard UI.",
+      "id": "feature-perform-a-full-site-audit-and-fix-all-runtime-errors-broken-navigation-links-layout-overlaps-styling-conflicts-and-script-js-conflicts-across-every-page-and-component-ensure-consistent-text-rendering-from-the-header-navigation-through-the-footer-including-the-hamburger-menu-with-no-overlapping-elements-broken-responsive-states-or-console-errors-during-normal-navigation-and-interactions",
+      "title": "Perform a full-site audit and fix all runtime errors, broken navigation/links, layout overlaps, styling conflicts, and script/JS conflicts across every page and component. Ensure consistent text rendering from the header navigation through the footer (including the hamburger menu), with no overlapping elements, broken responsive states, or console errors during normal navigation and interactions.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-mismatch-between-navigation-links-and-router-paths-so-that-the-top-navigation-and-footer-links-always-load-the-intended-pages-in-particular-ensure-the-lore-knowledge-navigation-item-routes-to-the-actual-lore-page-route-currently-implemented-as-bloglore",
+      "title": "Fix the mismatch between navigation links and router paths so that the top navigation and footer links always load the intended pages. In particular, ensure the “Lore & Knowledge” navigation item routes to the actual Lore page route (currently implemented as BlogLore).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-admin-dashboard-route-admin-gating-so-that-entering-the-correct-admin-access-code-is-sufficient-to-render-the-full-admin-dashboard-ui-with-all-existing-tools-features-without-requiring-internet-identity-login",
-      "title": "Update the Admin Dashboard route (/admin) gating so that entering the correct admin access code is sufficient to render the full admin dashboard UI with all existing tools/features, without requiring Internet Identity login.",
+      "id": "feature-update-the-header-navigation-so-the-user-can-click-an-explicit-admin-item-in-the-top-navigation-desktop-and-mobile-hamburger-menu-this-must-open-the-admin-access-screen-admin-access-keep-existing-lockout-behavior-hide-disable-admin-entry-when-locked-out-but-ensure-the-entry-point-is-clearly-labeled-admin-as-requested",
+      "title": "Update the header navigation so the user can click an explicit “Admin” item in the top navigation (desktop and mobile hamburger menu). This must open the Admin access screen (/admin-access). Keep existing lockout behavior (hide/disable Admin entry when locked out), but ensure the entry point is clearly labeled “Admin” as requested.",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-access-screen-to-match-the-requested-flow-after-clicking-admin-the-form-label-must-read-administrator-access-the-action-button-must-read-submit-and-when-the-user-enters-access-code-7583a-and-submits-the-ui-must-display-access-granted-and-immediately-redirect-to-the-admin-dashboard-admin-without-an-artificial-delay",
+      "title": "Update the Admin access screen to match the requested flow: after clicking “Admin”, the form label must read “Administrator Access”, the action button must read “Submit”, and when the user enters access code 7583A and submits, the UI must display “Access Granted” and immediately redirect to the Admin Dashboard (/admin) without an artificial delay.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-admin-dashboard-admin-loads-reliably-after-a-successful-access-code-submission-and-that-all-dashboard-sections-render-without-broken-components-missing-imports-empty-blank-views-or-runtime-errors-any-sections-that-are-not-backed-by-implemented-backend-functionality-must-still-render-a-stable-ui-state-without-throwing-and-must-not-appear-broken-no-empty-files-rendered-no-crashes-no-unresolved-promises",
+      "title": "Ensure the Admin Dashboard (/admin) loads reliably after a successful access code submission and that all dashboard sections render without broken components, missing imports, empty/blank views, or runtime errors. Any sections that are not backed by implemented backend functionality must still render a stable UI state without throwing and must not appear “broken” (no empty files rendered, no crashes, no unresolved promises).",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-run-and-apply-the-project-s-manual-qa-checklist-for-navigation-mobile-menu-admin-access-and-core-pages-and-address-any-issues-discovered-during-that-pass-including-responsive-layout-regressions-and-focus-keyboard-usability-issues-that-cause-functional-problems-use-the-existing-qa-plan-document-as-the-baseline",
+      "title": "Run and apply the project’s manual QA checklist for navigation & mobile menu, admin access, and core pages, and address any issues discovered during that pass (including responsive layout regressions and focus/keyboard usability issues that cause functional problems). Use the existing QA plan document as the baseline.",
+      "reqIds": [
+        "REQ-6"
       ],
       "version": 1
     }
@@ -30,20 +58,18 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Admin page: show 5-character access code form; verify code (7583A) in backend canister; on success display “Access Granted” and auto-redirect to full admin dashboard with no Internet Identity login required",
+      "summary": "Perform full-site audit and debugging: fix bugs/errors, broken links, layout/styling overlaps, script conflicts/JS errors; ensure all pages load correctly and navigation (including hamburger menu) and interactive features work smoothly; verify consistent text display from header to footer.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Fix backend admin-code verification so that a case-insensitive match that returns “Access Granted” also grants admin privileges for the same caller principal (so the user can actually enter the admin dashboard after a successful code entry).",
-      "reqIds": [
-        "REQ-1"
-      ],
+      "summary": "Update Admin flow: clicking “Admin” opens access screen; entering code 7583A and submitting shows “Access Granted” then immediately redirects to a fully functional Admin Dashboard UI with all intended admin tools/features and no broken/missing components.",
+      "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Fix admin access flow to bypass Internet Identity and unlock full admin dashboard via backend-verified code",
+  "projectName": "Full-site QA/debug pass + fix Admin access redirect to working Admin Dashboard",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,100 +1,57 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T13:17:27.532Z",
-  "summary": "The diff introduces broad frontend placeholder UI changes and a new admin gating component, but it does not provide clear evidence (from the shown diff) that the requested admin-code-based unlock flow is fully implemented end-to-end. In particular, the diff does not show the /admin-access page changes, and backend changes are truncated such that the required behavior for submitAdminAccessAttempt granting admin privileges cannot be verified.",
+  "generatedAt": "2026-02-11T23:46:12.253Z",
+  "summary": "Diff adds centralized route constants, updates router paths to include /lore -> BlogLore, adds explicit Admin link in header, updates Admin access submission flow to immediately navigate to /admin on “Access Granted”, and introduces an Admin access gate plus improved Admin dashboard shell/sidebar/topbar. However, several requested acceptance criteria cannot be confirmed from the truncated diff summary (notably specific AdminAccess UI text, backend “Access Granted” exact return behavior, and completion of the QA checklist/site-wide audit).",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Backend admin-code verification must be case-insensitive, return exactly \"Access Granted\" for code variants (e.g., \"7583a\"), and also grant admin privileges to the same caller principal; incorrect code must return exactly \"Access Denied\" and not grant privileges; master code remains 7583A in backend.",
-      "reason": "backend/main.mo is truncated and does not show the implementation of submitAdminAccessAttempt, the exact returned strings, or any logic that grants admin privileges to the caller principal upon success (e.g., writing to an admin registry/permissions map). Only the presence of ADMIN_ACCESS_CODE = \"7583A\" is visible.",
+      "requirement": "Perform a full-site audit and fix all runtime errors, broken navigation/links, layout overlaps, styling conflicts, and script/JS conflicts across every page and component.",
+      "reason": "The diff shows multiple targeted changes (routing constants, header/footer links, admin flow, admin dashboard components), but does not provide evidence that *every* route/component has been audited and fixed, nor that there are no remaining console errors/overlaps across the whole site.",
+      "evidence": [
+        "frontend/src/App.tsx (truncated)",
+        "frontend-file-summaries.txt (high-level summaries only, not verification of all routes)"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Admin access screen label must read “Administrator Access” and button must read “Submit”.",
+      "reason": "AdminAccess.tsx is truncated before the rendered form markup, so the required user-facing label/button text cannot be verified from the provided diff summary.",
+      "evidence": [
+        "frontend/src/pages/AdminAccess.tsx (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "Backend admin access verification continues to accept code 7583A (case-insensitive) and returns the exact string “Access Granted” on success.",
+      "reason": "backend/main.mo is truncated and does not show the admin access verification function implementation or its exact returned text; only the constant ADMIN_ACCESS_CODE is visible.",
       "evidence": [
         "backend/main.mo (truncated)"
       ]
     },
     {
-      "id": "REQ-2",
-      "requirement": "Admin Access page (/admin-access) must not require Internet Identity login; must show \"Administrative Access\" UI with a 5-character code input; on correct code show visible \"Access Granted\" and redirect to /admin; invalid code shows an English error and does not redirect; enforce exactly 5 characters before submission.",
-      "reason": "No diff evidence is shown for the /admin-access page implementation (route/page component), its UI text, code-length enforcement, removal of II login requirement, or redirect behavior.",
+      "id": "REQ-6",
+      "requirement": "Run and apply the project’s manual QA checklist for navigation & mobile menu and admin access (phase6-qa-test-plan.md), fixing issues found.",
+      "reason": "No changes or references to executing/passing the QA plan are shown; the diff summary contains no evidence tied to frontend/docs/phase6-qa-test-plan.md or checklist completion.",
       "evidence": [
-        "Omitted files due to limits: modified=11",
-        "frontend/src/components/auth/RequireAdminAccessGate.tsx (only affects gating, not /admin-access UI)"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "requirement": "Admin Dashboard route (/admin) gating must rely on the successful admin access code entry (session unlock) without requiring Internet Identity login; direct /admin visit while locked redirects to /admin-access; after successful entry, /admin renders existing AdminDashboardShell sections without II login.",
-      "reason": "While a new gate component exists, it depends on both a local \"unlocked\" flag and backend verification (useIsCallerAdmin). The diff does not show the /admin route wiring to use this gate, does not show removal of any Internet Identity requirement, and does not show the dashboard route redirect behavior or the AdminDashboardShell integration. Also, requiring backend \"is caller admin\" to be true may still fail if REQ-1 is not implemented.",
-      "evidence": [
-        "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-        "Omitted files due to limits: modified=11"
+        "File diff summary shows no modifications to frontend/docs/phase6-qa-test-plan.md"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Added/modified multiple admin/adminplus/shop UI sections that display \"This feature requires backend implementation. Coming soon.\" placeholders, which is outside the scope of fixing admin access flow.",
-      "reason": "The BuildRequest explicitly scopes changes to making the existing admin dashboard accessible and does not request adding/reworking admin tools UI or adding placeholder sections.",
-      "evidence": [
-        "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-        "frontend/src/components/admin/AdminFeedbackTab.tsx",
-        "frontend/src/components/admin/AdminOrdersTab.tsx",
-        "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
-        "frontend/src/components/admin/AdminProductsTab.tsx",
-        "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-        "frontend/src/components/admin/AdminRequestsTab.tsx",
-        "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-        "frontend/src/components/admin/AdminUsersTab.tsx",
-        "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx",
-        "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
-        "frontend/src/components/adminplus/AdminRegistrySection.tsx",
-        "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-        "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
-        "frontend/src/components/adminplus/CouponManagerSection.tsx",
-        "frontend/src/components/shop/ShopCartDrawer.tsx",
-        "frontend/src/components/adminDashboard/views/DashboardHomeView.tsx (truncated)"
-      ]
-    },
-    {
-      "description": "Introduced a new gating mechanism that performs backend admin verification (useIsCallerAdmin) in addition to session unlock, which is not explicitly requested and may reintroduce reliance on identity/principal-based checks depending on how actors are created.",
-      "reason": "REQ-3 asks that entering the correct admin access code be sufficient to render the dashboard without requiring Internet Identity login; adding an additional backend-admin verification step is beyond what is stated and could conflict if the backend privilege grant (REQ-1) or anonymous principal handling is not aligned.",
-      "evidence": [
-        "frontend/src/components/auth/RequireAdminAccessGate.tsx"
-      ]
-    }
-  ],
-  "confidence": 0.63,
+  "hallucinated_features": [],
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-    "frontend/src/components/admin/AdminFeedbackTab.tsx",
-    "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
-    "frontend/src/components/admin/AdminOrdersTab.tsx",
-    "frontend/src/components/admin/AdminProductsTab.tsx",
-    "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-    "frontend/src/components/admin/AdminRequestsTab.tsx",
-    "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-    "frontend/src/components/admin/AdminUsersTab.tsx",
-    "frontend/src/components/adminDashboard/views/DashboardHomeView.tsx",
-    "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx",
-    "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
-    "frontend/src/components/adminplus/AdminRegistrySection.tsx",
-    "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-    "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
-    "frontend/src/components/adminplus/CouponManagerSection.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
+    "frontend/src/components/adminDashboard/AdminSidebarNav.tsx",
+    "frontend/src/components/adminDashboard/AdminTopBar.tsx",
     "frontend/src/components/auth/RequireAdminAccessGate.tsx",
+    "frontend/src/components/layout/Footer.tsx",
     "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/shop/ShopCartDrawer.tsx",
-    "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/lib/adminAccessCode.ts",
-    "frontend/src/pages/Admin.tsx",
+    "frontend/src/lib/routePaths.ts",
     "frontend/src/pages/AdminAccess.tsx",
-    "frontend/src/pages/Dashboard.tsx",
-    "frontend/src/pages/Inbox.tsx",
-    "frontend/src/pages/SubmitRequest.tsx",
-    "frontend/src/pages/Testimonies.tsx",
     "project_state.json"
   ]
 }

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import AdminSidebarNav from './AdminSidebarNav';
 import AdminTopBar from './AdminTopBar';
 import type { DashboardSection } from '../../pages/Admin';
@@ -14,17 +14,30 @@ export default function AdminDashboardShell({
   activeSection,
   onSectionChange,
 }: AdminDashboardShellProps) {
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  const handleSectionChange = (section: DashboardSection) => {
+    onSectionChange(section);
+    setIsMobileSidebarOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <AdminTopBar onSectionChange={onSectionChange} />
+      <AdminTopBar 
+        onSectionChange={handleSectionChange}
+        onMobileMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        isMobileSidebarOpen={isMobileSidebarOpen}
+      />
       
       <div className="flex">
         <AdminSidebarNav
           activeSection={activeSection}
-          onSectionChange={onSectionChange}
+          onSectionChange={handleSectionChange}
+          isMobileOpen={isMobileSidebarOpen}
+          onMobileClose={() => setIsMobileSidebarOpen(false)}
         />
         
-        <main className="flex-1 p-6 lg:p-8 ml-0 lg:ml-64">
+        <main className="flex-1 p-6 lg:p-8 lg:ml-64">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

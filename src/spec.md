@@ -1,11 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Allow users to unlock and use the full admin dashboard via a backend-verified 5-character admin code, without requiring Internet Identity login.
+**Goal:** QA and debug the full site, fix navigation/route mismatches, and ensure the Admin access flow reliably redirects to a working Admin Dashboard.
 
 **Planned changes:**
-- Fix backend admin-code verification so that a case-insensitive “Access Granted” result also grants admin privileges to the same caller principal for subsequent admin-protected calls.
-- Update `/admin-access` to remove any Internet Identity login requirement, enforce exactly 5-character input, submit the code to the backend, show “Access Granted” on success, and auto-redirect to the admin dashboard route.
-- Update `/admin` route gating to rely on successful admin-code unlock (not Internet Identity): redirect locked users to `/admin-access`, and render the existing AdminDashboardShell and all current sections/tools once unlocked for the session.
+- Perform a full-site audit to fix runtime/console errors, broken routes/links, layout overlaps, responsive styling issues, and JS/script conflicts across all pages and components.
+- Align header and footer navigation links with the actual router paths, including ensuring “Lore & Knowledge” and footer “Lore” both load the Lore page content (BlogLore).
+- Update header navigation (desktop + mobile hamburger menu) to include a clearly labeled “Admin” item that routes to `/admin-access`, while preserving existing lockout behavior and ensuring the mobile menu closes after selection.
+- Update the Admin access screen copy and flow: label “Administrator Access”, button “Submit”, accept code `7583A` (case-insensitive), show “Access Granted”, and redirect immediately to `/admin` with no artificial delay.
+- Stabilize `/admin` so Admin Dashboard sections render without crashes/blank states/errors, and prevent redirect loops related to admin gating/verification; keep backend verification behavior consistent (accept code `7583A` case-insensitive and return “Access Granted”).
+- Run the existing manual QA checklist (navigation & mobile menu, admin access, core pages) and fix issues found, including responsive regressions and functional keyboard/focus issues.
 
-**User-visible outcome:** A user can visit `/admin-access`, enter the 5-character code (e.g., `7583a`), see “Access Granted,” and be taken into the full admin dashboard at `/admin` with all existing features available—without any Internet Identity login.
+**User-visible outcome:** Users can navigate every page without errors or broken links, the mobile menu works reliably, “Lore & Knowledge” loads the correct Lore content, and selecting “Admin” allows entering the access code to immediately reach a stable, usable Admin Dashboard.

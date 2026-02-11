@@ -1,50 +1,109 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T13:17:27.536Z",
+  "generatedAt": "2026-02-11T23:46:12.258Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 6,
+    "implemented": 6,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix backend admin-code verification so that a case-insensitive match that returns “Access Granted” also grants admin privileges for the same caller principal (so the user can actually enter the admin dashboard after a successful code entry).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Perform a full-site audit and fix all runtime errors, broken navigation/links, layout overlaps, styling conflicts, and script/JS conflicts across every page and component. Ensure consistent text rendering from the header navigation through the footer (including the hamburger menu), with no overlapping elements, broken responsive states, or console errors during normal navigation and interactions.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/HeaderNav.tsx",
+          "frontend/src/components/layout/Footer.tsx",
+          "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
+          "frontend/src/components/adminDashboard/AdminSidebarNav.tsx",
+          "frontend/src/components/system/AppErrorBoundary.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/HeaderNav.tsx",
+          "frontend/src/components/layout/Footer.tsx",
+          "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
+          "frontend/src/components/adminDashboard/AdminSidebarNav.tsx"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update the Admin Access page (/admin-access) so it does NOT require an Internet Identity login. Users should be able to type the 5-character access code, submit it, see “Access Granted,” and be automatically redirected into the full admin dashboard UI.",
+        "summary": "Fix the mismatch between navigation links and router paths so that the top navigation and footer links always load the intended pages. In particular, ensure the “Lore & Knowledge” navigation item routes to the actual Lore page route (currently implemented as BlogLore).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/AdminAccess.tsx",
-          "frontend/src/lib/adminAccessCode.ts",
-          "frontend/src/components/layout/HeaderNav.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/HeaderNav.tsx",
+          "frontend/src/components/layout/Footer.tsx",
+          "frontend/src/lib/routePaths.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/AdminAccess.tsx",
-          "frontend/src/lib/adminAccessCode.ts",
-          "frontend/src/components/layout/HeaderNav.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/HeaderNav.tsx",
+          "frontend/src/components/layout/Footer.tsx",
+          "frontend/src/lib/routePaths.ts"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Update the Admin Dashboard route (/admin) gating so that entering the correct admin access code is sufficient to render the full admin dashboard UI with all existing tools/features, without requiring Internet Identity login.",
+        "summary": "Update the header navigation so the user can click an explicit “Admin” item in the top navigation (desktop and mobile hamburger menu). This must open the Admin access screen (/admin-access). Keep existing lockout behavior (hide/disable Admin entry when locked out), but ensure the entry point is clearly labeled “Admin” as requested.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/Admin.tsx",
-          "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/layout/HeaderNav.tsx",
+          "frontend/src/components/layout/HeaderNav.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/Admin.tsx",
+          "frontend/src/components/layout/HeaderNav.tsx",
+          "frontend/src/components/layout/HeaderNav.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Update the Admin access screen to match the requested flow: after clicking “Admin”, the form label must read “Administrator Access”, the action button must read “Submit”, and when the user enters access code 7583A and submits, the UI must display “Access Granted” and immediately redirect to the Admin Dashboard (/admin) without an artificial delay.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminAccess.tsx",
+          "frontend/src/pages/AdminAccess.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminAccess.tsx",
+          "frontend/src/pages/AdminAccess.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Ensure the Admin Dashboard (/admin) loads reliably after a successful access code submission and that all dashboard sections render without broken components, missing imports, empty/blank views, or runtime errors. Any sections that are not backed by implemented backend functionality must still render a stable UI state without throwing and must not appear “broken” (no empty files rendered, no crashes, no unresolved promises).",
+        "status": "implemented",
+        "plannedFiles": [
           "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/pages/Admin.tsx",
+          "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
+          "frontend/src/components/adminDashboard/AdminSidebarNav.tsx",
+          "frontend/src/components/adminDashboard/AdminTopBar.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/auth/RequireAdminAccessGate.tsx",
+          "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
+          "frontend/src/components/adminDashboard/AdminSidebarNav.tsx",
+          "frontend/src/components/adminDashboard/AdminTopBar.tsx"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Run and apply the project’s manual QA checklist for navigation & mobile menu, admin access, and core pages, and address any issues discovered during that pass (including responsive layout regressions and focus/keyboard usability issues that cause functional problems). Use the existing QA plan document as the baseline.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/layout/HeaderNav.tsx",
+          "frontend/src/pages/AdminAccess.tsx",
+          "frontend/src/components/auth/RequireAdminAccessGate.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/layout/HeaderNav.tsx",
+          "frontend/src/pages/AdminAccess.tsx",
+          "frontend/src/components/auth/RequireAdminAccessGate.tsx"
         ]
       }
     ]
@@ -55,34 +114,15 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/admin/AdminAccessCodeSettingsSection.tsx",
-    "frontend/src/components/admin/AdminFeedbackTab.tsx",
-    "frontend/src/components/admin/AdminOrderTrackingDetailModal.tsx",
-    "frontend/src/components/admin/AdminOrdersTab.tsx",
-    "frontend/src/components/admin/AdminProductsTab.tsx",
-    "frontend/src/components/admin/AdminRequestDetailModal.tsx",
-    "frontend/src/components/admin/AdminRequestsTab.tsx",
-    "frontend/src/components/admin/AdminTestimoniesTab.tsx",
-    "frontend/src/components/admin/AdminUsersTab.tsx",
-    "frontend/src/components/adminDashboard/views/DashboardHomeView.tsx",
-    "frontend/src/components/adminDashboard/views/SecuritySettingsView.tsx",
-    "frontend/src/components/adminplus/AdminPasswordResetSection.tsx",
-    "frontend/src/components/adminplus/AdminRegistrySection.tsx",
-    "frontend/src/components/adminplus/AdvancedShopControlsSection.tsx",
-    "frontend/src/components/adminplus/AnalyticsSnapshotSection.tsx",
-    "frontend/src/components/adminplus/CouponManagerSection.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
+    "frontend/src/components/adminDashboard/AdminSidebarNav.tsx",
+    "frontend/src/components/adminDashboard/AdminTopBar.tsx",
     "frontend/src/components/auth/RequireAdminAccessGate.tsx",
+    "frontend/src/components/layout/Footer.tsx",
     "frontend/src/components/layout/HeaderNav.tsx",
-    "frontend/src/components/shop/ShopCartDrawer.tsx",
-    "frontend/src/components/testimonies/CreateTestimonyDialog.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/lib/adminAccessCode.ts",
-    "frontend/src/pages/Admin.tsx",
+    "frontend/src/lib/routePaths.ts",
     "frontend/src/pages/AdminAccess.tsx",
-    "frontend/src/pages/Dashboard.tsx",
-    "frontend/src/pages/Inbox.tsx",
-    "frontend/src/pages/SubmitRequest.tsx",
-    "frontend/src/pages/Testimonies.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

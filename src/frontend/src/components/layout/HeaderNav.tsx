@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Menu, X, ShoppingCart, User, Shield } from 'lucide-react';
+import { Menu, X, ShoppingCart, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLocalCart } from '../../hooks/useLocalCart';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useGetAdminEntryLockoutStatus } from '../../hooks/useQueries';
 import { isAdminEntryLockedOut } from '../../lib/adminEntryLockout';
+import { ROUTE_PATHS } from '../../lib/routePaths';
 
 export default function HeaderNav() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,23 +23,27 @@ export default function HeaderNav() {
   const isLockedOut = localLockedOut || backendLockedOut;
 
   const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/about', label: 'About' },
-    { to: '/services', label: 'Services' },
-    { to: '/shop', label: 'Shop' },
-    { to: '/portfolio', label: 'Portfolio' },
-    { to: '/testimonies', label: 'Testimonies' },
-    { to: '/lore', label: 'Lore & Knowledge' },
-    { to: '/contact', label: 'Contact' },
+    { to: ROUTE_PATHS.home, label: 'Home' },
+    { to: ROUTE_PATHS.about, label: 'About' },
+    { to: ROUTE_PATHS.services, label: 'Services' },
+    { to: ROUTE_PATHS.shop, label: 'Shop' },
+    { to: ROUTE_PATHS.portfolio, label: 'Portfolio' },
+    { to: ROUTE_PATHS.testimonies, label: 'Testimonies' },
+    { to: ROUTE_PATHS.lore, label: 'Lore & Knowledge' },
+    { to: ROUTE_PATHS.contact, label: 'Contact' },
   ];
 
+  const handleLinkClick = () => {
+    setIsMenuOpen(false);
+  };
+
   const handleDashboardClick = () => {
-    navigate({ to: '/dashboard' });
+    navigate({ to: ROUTE_PATHS.dashboard });
     setIsMenuOpen(false);
   };
 
   const handleAdminClick = () => {
-    navigate({ to: '/admin-access' });
+    navigate({ to: ROUTE_PATHS.adminAccess });
     setIsMenuOpen(false);
   };
 
@@ -47,7 +52,7 @@ export default function HeaderNav() {
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={ROUTE_PATHS.home} className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60" />
             <span className="font-bold text-lg hidden sm:inline-block">Arcane Artifacts</span>
           </Link>
@@ -64,6 +69,15 @@ export default function HeaderNav() {
                 {link.label}
               </Link>
             ))}
+            {!isLockedOut && (
+              <Link
+                to={ROUTE_PATHS.adminAccess}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                activeProps={{ className: 'text-foreground' }}
+              >
+                Admin
+              </Link>
+            )}
           </div>
 
           {/* Right Side Actions */}
@@ -73,7 +87,7 @@ export default function HeaderNav() {
               variant="ghost"
               size="icon"
               className="relative"
-              onClick={() => navigate({ to: '/shop' })}
+              onClick={() => navigate({ to: ROUTE_PATHS.shop })}
             >
               <ShoppingCart className="h-5 w-5" />
               {cartItemCount > 0 && (
@@ -93,24 +107,14 @@ export default function HeaderNav() {
               <User className="h-5 w-5" />
             </Button>
 
-            {/* Admin Icon - only hide if locked out */}
-            {!isLockedOut && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleAdminClick}
-                title="Admin Access"
-              >
-                <Shield className="h-5 w-5" />
-              </Button>
-            )}
-
             {/* Mobile Menu Toggle */}
             <Button
               variant="ghost"
               size="icon"
               className="lg:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMenuOpen}
             >
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -126,11 +130,19 @@ export default function HeaderNav() {
                 to={link.to}
                 className="block px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
                 activeProps={{ className: 'text-foreground bg-accent' }}
-                onClick={() => setIsMenuOpen(false)}
+                onClick={handleLinkClick}
               >
                 {link.label}
               </Link>
             ))}
+            {!isLockedOut && (
+              <button
+                onClick={handleAdminClick}
+                className="w-full text-left block px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+              >
+                Admin
+              </button>
+            )}
           </div>
         )}
       </nav>
