@@ -1,182 +1,66 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend QA/debug pass + navigation fixes + reliable Admin access → Admin Dashboard",
+  "title": "Standardize \"Lore and Knowledge\" label across public navigation, Lore page, and admin dashboard sidebar",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Audit all routes/components to eliminate runtime errors, broken navigation, and responsive header/footer/mobile-menu layout issues.",
+      "summary": "Replace all user-facing occurrences of \"Lore & Knowledge\" with \"Lore and Knowledge\" across top navigation and the /lore page (including headings and intro text).",
       "acceptanceCriteria": [
-        "Navigating to every route defined in frontend/src/App.tsx renders without blank screens and without uncaught exceptions in the browser console.",
-        "All header and footer links route to valid pages (no dead routes).",
-        "Mobile hamburger menu opens/closes reliably, does not overlap content, and closes after selecting a link.",
-        "No visible header/footer text clipping/overlap at common breakpoints (mobile, tablet, desktop)."
+        "Top navigation displays the link label exactly as \"Lore and Knowledge\".",
+        "The Lore page (currently at route \"/lore\") renders page title and primary heading exactly as \"Lore and Knowledge\".",
+        "No remaining user-facing occurrences of \"Lore & Knowledge\" remain for this page/tab label (excluding code identifiers/filenames)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Audit the TanStack Router route tree to ensure every route maps to an existing page and no route renders blank due to missing/lazy import issues; add a safe alias route where needed to prevent dead links (e.g., Lore route mismatch)."
-        },
-        {
           "path": "frontend/src/components/layout/HeaderNav.tsx",
           "operation": "modify",
-          "description": "Harden the responsive header/hamburger menu: prevent overlap with page content, ensure consistent text rendering, ensure menu closes on link selection, and address any focus/keyboard usability issues discovered during audit (e.g., Escape-to-close, focus visibility)."
+          "description": "Update the top navigation link label from \"Lore & Knowledge\" to \"Lore and Knowledge\" to match required wording everywhere this page/tab is named."
+        },
+        {
+          "path": "frontend/src/pages/BlogLore.tsx",
+          "operation": "modify",
+          "description": "Update the PageLayout title from \"Lore & Knowledge\" to \"Lore and Knowledge\" and review/adjust the description/intro copy as needed to ensure related user-facing text consistently uses \"Lore and Knowledge\" wording."
+        },
+        {
+          "path": "frontend/src/components/intro/LoreKnowledgeIntro.tsx",
+          "operation": "modify",
+          "description": "Update the primary heading text from \"Lore & Knowledge\" to \"Lore and Knowledge\" and ensure any related intro text remains English and consistent with the new label."
         },
         {
           "path": "frontend/src/components/layout/Footer.tsx",
           "operation": "modify",
-          "description": "Audit and fix footer navigation links so they match the router paths; ensure no dead routes and consistent text styling at common breakpoints."
+          "description": "Update the footer quick link label for the lore page to \"Lore and Knowledge\" to keep site-wide naming consistent wherever this page is referenced."
         },
         {
-          "path": "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
+          "path": "frontend/src/components/home/QuickLinksGrid.tsx",
           "operation": "modify",
-          "description": "Fix admin dashboard layout responsiveness (mobile vs desktop) to prevent overlays/sidebars from permanently covering content; ensure stable layout across breakpoints without overlaps."
-        },
-        {
-          "path": "frontend/src/components/adminDashboard/AdminSidebarNav.tsx",
-          "operation": "modify",
-          "description": "Adjust sidebar/overlay behavior so it does not unintentionally block content on mobile; ensure navigation remains usable and does not introduce console errors."
-        },
-        {
-          "path": "frontend/src/components/system/AppErrorBoundary.tsx",
-          "operation": "modify",
-          "description": "Review error boundary behavior to ensure any remaining runtime errors produce a recoverable UI (not blank screens) during normal navigation and interactions."
+          "description": "Update the homepage quick link title/description for the lore page to use \"Lore and Knowledge\" (and ensure the link continues to navigate to the lore content without introducing new routes)."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Align header/footer navigation links with router paths; ensure “Lore & Knowledge” routes to the BlogLore Lore page.",
+      "summary": "Add/rename the Admin Dashboard left sidebar entry so it includes a tab labeled exactly \"Lore and Knowledge\" and remove any \"lure\" typo from admin UI.",
       "acceptanceCriteria": [
-        "Clicking “Lore & Knowledge” in the header always loads the Lore page content (BlogLore) successfully.",
-        "Footer “Lore” link routes to the same Lore page route as the header.",
-        "There are no remaining links in header/footer that point to undefined routes."
+        "Admin Dashboard sidebar includes a tab labeled exactly \"Lore and Knowledge\".",
+        "There are no user-facing references to \"Lure and knowledge\" in the admin UI."
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Add/adjust the Lore route so there is a single canonical router path for Lore content that renders BlogLore, and ensure any legacy path is handled safely to avoid dead routes."
-        },
-        {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
-          "operation": "modify",
-          "description": "Update the “Lore & Knowledge” navigation item to route to the canonical Lore router path that renders BlogLore, keeping header links fully consistent with the router."
-        },
-        {
-          "path": "frontend/src/components/layout/Footer.tsx",
-          "operation": "modify",
-          "description": "Update the footer “Lore” link to route to the same canonical Lore path used by the header, removing any mismatch between footer and router."
-        },
-        {
-          "path": "frontend/src/lib/routePaths.ts",
-          "operation": "create",
-          "description": "Create a small shared route-paths constant map (used by HeaderNav/Footer and any other navigation surfaces) to prevent future link/path drift and dead-route regressions."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Add an explicit “Admin” item to the header navigation (desktop + mobile) that routes to /admin-access, while preserving existing lockout-based hiding behavior.",
-      "acceptanceCriteria": [
-        "Desktop header navigation includes a clearly labeled “Admin” navigation item that routes to /admin-access.",
-        "Mobile hamburger menu includes an “Admin” item that routes to /admin-access and closes the menu after selection.",
-        "If the user is locked out (local or backend lockout), the “Admin” entry point is not available (consistent with existing behavior)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
-          "operation": "modify",
-          "description": "Replace/augment the current admin icon-only control with an explicit labeled “Admin” navigation item in the desktop nav and in the mobile hamburger list, routing to /admin-access; preserve existing lockout logic (local + backend) so Admin is hidden/disabled when locked out."
-        },
-        {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
-          "operation": "modify",
-          "description": "Ensure the mobile hamburger menu reliably closes after selecting “Admin” (and any other link) and does not cause layout overlap or persistent overlays."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Update Admin access screen labels/buttons and make successful code submission show “Access Granted” then immediately redirect to /admin without an intentional delay.",
-      "acceptanceCriteria": [
-        "The Admin access page shows a field labeled “Administrator Access” (user-facing text in English).",
-        "The form submit button text is “Submit” (user-facing text in English).",
-        "Submitting code “7583A” (case-insensitive) shows “Access Granted” and navigates to /admin immediately (no intentional timeout-based delay)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminAccess.tsx",
-          "operation": "modify",
-          "description": "Update UI copy: change the visible form label text to “Administrator Access”, update the action button text to “Submit”, and update any supporting copy to remain consistent and clear."
-        },
-        {
-          "path": "frontend/src/pages/AdminAccess.tsx",
-          "operation": "modify",
-          "description": "Remove the timeout-based redirect delay after success; ensure the success state shows “Access Granted” and navigation to /admin occurs immediately (e.g., on next paint/microtask rather than a fixed delay), while keeping existing lockout handling and query invalidations."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Make /admin (Admin Dashboard) render reliably after successful access submission; ensure all sections switch without crashes/blank views and gating does not cause redirect loops.",
-      "acceptanceCriteria": [
-        "After successful admin access, /admin renders AdminDashboardShell and the default section content without console errors.",
-        "Switching between all existing admin sections (home, shop/products, coupons, portfolio, testimonies, requests, inbox, security) does not crash and does not render blank due to missing component implementations.",
-        "Admin access gating (session unlock + backend is-admin verification) does not cause redirect loops after entering the correct code.",
-        "Backend admin access verification continues to accept code 7583A (case-insensitive) and returns the exact string “Access Granted” on success."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-          "operation": "modify",
-          "description": "Fix gating state handling to avoid blank renders and redirect loops (e.g., distinguish between not-fetched vs fetched-false); show a stable loading state while verification is pending and only redirect after an authoritative non-admin result."
-        },
         {
           "path": "frontend/src/pages/Admin.tsx",
           "operation": "modify",
-          "description": "Ensure the post-access “Access Granted” message/flow does not depend on timing that can cause flicker or race conditions; keep /admin section switching stable and avoid state resets that can produce blank content."
-        },
-        {
-          "path": "frontend/src/components/adminDashboard/AdminDashboardShell.tsx",
-          "operation": "modify",
-          "description": "Ensure AdminDashboardShell layout is stable and responsive; implement/adjust mobile sidebar toggling so the dashboard is usable on mobile without overlays permanently blocking content."
+          "description": "Extend the admin dashboard section type/section switch wiring to include a new section for Lore and Knowledge, and render a dedicated view when selected."
         },
         {
           "path": "frontend/src/components/adminDashboard/AdminSidebarNav.tsx",
           "operation": "modify",
-          "description": "Update sidebar navigation to support the shell’s mobile open/close behavior; ensure changing sections never throws and never leaves empty/blank content due to layout issues."
+          "description": "Add a new sidebar nav item labeled exactly \"Lore and Knowledge\" (correcting any prior \"lure\" typo) and wire it to the new admin dashboard section id so it appears in the left sidebar navigation."
         },
         {
-          "path": "frontend/src/components/adminDashboard/AdminTopBar.tsx",
-          "operation": "modify",
-          "description": "Add/adjust a mobile-friendly control (e.g., menu toggle) for opening/closing the sidebar when needed and ensure top bar remains accessible without layout collisions."
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Apply the manual QA checklist for navigation/mobile menu, admin access, and core pages; fix any functional issues found (including responsive regressions and keyboard/focus problems).",
-      "acceptanceCriteria": [
-        "All checks in the “Navigation & Mobile Menu” and “Admin Access” portions of frontend/docs/phase6-qa-test-plan.md pass in a basic manual verification (desktop + mobile viewport).",
-        "No new console errors are introduced by the fixes."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/layout/HeaderNav.tsx",
-          "operation": "modify",
-          "description": "Implement any remaining QA-plan-required mobile behaviors (e.g., body scroll lock while menu is open, iOS-friendly overlay behavior, keyboard navigation/focus visibility) to satisfy the Navigation & Mobile Menu test cases in frontend/docs/phase6-qa-test-plan.md."
-        },
-        {
-          "path": "frontend/src/pages/AdminAccess.tsx",
-          "operation": "modify",
-          "description": "Implement any remaining QA-plan-required admin access behaviors (clear error messaging, reliable submit states, no console errors) to satisfy the Admin Access test cases in frontend/docs/phase6-qa-test-plan.md."
-        },
-        {
-          "path": "frontend/src/components/auth/RequireAdminAccessGate.tsx",
-          "operation": "modify",
-          "description": "Validate against QA plan that /admin access behavior is stable across refreshes and navigation (no redirect loops, no blank states) and adjust gating UX accordingly."
+          "path": "frontend/src/components/adminDashboard/views/AdminLoreKnowledgeView.tsx",
+          "operation": "create",
+          "description": "Create a lightweight admin dashboard view for \"Lore and Knowledge\" (read-only) that provides clear navigation context (e.g., link to the public /lore page) without adding CMS/blog management features (posts remain static as currently implemented)."
         }
       ]
     }

@@ -22,9 +22,9 @@ const quickLinks = [
     description: 'Discover our restoration and appraisal services',
   },
   {
-    to: '/blog',
+    to: '/lore',
     icon: BookOpen,
-    title: 'Lore',
+    title: 'Lore and Knowledge',
     description: 'Explore stories and legends',
   },
   {

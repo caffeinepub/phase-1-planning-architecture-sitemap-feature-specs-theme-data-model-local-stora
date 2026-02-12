@@ -1,4 +1,4 @@
-import { Bell, User, Plus, ChevronDown } from 'lucide-react';
+import { Bell, User, Plus, ChevronDown, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,9 +12,15 @@ import type { DashboardSection } from '../../pages/Admin';
 
 interface AdminTopBarProps {
   onSectionChange: (section: DashboardSection) => void;
+  onMobileMenuToggle: () => void;
+  isMobileSidebarOpen: boolean;
 }
 
-export default function AdminTopBar({ onSectionChange }: AdminTopBarProps) {
+export default function AdminTopBar({ 
+  onSectionChange, 
+  onMobileMenuToggle,
+  isMobileSidebarOpen,
+}: AdminTopBarProps) {
   const { data: notifications } = useGetAdminNotifications();
 
   const totalNotifications = notifications
@@ -40,8 +46,18 @@ export default function AdminTopBar({ onSectionChange }: AdminTopBarProps) {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center justify-between px-6 lg:px-8 lg:ml-64">
+      <div className="flex h-16 items-center justify-between px-4 lg:px-8 lg:ml-64">
         <div className="flex items-center gap-4">
+          {/* Mobile menu toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={onMobileMenuToggle}
+            aria-label={isMobileSidebarOpen ? 'Close menu' : 'Open menu'}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
           <h1 className="text-lg font-semibold hidden sm:block">Admin Control Panel</h1>
         </div>
         

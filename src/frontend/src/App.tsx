@@ -79,6 +79,12 @@ const contactRoute = createRoute({
   component: Contact,
 });
 
+const loreRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/lore',
+  component: BlogLore,
+});
+
 const blogRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/blog',
@@ -158,6 +164,7 @@ const routeTree = rootRoute.addChildren([
   shopRoute,
   dashboardRoute,
   contactRoute,
+  loreRoute,
   blogRoute,
   faqRoute,
   termsRoute,

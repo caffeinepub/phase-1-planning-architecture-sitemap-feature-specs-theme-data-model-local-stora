@@ -1,140 +1,57 @@
 {
   "kind": "build_request",
-  "title": "Full-site QA/debug pass + fix Admin access redirect to working Admin Dashboard",
+  "title": "Correct Lore and Knowledge tab label across admin dashboard and Lore page",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Perform a full-site audit and fix all runtime errors, broken navigation/links, layout overlaps, styling conflicts, and script/JS conflicts across every page and component. Ensure consistent text rendering from the header navigation through the footer (including the hamburger menu), with no overlapping elements, broken responsive states, or console errors during normal navigation and interactions.",
+      "text": "Update user-facing text so the site consistently uses the label \"Lore and Knowledge\" (with \"and\", not \"&\") wherever this page/tab is named (including the top navigation link, the Lore page title/heading, and any related intro text).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-15"
         ],
         "quotes": [
-          "Audit and fully debug the entire website to eliminate all bugs, errors, broken links, layout issues, script conflicts, and functionality problems, ensuring that every page, component, and feature works flawlessly across the site. Verify that all text content displays correctly and consistently from the top navigation bar to the footer, including the main content areas and the hamburger menu, with no overlapping elements, styling conflicts, or JavaScript errors. Ensure that every page loads properly when selected, all links function as intended, and all interactive features operate smoothly without conflicts."
+          "That is supposed to say Lore and knowledge tab and build it cuz I fixed my typo!"
         ]
       },
       "acceptanceCriteria": [
-        "Navigating to every route defined in frontend/src/App.tsx renders without blank screens and without uncaught exceptions in the browser console.",
-        "All header and footer links route to valid pages (no dead routes).",
-        "Mobile hamburger menu opens/closes reliably, does not overlap content, and closes after selecting a link.",
-        "No visible header/footer text clipping/overlap at common breakpoints (mobile, tablet, desktop)."
+        "Top navigation displays the link label exactly as \"Lore and Knowledge\".",
+        "The Lore page (currently at route \"/lore\") renders page title and primary heading exactly as \"Lore and Knowledge\".",
+        "No remaining user-facing occurrences of \"Lore & Knowledge\" remain for this page/tab label (excluding code identifiers/filenames)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix the mismatch between navigation links and router paths so that the top navigation and footer links always load the intended pages. In particular, ensure the “Lore & Knowledge” navigation item routes to the actual Lore page route (currently implemented as BlogLore).",
+      "text": "Ensure the Admin Dashboard left sidebar tab label is spelled \"Lore and Knowledge\" (correcting the previously-typed \"lure\" typo), and that the tab list includes a \"Lore and Knowledge\" entry (exact capitalization) in the admin navigation.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-13",
+          "msg-15"
         ],
         "quotes": [
-          "Ensure that every page loads properly when selected, all links function as intended"
+          "there should be a lure and knowledge tab which is the blog below the testimonies tab",
+          "That is supposed to say Lore and knowledge tab and build it cuz I fixed my typo!"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking “Lore & Knowledge” in the header always loads the Lore page content (BlogLore) successfully.",
-        "Footer “Lore” link routes to the same Lore page route as the header.",
-        "There are no remaining links in header/footer that point to undefined routes."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Update the header navigation so the user can click an explicit “Admin” item in the top navigation (desktop and mobile hamburger menu). This must open the Admin access screen (/admin-access). Keep existing lockout behavior (hide/disable Admin entry when locked out), but ensure the entry point is clearly labeled “Admin” as requested.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "update the Admin page functionality so that when a user clicks “Admin” in the top navigation"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Desktop header navigation includes a clearly labeled “Admin” navigation item that routes to /admin-access.",
-        "Mobile hamburger menu includes an “Admin” item that routes to /admin-access and closes the menu after selection.",
-        "If the user is locked out (local or backend lockout), the “Admin” entry point is not available (consistent with existing behavior)."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Update the Admin access screen to match the requested flow: after clicking “Admin”, the form label must read “Administrator Access”, the action button must read “Submit”, and when the user enters access code 7583A and submits, the UI must display “Access Granted” and immediately redirect to the Admin Dashboard (/admin) without an artificial delay.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "enters the access code 7583A in the Administrator Access field, and clicks Submit, the system displays “Access Granted” and immediately redirects to a fully functional Admin Dashboard UI"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The Admin access page shows a field labeled “Administrator Access” (user-facing text in English).",
-        "The form submit button text is “Submit” (user-facing text in English).",
-        "Submitting code “7583A” (case-insensitive) shows “Access Granted” and navigates to /admin immediately (no intentional timeout-based delay)."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Ensure the Admin Dashboard (/admin) loads reliably after a successful access code submission and that all dashboard sections render without broken components, missing imports, empty/blank views, or runtime errors. Any sections that are not backed by implemented backend functionality must still render a stable UI state without throwing and must not appear “broken” (no empty files rendered, no crashes, no unresolved promises).",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "redirects to a fully functional Admin Dashboard UI that includes all intended administrative tools and features, with no broken components or missing functionality."
-        ]
-      },
-      "acceptanceCriteria": [
-        "After successful admin access, /admin renders AdminDashboardShell and the default section content without console errors.",
-        "Switching between all existing admin sections (home, shop/products, coupons, portfolio, testimonies, requests, inbox, security) does not crash and does not render blank due to missing component implementations.",
-        "Admin access gating (session unlock + backend is-admin verification) does not cause redirect loops after entering the correct code.",
-        "Backend admin access verification continues to accept code 7583A (case-insensitive) and returns the exact string “Access Granted” on success."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Run and apply the project’s manual QA checklist for navigation & mobile menu, admin access, and core pages, and address any issues discovered during that pass (including responsive layout regressions and focus/keyboard usability issues that cause functional problems). Use the existing QA plan document as the baseline.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "ensuring that every page, component, and feature works flawlessly across the site."
-        ]
-      },
-      "acceptanceCriteria": [
-        "All checks in the “Navigation & Mobile Menu” and “Admin Access” portions of frontend/docs/phase6-qa-test-plan.md pass in a basic manual verification (desktop + mobile viewport).",
-        "No new console errors are introduced by the fixes."
+        "Admin Dashboard sidebar includes a tab labeled exactly \"Lore and Knowledge\".",
+        "There are no user-facing references to \"Lure and knowledge\" in the admin UI."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (Shadcn UI components must be composed, not modified).",
-    "Do not edit any frontend immutable paths listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts/tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
-    "Backend must remain a single Motoko actor in backend/main.mo; only add migration.mo if a state schema upgrade is required."
+    "Do not modify any files under frontend/src/components/ui (Shadcn UI sources).",
+    "Do not modify files listed as immutable in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
+    "Keep all user-facing text in English."
   ],
   "nonGoals": [
-    "Implementing third-party authentication providers (only Internet Identity is supported).",
-    "Adding external databases or non-Motoko backend services.",
-    "Adding entirely new product features beyond fixing/finishing existing pages, routes, and the requested Admin access + dashboard flow."
+    "Implementing Stripe payments, flippable shop cards, or other previously discussed Phase One e-commerce features.",
+    "Adding new blog CMS functionality (posts can remain static as currently implemented)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

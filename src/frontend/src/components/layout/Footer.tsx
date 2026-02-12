@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Heart } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { ROUTE_PATHS } from '../../lib/routePaths';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -27,23 +28,23 @@ export default function Footer() {
             <h4 className="font-display font-semibold mb-3 text-foreground">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/about" className="text-muted-foreground hover:text-arcane-gold transition-colors">
+                <Link to={ROUTE_PATHS.about} className="text-muted-foreground hover:text-arcane-gold transition-colors">
                   About
                 </Link>
               </li>
               <li>
-                <Link to="/services" className="text-muted-foreground hover:text-arcane-gold transition-colors">
+                <Link to={ROUTE_PATHS.services} className="text-muted-foreground hover:text-arcane-gold transition-colors">
                   Services
                 </Link>
               </li>
               <li>
-                <Link to="/shop" className="text-muted-foreground hover:text-arcane-gold transition-colors">
+                <Link to={ROUTE_PATHS.shop} className="text-muted-foreground hover:text-arcane-gold transition-colors">
                   Shop
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="text-muted-foreground hover:text-arcane-gold transition-colors">
-                  Lore
+                <Link to={ROUTE_PATHS.lore} className="text-muted-foreground hover:text-arcane-gold transition-colors">
+                  Lore and Knowledge
                 </Link>
               </li>
             </ul>
@@ -54,12 +55,12 @@ export default function Footer() {
             <h4 className="font-display font-semibold mb-3 text-foreground">Support</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/faq" className="text-muted-foreground hover:text-arcane-gold transition-colors">
+                <Link to={ROUTE_PATHS.faq} className="text-muted-foreground hover:text-arcane-gold transition-colors">
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-arcane-gold transition-colors">
+                <Link to={ROUTE_PATHS.contact} className="text-muted-foreground hover:text-arcane-gold transition-colors">
                   Contact
                 </Link>
               </li>
@@ -71,12 +72,12 @@ export default function Footer() {
             <h4 className="font-display font-semibold mb-3 text-foreground">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/terms" className="text-muted-foreground hover:text-arcane-gold transition-colors">
+                <Link to={ROUTE_PATHS.terms} className="text-muted-foreground hover:text-arcane-gold transition-colors">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-muted-foreground hover:text-arcane-gold transition-colors">
+                <Link to={ROUTE_PATHS.privacy} className="text-muted-foreground hover:text-arcane-gold transition-colors">
                   Privacy Policy
                 </Link>
               </li>

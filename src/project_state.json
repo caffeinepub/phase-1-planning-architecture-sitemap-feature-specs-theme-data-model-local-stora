@@ -1,56 +1,27 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Audit and debug an existing website in the Caffeine project to resolve layout/content/link/JS/functionality issues site-wide, and update the Admin access flow to grant access with code 7583A and redirect to a fully functional Admin Dashboard.",
-  "architectural_notes": [],
+  "summary": "Website update: implement navigation bar pages (Home, About, Services, Shop, Portfolios, Testimonies, Lore and Knowledge, Contact, Admin), a Shop page with cart + favorites/wishlist button, and an Admin page with hard-coded access code (7583A) that redirects to a new Admin Dashboard featuring a left vertical tab sidebar (Services, Production, Portfolios, Testimonies, Lore and Knowledge, Contact, Admin Access) and an inbox tool/icon at the top-right of the dashboard. This update explicitly ignores the previously discussed Phase One e-commerce/Stripe/flip-card plan.",
+  "architectural_notes": [
+    "Scope decision: ignore prior Phase One plan (Stripe checkout, flip cards, multi-status products, etc.) for this update; implement only simplified features specified in the latest prompt.",
+    "Admin authentication is a hard-coded 5-character access code (7583A) rather than Internet Identity/credential-based auth."
+  ],
   "known_issues": [],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-perform-a-full-site-audit-and-fix-all-runtime-errors-broken-navigation-links-layout-overlaps-styling-conflicts-and-script-js-conflicts-across-every-page-and-component-ensure-consistent-text-rendering-from-the-header-navigation-through-the-footer-including-the-hamburger-menu-with-no-overlapping-elements-broken-responsive-states-or-console-errors-during-normal-navigation-and-interactions",
-      "title": "Perform a full-site audit and fix all runtime errors, broken navigation/links, layout overlaps, styling conflicts, and script/JS conflicts across every page and component. Ensure consistent text rendering from the header navigation through the footer (including the hamburger menu), with no overlapping elements, broken responsive states, or console errors during normal navigation and interactions.",
+      "id": "feature-update-user-facing-text-so-the-site-consistently-uses-the-label-lore-and-knowledge-with-and-not-wherever-this-page-tab-is-named-including-the-top-navigation-link-the-lore-page-title-heading-and-any-related-intro-text",
+      "title": "Update user-facing text so the site consistently uses the label \"Lore and Knowledge\" (with \"and\", not \"&\") wherever this page/tab is named (including the top navigation link, the Lore page title/heading, and any related intro text).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-fix-the-mismatch-between-navigation-links-and-router-paths-so-that-the-top-navigation-and-footer-links-always-load-the-intended-pages-in-particular-ensure-the-lore-knowledge-navigation-item-routes-to-the-actual-lore-page-route-currently-implemented-as-bloglore",
-      "title": "Fix the mismatch between navigation links and router paths so that the top navigation and footer links always load the intended pages. In particular, ensure the “Lore & Knowledge” navigation item routes to the actual Lore page route (currently implemented as BlogLore).",
+      "id": "feature-ensure-the-admin-dashboard-left-sidebar-tab-label-is-spelled-lore-and-knowledge-correcting-the-previously-typed-lure-typo-and-that-the-tab-list-includes-a-lore-and-knowledge-entry-exact-capitalization-in-the-admin-navigation",
+      "title": "Ensure the Admin Dashboard left sidebar tab label is spelled \"Lore and Knowledge\" (correcting the previously-typed \"lure\" typo), and that the tab list includes a \"Lore and Knowledge\" entry (exact capitalization) in the admin navigation.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-header-navigation-so-the-user-can-click-an-explicit-admin-item-in-the-top-navigation-desktop-and-mobile-hamburger-menu-this-must-open-the-admin-access-screen-admin-access-keep-existing-lockout-behavior-hide-disable-admin-entry-when-locked-out-but-ensure-the-entry-point-is-clearly-labeled-admin-as-requested",
-      "title": "Update the header navigation so the user can click an explicit “Admin” item in the top navigation (desktop and mobile hamburger menu). This must open the Admin access screen (/admin-access). Keep existing lockout behavior (hide/disable Admin entry when locked out), but ensure the entry point is clearly labeled “Admin” as requested.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-admin-access-screen-to-match-the-requested-flow-after-clicking-admin-the-form-label-must-read-administrator-access-the-action-button-must-read-submit-and-when-the-user-enters-access-code-7583a-and-submits-the-ui-must-display-access-granted-and-immediately-redirect-to-the-admin-dashboard-admin-without-an-artificial-delay",
-      "title": "Update the Admin access screen to match the requested flow: after clicking “Admin”, the form label must read “Administrator Access”, the action button must read “Submit”, and when the user enters access code 7583A and submits, the UI must display “Access Granted” and immediately redirect to the Admin Dashboard (/admin) without an artificial delay.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-admin-dashboard-admin-loads-reliably-after-a-successful-access-code-submission-and-that-all-dashboard-sections-render-without-broken-components-missing-imports-empty-blank-views-or-runtime-errors-any-sections-that-are-not-backed-by-implemented-backend-functionality-must-still-render-a-stable-ui-state-without-throwing-and-must-not-appear-broken-no-empty-files-rendered-no-crashes-no-unresolved-promises",
-      "title": "Ensure the Admin Dashboard (/admin) loads reliably after a successful access code submission and that all dashboard sections render without broken components, missing imports, empty/blank views, or runtime errors. Any sections that are not backed by implemented backend functionality must still render a stable UI state without throwing and must not appear “broken” (no empty files rendered, no crashes, no unresolved promises).",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-run-and-apply-the-project-s-manual-qa-checklist-for-navigation-mobile-menu-admin-access-and-core-pages-and-address-any-issues-discovered-during-that-pass-including-responsive-layout-regressions-and-focus-keyboard-usability-issues-that-cause-functional-problems-use-the-existing-qa-plan-document-as-the-baseline",
-      "title": "Run and apply the project’s manual QA checklist for navigation & mobile menu, admin access, and core pages, and address any issues discovered during that pass (including responsive layout regressions and focus/keyboard usability issues that cause functional problems). Use the existing QA plan document as the baseline.",
-      "reqIds": [
-        "REQ-6"
       ],
       "version": 1
     }
@@ -58,18 +29,37 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Perform full-site audit and debugging: fix bugs/errors, broken links, layout/styling overlaps, script conflicts/JS errors; ensure all pages load correctly and navigation (including hamburger menu) and interactive features work smoothly; verify consistent text display from header to footer.",
+      "summary": "Implement top navbar with pages: Home, About, Services, Shop, Portfolios, Testimonies, Lore and Knowledge (blog), Contact, Admin (scrollable/extendable)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Update Admin flow: clicking “Admin” opens access screen; entering code 7583A and submitting shows “Access Granted” then immediately redirects to a fully functional Admin Dashboard UI with all intended admin tools/features and no broken/missing components.",
+      "summary": "Shop page: add shopping cart icon top-right and favorites/wishlist button next to it; ensure all Shop buttons work",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Admin page: hard-coded 5-character admin access code 7583A; on submit redirect to Admin Dashboard",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Admin Dashboard UI: fixed left vertical sidebar tabs in order: Services, Production, Portfolios, Testimonies, Lore and Knowledge, Contact, Admin Access; clicking tabs shows relevant workspace content",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Admin Dashboard: inbox tool/icon located at top-right of dashboard UI",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Full-site QA/debug pass + fix Admin access redirect to working Admin Dashboard",
+  "gameProjectType": "none",
+  "projectName": "Correct Lore and Knowledge tab label across admin dashboard and Lore page",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

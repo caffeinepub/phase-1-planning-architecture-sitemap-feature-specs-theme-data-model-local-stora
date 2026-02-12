@@ -1,4 +1,4 @@
-import { Home, Package, Tag, Image, MessageSquare, FileText, Inbox, Shield, LogOut } from 'lucide-react';
+import { Home, Package, Tag, Image, MessageSquare, FileText, Inbox, BookOpen, Shield, LogOut } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { clearAdminAccessUnlocked } from '../../lib/adminAccessSession';
 import type { DashboardSection } from '../../pages/Admin';
@@ -26,6 +26,7 @@ const navItems: NavItem[] = [
   { id: 'testimonies', label: 'Testimonies Manager', icon: MessageSquare },
   { id: 'requests', label: 'Customer Requests & Quotes', icon: FileText },
   { id: 'inbox', label: 'Inbox / Messaging', icon: Inbox },
+  { id: 'lore', label: 'Lore and Knowledge', icon: BookOpen },
   { id: 'security', label: 'Security Settings', icon: Shield },
 ];
 

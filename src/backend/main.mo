@@ -3,20 +3,20 @@ import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Text "mo:core/Text";
 import Nat "mo:core/Nat";
-import Map "mo:core/Map";
-import List "mo:core/List";
 import Array "mo:core/Array";
+import List "mo:core/List";
+import Map "mo:core/Map";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
+import Char "mo:core/Char";
+
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
-
-
 actor {
-  let ADMIN_ACCESS_CODE = "7583A";
+  let ADMIN_ACCESS_CODE = "7583A"; // Store codes as uppercase
   let ADMIN_LOCKOUT_THRESHOLD = 3;
 
   type AdminAccessLogEntry = {
@@ -171,7 +171,7 @@ actor {
   };
 
   // Public endpoint - accessible to all including guests
-  public query ({ caller }) func healthCheck() : async HealthStatus {
+  public query func healthCheck() : async HealthStatus {
     deploymentInfo;
   };
 
@@ -196,7 +196,7 @@ actor {
     };
   };
 
-  // Admin-only: Reset lockouts
+  // Admin-only: Reset lockouts (owner-only for permanent lockouts)
   public shared ({ caller }) func resetAdminAttempts(principal : Principal) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can reset lockouts");
@@ -242,13 +242,23 @@ actor {
       Runtime.trap("Account permanently locked out due to repeated code attempts. Contact administrator.");
     };
 
-    // Check against the master code from the implementation plan
-    if (accessCode == ADMIN_ACCESS_CODE) {
+    // Normalize input: trim whitespace and convert to uppercase for case-insensitive comparison
+    let normalizedInput = accessCode.trim(#char ' ').map(
+      func(c : Char) : Char {
+        if (c >= 'a' and c <= 'z') {
+          Char.fromNat32(c.toNat32() - 'a'.toNat32() + 'A'.toNat32());
+        } else {
+          c;
+        };
+      },
+    );
+
+    // Perform case-insensitive check against the master code
+    if (normalizedInput == ADMIN_ACCESS_CODE) {
       ignore await verifyAdminAccess(accessCode, browserInfo, deviceType);
       return "Access Granted";
     } else {
-      // Only record failed attempts
-      recordAdminAttemptInternal(caller);
+      recordAdminAttemptInternal(caller); // Only record failed attempts
       return "Access Denied";
     };
   };
@@ -261,7 +271,7 @@ actor {
     "*****";
   };
 
-  // Admin-only: View unmasked access code (security risk - consider removing in production)
+  // Owner-only: View unmasked access code
   public query ({ caller }) func getUnmaskedAdminAccessCode() : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view the unmasked access code");
@@ -273,7 +283,12 @@ actor {
   };
 
   // Public endpoint - accessible to all including guests (admin login entry point)
-  public shared ({ caller }) func adminLogin(adminCode : Text, codeConfirmed : Bool, browserInfo : Text, deviceInfo : Text) : async Bool {
+  public shared ({ caller }) func adminLogin(
+    adminCode : Text,
+    codeConfirmed : Bool,
+    browserInfo : Text,
+    deviceInfo : Text,
+  ) : async Bool {
     if (isCallerLockedOutInternal(caller)) {
       Runtime.trap("Account permanently locked out due to repeated code attempts. Contact administrator.");
     };
@@ -285,12 +300,27 @@ actor {
   };
 
   // Public endpoint - accessible to all including guests (admin login verification)
-  public shared ({ caller }) func verifyAdminAccess(adminAttemptedCode : Text, browserInfo : ?Text, deviceType : ?Text) : async Bool {
+  public shared ({ caller }) func verifyAdminAccess(
+    adminAttemptedCode : Text,
+    browserInfo : ?Text,
+    deviceType : ?Text,
+  ) : async Bool {
     if (isCallerLockedOutInternal(caller)) {
       Runtime.trap("Account permanently locked out due to repeated code attempts. Contact administrator.");
     };
 
-    let isValid = adminAttemptedCode == ADMIN_ACCESS_CODE;
+    // Normalize attempted code for case-insensitive comparison
+    let normalizedAttemptedCode = adminAttemptedCode.trim(#char ' ').map(
+      func(c : Char) : Char {
+        if (c >= 'a' and c <= 'z') {
+          Char.fromNat32(c.toNat32() - 'a'.toNat32() + 'A'.toNat32());
+        } else {
+          c;
+        };
+      },
+    );
+
+    let isValid = normalizedAttemptedCode == ADMIN_ACCESS_CODE;
     let currentTimestamp = Int.abs(Time.now());
 
     let attempt : AdminLoginAttempt = {
@@ -331,7 +361,7 @@ actor {
     };
   };
 
-  // Admin-only: Confirm new code (enforced to always be "7583A" per implementation plan)
+  // Admin-only: Confirm new code
   public shared ({ caller }) func confirmNewCode(_newCode : Text, _currentCode : Text) : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can confirm new codes");
@@ -363,10 +393,15 @@ actor {
     principal : Principal;
   };
 
+  // User-level: Log events (admin-level events require admin permission)
   public shared ({ caller }) func logEvent(message : Text, level : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can log events");
+    };
+
     let validLevels = ["info", "warning", "error", "admin"];
     var isValidLevel = false;
-    for (lvl in validLevels.vals()) {
+    for (lvl in validLevels.values()) {
       if (lvl == level) {
         isValidLevel := true;
       };
@@ -377,10 +412,6 @@ actor {
 
     if (level == "admin" and not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can log admin-level events");
-    };
-
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can log events");
     };
 
     let event : Event = {
@@ -484,7 +515,12 @@ actor {
     };
 
     let startIndex = if (allEntries.size() > count) { allEntries.size() - count } else { 0 };
-    allEntries.sliceToArray(startIndex, allEntries.size());
+    Array.tabulate<AuditLogEntry>(
+      count,
+      func(i) {
+        allEntries[startIndex + i];
+      },
+    );
   };
 
   // Admin-only: View audit log stats
@@ -853,7 +889,7 @@ actor {
     adminRegistry.values().toArray();
   };
 
-  // Owner-only: Set owner (can only be called once)
+  // Public endpoint - accessible to all (owner can only be set once)
   public shared ({ caller }) func setOwner(owner : Principal) : async () {
     if (ownerPrincipal != null) {
       Runtime.trap("Owner already set. Cannot modify owner.");
@@ -880,7 +916,7 @@ actor {
     adminRegistry.add(owner, ownerPermissions);
   };
 
-  // Public endpoint - accessible to all including guests (only returns approved testimonies)
+  // Public endpoint - accessible to all including guests (only returns approved testimonies for non-admins)
   public query ({ caller }) func getTestimony(id : Nat) : async ?Testimony {
     switch (testimonies.get(id)) {
       case (?testimony) {
@@ -895,7 +931,7 @@ actor {
   };
 
   // Public endpoint - accessible to all including guests (only returns approved testimonies)
-  public query ({ caller }) func getOnlyVerifiedTestimonies() : async [Testimony] {
+  public query func getOnlyVerifiedTestimonies() : async [Testimony] {
     testimonies.toArray().filter(func((_, t)) { t.approved }).map(func((_, t)) { t });
   };
 
@@ -918,4 +954,4 @@ actor {
   public query ({ caller }) func isCallerLockedOut() : async Bool {
     isCallerLockedOutInternal(caller);
   };
-};
+}

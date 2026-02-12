@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import RequireAdmin from '../components/auth/RequireAdmin';
 import RequireAdminAccessGate from '../components/auth/RequireAdminAccessGate';
 import AdminDashboardShell from '../components/adminDashboard/AdminDashboardShell';
 import DashboardHomeView from '../components/adminDashboard/views/DashboardHomeView';
@@ -11,6 +10,7 @@ import AdminTestimoniesTab from '../components/admin/AdminTestimoniesTab';
 import AdminRequestsTab from '../components/admin/AdminRequestsTab';
 import AdminMessagingTab from '../components/admin/AdminMessagingTab';
 import SecuritySettingsView from '../components/adminDashboard/views/SecuritySettingsView';
+import AdminLoreKnowledgeView from '../components/adminDashboard/views/AdminLoreKnowledgeView';
 import { CheckCircle } from 'lucide-react';
 
 export type DashboardSection = 
@@ -21,17 +21,18 @@ export type DashboardSection =
   | 'testimonies'
   | 'requests'
   | 'inbox'
+  | 'lore'
   | 'security';
 
 function AdminDashboardContent() {
   const [activeSection, setActiveSection] = useState<DashboardSection>('home');
   const [showGrantedMessage, setShowGrantedMessage] = useState(false);
   const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as { granted?: string };
+  const search = useSearch({ strict: false }) as { granted?: string | number };
 
   useEffect(() => {
     // Check if we just arrived from successful admin access
-    if (search.granted === '1') {
+    if (search.granted === '1' || search.granted === 1) {
       setShowGrantedMessage(true);
       
       // Clear the search param after showing the message
@@ -62,6 +63,8 @@ function AdminDashboardContent() {
         return <AdminRequestsTab />;
       case 'inbox':
         return <AdminMessagingTab />;
+      case 'lore':
+        return <AdminLoreKnowledgeView />;
       case 'security':
         return <SecuritySettingsView />;
       default:
@@ -73,13 +76,14 @@ function AdminDashboardContent() {
     <>
       {showGrantedMessage && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+          <div className="bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
             <CheckCircle className="h-5 w-5" />
-            <span className="font-semibold">Access Granted</span>
+            <span className="font-medium">Access Granted</span>
           </div>
         </div>
       )}
-      <AdminDashboardShell
+      
+      <AdminDashboardShell 
         activeSection={activeSection}
         onSectionChange={setActiveSection}
       >
@@ -91,10 +95,8 @@ function AdminDashboardContent() {
 
 export default function Admin() {
   return (
-    <RequireAdmin>
-      <RequireAdminAccessGate>
-        <AdminDashboardContent />
-      </RequireAdminAccessGate>
-    </RequireAdmin>
+    <RequireAdminAccessGate>
+      <AdminDashboardContent />
+    </RequireAdminAccessGate>
   );
 }

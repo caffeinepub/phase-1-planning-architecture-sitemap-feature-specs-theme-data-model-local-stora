@@ -29,7 +29,7 @@ export default function HeaderNav() {
     { to: ROUTE_PATHS.shop, label: 'Shop' },
     { to: ROUTE_PATHS.portfolio, label: 'Portfolio' },
     { to: ROUTE_PATHS.testimonies, label: 'Testimonies' },
-    { to: ROUTE_PATHS.lore, label: 'Lore & Knowledge' },
+    { to: ROUTE_PATHS.lore, label: 'Lore and Knowledge' },
     { to: ROUTE_PATHS.contact, label: 'Contact' },
   ];
 
